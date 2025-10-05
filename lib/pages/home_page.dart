@@ -1,5 +1,3 @@
-// --- HOME PAGE IMPLEMENTATION ---
-
 // Define the custom color palette from the image
 import 'package:flutter/material.dart';
 import 'package:grade_learn/widgets/navbar.dart';
@@ -47,7 +45,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 20),
                       _buildOlympiadCard(),
                       const SizedBox(height: 20),
-                      _buildStatsRow(),
+                      _buildStatsRow(), // This uses the new themed card
                       const SizedBox(height: 30),
                       _buildProgressPerformanceCard(),
                       // Extra space to prevent content from being hidden behind the NavBar
@@ -106,7 +104,7 @@ class _HomePageState extends State<HomePage> {
                   children: const [
                     Icon(
                       Icons.flash_on,
-                      size: 18,
+                      size: 20,
                       color: kLightOrangeColor,
                     ),
                     SizedBox(width: 5),
@@ -148,7 +146,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(25.0),
       decoration: BoxDecoration(
         color: kPurpleCardColor,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(
             color: kPurpleCardColor.withOpacity(0.4),
@@ -223,58 +221,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStatCard({
+  // --- NEW WIDGET IMPLEMENTATION FOR THE IMAGE THEME ---
+  Widget _buildThemedStatCard({
     required String title,
     required String value,
-    required Color color,
+    required Color cardColor,
+    required Color iconAccentColor,
     required IconData icon,
   }) {
+    // Determine text color based on the card color (using a light text for the light-colored cards)
+    final Color textColor = kDarkTextColor;
+    
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(20),
-        height: 130, // Fixed height for alignment
+        height: 150, // Fixed height for visual consistency
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          color: cardColor.withOpacity(0.2), // Use a very light tint of the accent color for the main body
+          borderRadius: BorderRadius.circular(30),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 18),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
+            // Top-left accent shape for the icon
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: iconAccentColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-              ],
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Icon(
+                    icon, 
+                    color: Colors.white, 
+                    size: 24
+                  ),
+                ),
+              ),
             ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: kDarkTextColor,
+            
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, top: 20.0, right: 20.0, bottom: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 5), // Spacer to push the title down
+                  // Title Text
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: textColor.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Value Text
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 55,
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                      height: 1.0, // Tighter line height
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -283,21 +304,32 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // UPDATED WIDGET TO USE THE THEMED CARDS
   Widget _buildStatsRow() {
-    return Row(
+    // The main card color will be the lightened background color
+    const Color orangeCardBg = Color(0xFFFFEFE3);
+    const Color purpleCardBg = Color(0xFFEFE8FF);
+
+return Row(
       children: [
-        _buildStatCard(
-          title: 'Lessons',
-          value: '78',
-          color: kLightOrangeColor,
-          icon: Icons.format_list_bulleted,
+        Expanded(
+          child: _buildThemedStatCard(
+            title: 'Lessons',
+            value: '78',
+            cardColor: kLightOrangeColor,
+            iconAccentColor: kLightOrangeColor,
+            icon: Icons.splitscreen,
+          ),
         ),
         const SizedBox(width: 20),
-        _buildStatCard(
-          title: 'Hours',
-          value: '43',
-          color: kLightPurpleColor,
-          icon: Icons.timer_outlined,
+        Expanded(
+          child: _buildThemedStatCard(
+            title: 'Hours',
+            value: '43',
+            cardColor: kLightPurpleColor,
+            iconAccentColor: kLightPurpleColor,
+            icon: Icons.watch_later_outlined,
+          ),
         ),
       ],
     );
@@ -381,7 +413,7 @@ class _HomePageState extends State<HomePage> {
               height: 100 * percentage, // Dynamic height based on percentage
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
           ),

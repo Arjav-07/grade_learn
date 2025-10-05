@@ -6,6 +6,7 @@ class MyRoutes {
   
   static String homeRoute = "/home";
   static String navbarRoute = "/navbar";
+  static String SkillPageRoute = "/skills";
   
 
 }

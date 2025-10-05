@@ -1,6 +1,5 @@
 // Define the custom color palette from the image
 import 'package:flutter/material.dart';
-import 'package:grade_learn/widgets/navbar.dart';
 
 const Color kBackgroundColor = Color(0xFFF7F7F9);
 const Color kPurpleCardColor = Color(0xFF7A64D8);
@@ -57,13 +56,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           // Navigation Bar positioned at the bottom
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: NavBar(
-              selectedIndex: _selectedIndex,
-              onTap: _onItemTapped,
-            ),
-          ),
+          
         ],
       ),
     );

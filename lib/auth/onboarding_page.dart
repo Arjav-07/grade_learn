@@ -55,9 +55,6 @@ class _OnboardingScreenState extends State<OnboardingPage> {
     super.dispose();
   }
 
-  void _navigateToHome() {
-    Navigator.pushReplacementNamed(context, MyRoutes.homeRoute);
-  }
 
   @override
   Widget build(BuildContext context) {

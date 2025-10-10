@@ -130,34 +130,53 @@ class CourseHomePage extends StatelessWidget {
   }
   
   // --- Search Bar Widget ---
-  Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200, // Light grey background
-        borderRadius: BorderRadius.circular(30.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: const TextField(
-        decoration: InputDecoration(
-          hintText: 'Search for courses, skills, and topics...',
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
-          border: InputBorder.none, // Removes the default underline
-          prefixIcon: Icon(Icons.search, color: Colors.grey, size: 24),
-          contentPadding: EdgeInsets.symmetric(vertical: 15),
-        ),
-        style: TextStyle(color: kDarkTextColor),
-      ),
-    );
-  }
+Widget _buildSearchBar() {
+  // Use kLightCardBackground for the background color consistency
+  const Color searchBarColor = Colors.white; 
 
+  return Container(
+    // Added a small horizontal padding for visual separation from the sides
+    padding: const EdgeInsets.symmetric(horizontal: 20.0), 
+    height: 60, // Fixed height makes the pill shape look better
+    decoration: BoxDecoration(
+      color: searchBarColor, 
+      // The radius needs to be about half the height to make the ends circular
+      borderRadius: BorderRadius.circular(30.0), 
+      border: Border.all(color: Colors.grey.shade200, width: 1.0),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.search, color: Colors.grey, size: 24),
+        const SizedBox(width: 8),
+        const Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: 'Search a job',
+              hintStyle: TextStyle(color: Colors.grey, fontSize: 18),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero, // Remove default padding
+            ),
+            style: TextStyle(color: kDarkTextColor),
+          ),
+        ),
+        // Filter Icon with Circular Edges
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: kDarkTextColor, // A darker color for the filter button
+            borderRadius: BorderRadius.circular(20), // Half the width/height
+          ),
+          child: const Icon(
+            Icons.tune,
+            color: Colors.white, // White icon on dark background
+            size: 20,
+          ),
+        ),
+      ],
+    ),
+  );
+}
   // --- Featured Card Widget (Blender 3D) ---
   Widget _buildFeaturedCard() {
     return Container(
@@ -302,7 +321,7 @@ class CourseHomePage extends StatelessWidget {
             height: 50,
             decoration: BoxDecoration(
               color: const Color(0xFF7c3aed).withOpacity(0.15), // Tinted background for the icon
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(30),
             ),
             child: const Center(
               child: Text(
@@ -481,7 +500,7 @@ class CourseHomePage extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.05), // Subtle black opacity background
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(30),
                   ),
                   child: Center(
                     child: Text(

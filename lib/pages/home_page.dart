@@ -1,5 +1,7 @@
 // Define the custom color palette from the image
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:grade_learn/services/user_service.dart';
 
 const Color kBackgroundColor = Color(0xFFF7F7F9);
 const Color kPurpleCardColor = Color(0xFF7A64D8);
@@ -15,14 +17,53 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0; // Set Home as the default selected item
+// Set Home as the default selected item
+  
+  // 🌟 NEW: Variables to store user data
+  final UserService _userService = UserService();
+  String _username = 'User'; // Default fallback
+  bool _isLoadingUsername = true;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // In a real app, you would navigate to different pages here
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername(); // 🌟 Fetch username when page loads
   }
+
+  // 🌟 NEW: Method to fetch username from Firestore
+  Future<void> _loadUsername() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    
+    if (currentUser != null) {
+      try {
+        final userData = await _userService.fetchUserByUid(currentUser.uid);
+        
+        if (userData != null && userData['username'] != null) {
+          setState(() {
+            _username = userData['username'];
+            _isLoadingUsername = false;
+          });
+        } else {
+          setState(() {
+            _username = 'User'; // Fallback if no username found
+            _isLoadingUsername = false;
+          });
+        }
+      } catch (e) {
+        print('Error loading username: $e');
+        setState(() {
+          _username = 'User'; // Fallback on error
+          _isLoadingUsername = false;
+        });
+      }
+    } else {
+      setState(() {
+        _username = 'Guest'; // Not logged in
+        _isLoadingUsername = false;
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -77,22 +118,30 @@ class _HomePageState extends State<HomePage> {
               child: CircleAvatar(
                 radius: 38,
                 // Replace with actual image asset
-                backgroundImage: AssetImage('assets/images/profile.png'
-              )
+                backgroundImage: AssetImage('assets/images/profile.png')
               ) 
-              ),
+            ),
             const SizedBox(width: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Hello, Arjav',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: kDarkTextColor,
-                  ),
-                ),
+                // 🌟 UPDATED: Display dynamic username with loading state
+                _isLoadingUsername
+                    ? const SizedBox(
+                        width: 100,
+                        child: LinearProgressIndicator(
+                          color: kPurpleCardColor,
+                          backgroundColor: Colors.transparent,
+                        ),
+                      )
+                    : Text(
+                        'Hello, $_username', // 🌟 Dynamic username
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: kDarkTextColor,
+                        ),
+                      ),
                 Row(
                   children: const [
                     Icon(
@@ -126,8 +175,7 @@ class _HomePageState extends State<HomePage> {
           child: const Icon(
             Icons.notifications_none,
             color: kDarkTextColor,
-            size: 28
-            ,
+            size: 28,
           ),
         ),
       ],
@@ -205,7 +253,6 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Image.asset(
               'assets/images/trophy.png',
-
               height: 180,
             ),
           ),
@@ -300,10 +347,8 @@ class _HomePageState extends State<HomePage> {
   // UPDATED WIDGET TO USE THE THEMED CARDS
   Widget _buildStatsRow() {
     // The main card color will be the lightened background color
-    const Color orangeCardBg = Color(0xFFFFEFE3);
-    const Color purpleCardBg = Color(0xFFEFE8FF);
 
-return Row(
+    return Row(
       children: [
         Expanded(
           child: _buildThemedStatCard(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:grade_learn/auth/signin_page.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // 🌟 Import Firebase Auth
+// Assuming this is your LoginScreen path
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -9,9 +10,67 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  // 🌟 Controllers and State
+  final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
+
   // --- COLOR PALETTE ---
   final Color _primaryColor = Colors.black87;
   final Color _textColor = const Color(0xFF64748B);
+
+  // 🌟 Password Reset Method
+  Future<void> _resetPassword() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email address.')),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
+
+      // On success, show the custom success dialog
+      _showSuccessDialog();
+
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'user-not-found') {
+        message = 'No user found for this email address.';
+      } else if (e.code == 'invalid-email') {
+        message = 'The email address is not valid.';
+      } else {
+        message = e.message ?? 'Failed to send reset link. Please try again.';
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An unexpected error occurred: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +95,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       color: _primaryColor,
                     ),
                     onPressed: () { 
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),));
+                      Navigator.pop(context); // Go back to LoginScreen
                     },
                   ),
                 ),
@@ -47,7 +103,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 20),
                 
                 // 1. Illustration
-                _IllustrationArea(),
+                const _IllustrationArea(),
                 
                 const SizedBox(height: 40),
                 
@@ -75,8 +131,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 
                 const SizedBox(height: 32),
                 
-                // 4. Email Field
+                // 4. Email Field (Updated)
                 _CustomTextField(
+                  controller: _emailController, // 🌟 Linked controller
                   icon: Icons.email_outlined,
                   hintText: 'Email Address',
                   primaryColor: _primaryColor,
@@ -84,14 +141,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 
                 const SizedBox(height: 32),
                 
-                // 5. Submit Button
+                // 5. Submit Button (Updated)
                 _ActionButton(
                   label: 'Reset Password',
                   primaryColor: _primaryColor,
-                  onPressed: () {
-                    // Handle password reset
-                    _showSuccessDialog();
-                  },
+                  onPressed: _isLoading ? () {} : _resetPassword, // 🌟 Call reset method
+                  isLoading: _isLoading, // 🌟 Pass loading state
                 ),
                 
                 const SizedBox(height: 20),
@@ -109,7 +164,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                        Navigator.pop(context); // Go back to LoginScreen
                       },
                       child: Text(
                         "Sign In",
@@ -172,8 +227,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
+              // Pop dialog, then pop back to login screen
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context); 
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -200,7 +256,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 }
 
-// --- ILLUSTRATION AREA ---
+// --- ILLUSTRATION AREA (No change) ---
 
 class _IllustrationArea extends StatelessWidget {
   const _IllustrationArea();
@@ -220,7 +276,11 @@ class _IllustrationArea extends StatelessWidget {
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Image.asset('assets/images/forgotpassword.png')
+              child: Image.asset('assets/images/forgotpassword.png',
+                errorBuilder: (_, __, ___) {
+                  return const Center(child: Icon(Icons.lock_open, size: 80, color: Colors.black87));
+                },
+              )
             );
           },
         ),
@@ -229,17 +289,19 @@ class _IllustrationArea extends StatelessWidget {
   }
 }
 
-// --- CUSTOM TEXT FIELD ---
+// --- CUSTOM TEXT FIELD (Updated to take controller) ---
 
 class _CustomTextField extends StatelessWidget {
   final IconData icon;
   final String hintText;
   final Color primaryColor;
+  final TextEditingController? controller; // 🌟 Added controller
 
   const _CustomTextField({
     required this.icon,
     required this.hintText,
     required this.primaryColor,
+    this.controller, // 🌟 Added controller
   });
 
   @override
@@ -250,6 +312,7 @@ class _CustomTextField extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
+        controller: controller, // 🌟 Use controller
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecoration(
           hintText: hintText,
@@ -284,17 +347,19 @@ class _CustomTextField extends StatelessWidget {
   }
 }
 
-// --- ACTION BUTTON ---
+// --- ACTION BUTTON (Updated to show loading state) ---
 
 class _ActionButton extends StatelessWidget {
   final String label;
   final Color primaryColor;
   final VoidCallback onPressed;
+  final bool isLoading; // 🌟 Added loading state
 
   const _ActionButton({
     required this.label,
     required this.primaryColor,
     required this.onPressed,
+    this.isLoading = false, // 🌟 Default to false
   });
 
   @override
@@ -302,7 +367,7 @@ class _ActionButton extends StatelessWidget {
     return SizedBox(
       height: 55,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed, // Disable button when loading
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
@@ -311,13 +376,22 @@ class _ActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(28),
           ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox( // 🌟 Show spinner when loading
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
       ),
     );
   }

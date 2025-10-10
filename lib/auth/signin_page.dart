@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:grade_learn/auth/forgotpassword_page.dart';
 import 'package:grade_learn/auth/signup_page.dart';
+import 'package:grade_learn/widgets/main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,12 +12,87 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // 1. Controllers for text fields
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  bool _isLoading = false; // Loading state for the button
 
   // --- COLOR PALETTE ---
   final Color _primaryColor = Colors.black87;
   final Color _textColor = const Color(0xFF64748B);
+
+  // 2. Sign In Method
+  Future<void> _signIn() async {
+    // Basic validation to prevent empty sign-in attempt
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password.')),
+      );
+      return;
+    }
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      // Attempt to sign in with email and password
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Successfully signed in.
+      // Use pushReplacement to prevent user from navigating back to login
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Successful!')),
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen())
+        );
+      }
+
+    } on FirebaseAuthException catch (e) {
+      String message;
+      // Handle common Firebase Auth errors
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        message = 'Invalid login credentials.';
+      } else if (e.code == 'invalid-email') {
+        message = 'The email address is not valid.';
+      } else {
+        message = e.message ?? 'An unknown authentication error occurred.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +109,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 
                 // 1. Illustration
-                _IllustrationArea(),
+                const _IllustrationArea(),
                 
-                const SizedBox(height: 20
-                ),
+                const SizedBox(height: 20),
                 
                 // 2. Title
                 Text(
@@ -60,17 +136,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 24),
                 
-                // 4. Username Field
+                // 4. Email Field
                 _CustomTextField(
+                  controller: _emailController,
                   icon: Icons.person_outline,
-                  hintText: 'Username',
+                  hintText: 'Email Address',
                   primaryColor: _primaryColor,
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 
                 const SizedBox(height: 16),
                 
                 // 5. Password Field
                 _PasswordField(
+                  controller: _passwordController,
                   obscurePassword: _obscurePassword,
                   primaryColor: _primaryColor,
                   onToggle: () {
@@ -108,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                         Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()));
                       },
                       child: Text(
                         "Forgot?",
@@ -128,9 +207,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 _ActionButton(
                   label: 'Sign In',
                   primaryColor: _primaryColor,
-                  onPressed: () {
-                    // Handle login
-                  },
+                  onPressed: _isLoading ? () {} : _signIn,
+                  isLoading: _isLoading,
                 ),
                 
                 const SizedBox(height: 24),
@@ -157,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 
                 // 9. Social Login Buttons
-                _SocialLoginButtons(),
+                const _SocialLoginButtons(),
                 
                 const SizedBox(height: 20),
                 
@@ -198,48 +276,30 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// --- ILLUSTRATION AREA ---
+// --- ILLUSTRATION AREA (No change) ---
 
 class _IllustrationArea extends StatelessWidget {
   const _IllustrationArea();
 
   @override
   Widget build(BuildContext context) {
+    // This widget relies on local assets, which won't load in a preview.
+    // I'm using a simple placeholder icon for safety.
     return SizedBox(
       height: 180,
       child: Center(
-        child: Image.asset(
-          'assets/images/login.png',
+        child: Container(
           height: 180,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset(
-              'assets/images/signin.png',
-              height: 180,
-              errorBuilder: (_, __, ___) {
-                return Container(
-                  height: 0,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.login,
-                      size: 10,
-                      color: Colors.black87,
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
+          child: Center(
+            child: Image.asset('assets/images/signin.png'),
+          ),
+        )
       ),
     );
   }
 }
 
-// --- SOCIAL LOGIN BUTTONS ---
+// --- SOCIAL LOGIN BUTTONS (No change) ---
 
 class _SocialLoginButtons extends StatelessWidget {
   const _SocialLoginButtons();
@@ -250,40 +310,25 @@ class _SocialLoginButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _SocialButton(
-          icon: Image.asset(
-            'assets/images/google.png',
-            height: 28,
-            width: 28,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.g_mobiledata, color: Color(0xFFDB4437), size: 28);
-            },
-          ),
+          // Placeholder for Google Icon
+          icon: Image.asset('assets/images/google.png',
+          height: 34,
+          width: 34,),
+          
           onPressed: () {
-            // Handle Google login
-            print('Google login pressed');
+            // TODO: Implement Google Sign-In with Firebase
+            debugPrint('Google login pressed');
           },
         ),
         const SizedBox(width: 20),
         _SocialButton(
-          icon: Image.asset(
-            'assets/images/github.png',
-            height: 28,
-            width: 28,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.code, color: Colors.black87, size: 28);
-            },
-          ),
+          // Placeholder for GitHub Icon
+          icon: Image.asset('assets/images/github.png',
+          height: 34,
+          width: 34,),
           onPressed: () {
-            // Handle GitHub login
-            print('GitHub login pressed');
-          },
-        ),
-        const SizedBox(width: 20),
-        _SocialButton(
-          icon: const Icon(Icons.apple, color: Colors.black, size: 28),
-          onPressed: () {
-            // Handle Apple login
-            print('Apple login pressed');
+            // TODO: Implement GitHub Sign-In with Firebase
+            debugPrint('GitHub login pressed');
           },
         ),
       ],
@@ -325,11 +370,15 @@ class _CustomTextField extends StatelessWidget {
   final IconData icon;
   final String hintText;
   final Color primaryColor;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
 
   const _CustomTextField({
     required this.icon,
     required this.hintText,
     required this.primaryColor,
+    this.controller,
+    this.keyboardType = TextInputType.text,
   });
 
   @override
@@ -337,9 +386,11 @@ class _CustomTextField extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(30),
       ),
       child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(
@@ -352,15 +403,15 @@ class _CustomTextField extends StatelessWidget {
             size: 22,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide(color: primaryColor, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(
@@ -379,11 +430,13 @@ class _PasswordField extends StatelessWidget {
   final bool obscurePassword;
   final Color primaryColor;
   final VoidCallback onToggle;
+  final TextEditingController? controller;
 
   const _PasswordField({
     required this.obscurePassword,
     required this.primaryColor,
     required this.onToggle,
+    this.controller,
   });
 
   @override
@@ -391,9 +444,10 @@ class _PasswordField extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(30),
       ),
       child: TextField(
+        controller: controller,
         obscureText: obscurePassword,
         decoration: InputDecoration(
           hintText: '************',
@@ -416,15 +470,15 @@ class _PasswordField extends StatelessWidget {
             onPressed: onToggle,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide(color: primaryColor, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(
@@ -442,12 +496,14 @@ class _PasswordField extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   final String label;
   final Color primaryColor;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   const _ActionButton({
     required this.label,
     required this.primaryColor,
     required this.onPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -455,7 +511,7 @@ class _ActionButton extends StatelessWidget {
     return SizedBox(
       height: 55,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
@@ -464,13 +520,22 @@ class _ActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(28),
           ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
       ),
     );
   }

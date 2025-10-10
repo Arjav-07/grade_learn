@@ -1,7 +1,10 @@
 // main_navigation_screen.dart (or include this in a suitable file)
 
 import 'package:flutter/material.dart';
+import 'package:grade_learn/pages/chatwelcome_page.dart';
 import 'package:grade_learn/pages/home_page.dart'; // Import your pages
+import 'package:grade_learn/pages/internship_page.dart';
+import 'package:grade_learn/pages/profile.dart';
 import 'package:grade_learn/pages/skill_page.dart';
 import 'package:grade_learn/widgets/navbar.dart';
 
@@ -37,9 +40,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _widgetOptions = <Widget>[
     const HomePage(), // Index 0
     const SkillPage(), // Index 3 (Assuming this is your 'Courses/Content' page)
-    const PlaceholderPage(title: 'Dashboard/Progress'), // Index 1
-    const PlaceholderPage(title: 'Favorites/Saved'), // Index 2
-    const PlaceholderPage(title: 'Settings'), // Index 4
+    const InternshipPage(), // Index 1
+    const ChatWelcome(), // Index 2
+    const ProfileApp(), // Index 4
   ];
 
   void _onItemTapped(int index) {

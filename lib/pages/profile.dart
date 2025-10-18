@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:grade_learn/auth/onboarding_page.dart';
-import 'package:grade_learn/pages/setting.dart';
+import 'package:grade_learn/settings/setting.dart';
 import 'package:grade_learn/screens/applied.dart';
 import 'package:grade_learn/screens/completed.dart';
 import 'package:grade_learn/screens/dashboard.dart';

@@ -3,13 +3,118 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+// --- THEME CONSTANTS ---
+const Color kScaffoldBackground = Color(0xFFF8F9FA);
+const Color kPrimaryTextColor = Color(0xFF343A40);
+const Color kSecondaryTextColor = Color(0xFF6C757D);
+const Color kAccentColor = Colors.black;
+const Color kBotBubbleColor = Color(0xFFE9ECEF);
+const Color kUserBubbleColor = Color(0xFF343A40);
+const Color kInputFieldColor = Colors.white;
+
+// ✨ ENHANCED MODEL with message types
+enum MessageType { text, typing, error }
 
 class ChatMessage {
   final String text;
   final bool isUser;
+  final MessageType type;
+  // ✨ NEW: Add suggestions for interactive UX
+  final List<String> suggestions;
 
-  ChatMessage({required this.text, required this.isUser});
+  ChatMessage({
+    required this.text,
+    this.isUser = false,
+    this.type = MessageType.text,
+    this.suggestions = const [],
+  });
 }
+
+// ✨ NEW: Dedicated service for all chat logic and API calls
+class ChatService {
+  final String? _apiKey = dotenv.env['GEMINI_API_KEY'];
+  final String _apiUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-0514:generateContent';
+  
+  // This could be moved to a separate UserData model
+  Map<String, String?> userDetails = {
+    'study': null, 'level': null, 'interests': null, 'goals': null, 'skills': null,
+  };
+
+  String currentQuestionKey = 'welcome';
+  bool initialQuestionsComplete = false;
+  List<Map<String, dynamic>> chatHistory = [];
+
+  static const Map<String, Map<String, String>> conversationFlow = {
+    'welcome': {'question': "Hi there! I'm your personal AI mentor. I'm here to help you build a roadmap from learning new skills all the way to landing a job. To get started, could you tell me your current field of study? (e.g., Computer Science, Business, Arts)", 'next': 'study'},
+    'study': {'question': "Great, thanks for sharing! Now, what's your current educational level? (e.g., High School, Undergraduate, Graduate)", 'next': 'level'},
+    'level': {'question': "Understood. What are some of your interests or hobbies? (e.g., video games, painting, technology)", 'next': 'interests'},
+    'interests': {'question': "That's interesting! Do you have any existing skills you'd like to build upon? (e.g., basic Python, graphic design, writing)", 'next': 'skills'},
+    'skills': {'question': "Good to know. And what are your long-term career goals? (e.g., become a developer, start a business)", 'next': 'goals'},
+    'goals': {'question': "Thanks for sharing! I'm generating your personalized 'Phase 1' roadmap now. This might take a moment...", 'next': 'recommendation'}
+  };
+
+  void restart() {
+    userDetails.updateAll((key, value) => null);
+    currentQuestionKey = 'welcome';
+    initialQuestionsComplete = false;
+    chatHistory.clear();
+  }
+
+  // Handles the structured initial questions
+  ChatMessage processInitialResponse(String response) {
+    userDetails[currentQuestionKey] = response;
+    final nextKey = conversationFlow[currentQuestionKey]!['next']!;
+    currentQuestionKey = nextKey;
+    final nextQuestion = conversationFlow[currentQuestionKey]!['question']!;
+    return ChatMessage(text: nextQuestion);
+  }
+
+  // Generates the final prompt after collecting user details
+  String get recommendationPrompt {
+    initialQuestionsComplete = true;
+    final prompt = "My details are: Study: ${userDetails['study']}, Level: ${userDetails['level']}, Interests: ${userDetails['interests']}, Skills: ${userDetails['skills']}, Goal: ${userDetails['goals']}. Please generate my 'Phase 1' learning roadmap. Structure your response clearly with phases or steps. At the end, provide three short, actionable follow-up questions as suggestions for our conversation, enclosed in brackets like [suggestion1][suggestion2][suggestion3].";
+    chatHistory.add({"role": "user", "parts": [{"text": prompt}]});
+    return prompt;
+  }
+
+  // The main API call logic
+  Future<ChatMessage> getAIResponse(String userMessage) async {
+    if (_apiKey == null) {
+      return ChatMessage(text: "API Key not found. Please check your .env file.", type: MessageType.error);
+    }
+    
+    chatHistory.add({"role": "user", "parts": [{"text": userMessage}]});
+
+    const systemPrompt = "You are SkillUp, an AI mentor that helps users learn new skills and plan their careers. You are friendly, clear, and encouraging. When asked, you provide three short, actionable follow-up questions as suggestions for the user, enclosed in brackets at the very end of your response, like [suggestion1][suggestion2][suggestion3].";
+    final contextualHistory = chatHistory.length > 10 ? chatHistory.sublist(chatHistory.length - 10) : chatHistory;
+    final payload = {'contents': contextualHistory, 'systemInstruction': {'parts': [{'text': systemPrompt}]}};
+
+    try {
+      final response = await http.post(Uri.parse('$_apiUrl?key=$_apiKey'), headers: {'Content-Type': 'application/json'}, body: jsonEncode(payload));
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        String botResponseText = result['candidates'][0]['content']['parts'][0]['text'];
+        chatHistory.add({"role": "model", "parts": [{"text": botResponseText}]});
+
+        // ✨ NEW: Parse suggestions from the response
+        final RegExp suggestionRegex = RegExp(r"\[(.*?)\]");
+        final matches = suggestionRegex.allMatches(botResponseText);
+        final suggestions = matches.map((m) => m.group(1)!).toList();
+        
+        // Remove the suggestion tags from the visible text
+        botResponseText = botResponseText.replaceAll(suggestionRegex, "").trim();
+
+        return ChatMessage(text: botResponseText, suggestions: suggestions);
+      } else {
+        return ChatMessage(text: "Hmm, I couldn’t reach my AI brain right now. Try again later!", type: MessageType.error);
+      }
+    } catch (e) {
+      return ChatMessage(text: "Oops! Something went wrong. Please check your internet connection.", type: MessageType.error);
+    }
+  }
+}
+
 
 class SkillUpApp extends StatefulWidget {
   const SkillUpApp({Key? key}) : super(key: key);
@@ -22,63 +127,19 @@ class _SkillUpAppState extends State<SkillUpApp> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
-  bool _isTyping = false;
+  bool _conversationStarted = false;
 
-  Map<String, String?> userDetails = {
-    'study': null,
-    'level': null,
-    'interests': null,
-    'goals': null,
-    'skills': null,
-  };
-
-  String currentQuestion = 'welcome';
-  bool initialQuestionsComplete = false;
-  List<Map<String, dynamic>> chatHistory = [];
-
-
-  static const Map<String, Map<String, String>> conversationFlow = {
-    'welcome': {
-      'question':
-          "Hi there! I'm your personal AI mentor, SkillUp Bot. I'm here to help you build a roadmap from learning new skills all the way to landing a job. To get started, could you tell me your current field of study? (e.g., Computer Science, Business, Arts)",
-      'next': 'study'
-    },
-    'study': {
-      'question':
-          "Great, thanks for sharing! Now, what's your current educational level? (e.g., High School, Undergraduate, Graduate)",
-      'next': 'level'
-    },
-    'level': {
-      'question':
-          "Understood. What are some of your interests or hobbies? This helps me tailor the advice to be more engaging for you. (e.g., video games, painting, writing, technology)",
-      'next': 'interests'
-    },
-    'interests': {
-      'question':
-          "That's interesting! Do you have any existing skills you'd like to build upon? (e.g., basic Python, graphic design, good at writing)",
-      'next': 'skills'
-    },
-    'skills': {
-      'question':
-          "Good to know. And what are your long-term career goals? Don't worry if it's not perfectly clear yet. (e.g., become a software developer, start my own business, work in digital marketing)",
-      'next': 'goals'
-    },
-    'goals': {
-      'question':
-          "Thank you for sharing all of that. I'm generating a personalized 'Phase 1' roadmap for you now to build your foundation. This might take a moment...",
-      'next': 'recommendation'
-    }
-  };
+  // ✨ REFACTORED: Instantiate the service
+  final ChatService _chatService = ChatService();
 
   @override
   void initState() {
     super.initState();
-    _askQuestion('welcome');
   }
-  
+
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
-       if (_scrollController.hasClients) {
+      if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -88,327 +149,105 @@ class _SkillUpAppState extends State<SkillUpApp> {
     });
   }
 
-  void _addMessage(String text, {bool isUser = false}) {
+  void _addMessage(ChatMessage message) {
     setState(() {
-      _messages.add(ChatMessage(text: text, isUser: isUser));
-      if(!isUser) {
-        // Add bot messages to history for context
-        chatHistory.add({"role": "model", "parts": [{"text": text}]});
-      }
+      // Remove typing indicator before adding new message
+      _messages.removeWhere((msg) => msg.type == MessageType.typing);
+      _messages.add(message);
     });
     _scrollToBottom();
   }
 
   void _handleSubmitted(String text) {
     if (text.trim().isEmpty) return;
+    final userMessage = text;
     _textController.clear();
-    
-    // Add user message to UI and history
-    _addMessage(text, isUser: true);
-    chatHistory.add({"role": "user", "parts": [{"text": text}]});
 
-    _processUserResponse(text);
-  }
-
-  Future<void> _getAIResponse({String? initialPrompt}) async {
-    setState(() {
-      _isTyping = true;
-    });
-
-    final apiKey = dotenv.env['GEMINI_API_KEY'];
-    if (apiKey == null) {
-      _addMessage("API Key not found. Please check your .env file.");
-      setState(() => _isTyping = false);
+    if (!_conversationStarted) {
+      setState(() => _conversationStarted = true);
+       _addMessage(ChatMessage(text: userMessage, isUser: true));
+      // Start the conversation flow
+      final botMessage = ChatMessage(text: ChatService.conversationFlow['welcome']!['question']!);
+      _addMessage(botMessage);
       return;
     }
-    final apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=$apiKey';
     
-    const systemPrompt = """
-You are SkillUp Bot, an expert AI career mentor with a warm, friendly, and very personable approach. Your goal is to make the student feel like they are talking to a real, knowledgeable, and caring person.
-
-**Personality & Tone:**
-- Greet the user warmly when appropriate (e.g., "Hi there!", "Hello!").
-- Use conversational gestures. If the user thanks you, respond with "You're very welcome!" or "My pleasure!". When you ask for information, say "thanks for sharing".
-- Be consistently encouraging and positive. Use phrases like "That's a great goal!" or "It's perfectly okay to be unsure about that."
-- Your tone should be that of a helpful guide, not a robot. Use "I" and "you" frequently.
-
-**Guidance Structure:**
-Your guidance is broken down into three main phases. Only provide one phase at a time and wait for the user to indicate they are ready for the next.
-
-**Phase 1: Building Your Foundation**
-When you first get the user's details, provide a personalized 'Phase 1' plan.
-- Ask clarifying questions if their interests are vague. For example, if they say "technology," ask "What about technology excites you? Is it coding, design, or something else?"
-- Suggest specific foundational skills.
-- Recommend a mix of free resources (specific YouTube channels, websites) and maybe one highly-rated affordable course (like on Udemy or Coursera).
-- Propose a simple, fun beginner project that aligns with their interests.
-- End this phase by saying something encouraging and asking them to check back in. For example: "This is a great starting point. Take your time with these, and don't hesitate to ask questions along the way. When you feel you've got a good handle on the basics, let me know you're ready, and we can start talking about internships!"
-
-**Phase 2: Gearing Up for Internships**
-When the user says they're ready for the next step:
-- Provide the 'Phase 2' plan.
-- Give detailed advice on building a portfolio that stands out.
-- Offer actionable tips for their resume, maybe even suggesting a template.
-- Explain networking simply. "Think of it as making professional friends. Here's how to start on LinkedIn..."
-- Suggest specific platforms to find internships in their field.
-- Include a section on preparing for common interview questions.
-- End by saying: "Building your portfolio and resume takes effort, but it's worth it. Once you feel confident with what you've prepared, let me know, and we'll tackle the final step: getting you job-ready."
-
-**Phase 3: Becoming Job-Ready**
-When the user is ready for the final phase:
-- Provide the 'Phase 3' plan.
-- Discuss advanced skills or specializations they could pursue.
-- Offer tips on building a professional online presence beyond just LinkedIn (e.g., GitHub, Behance, personal blog).
-- Give a gentle introduction to salary research and negotiation.
-- Provide strategies for tailoring their job applications.
-- End with an encouraging closing statement like, "You've come a long way! The job hunt is a marathon, not a sprint. I'm here to help if you have more questions. Good luck!"
-
-**General Interaction Rules:**
-- If a user asks a direct question at any point, answer it directly before continuing with the guidance plan. Don't be rigid.
-- Use a conversational tone. Use "you" and "I". Be encouraging.
-- Tailor all advice to the user's specific details from the conversation.
-""";
-
-    // Use the last few messages for context to keep the payload small
-    final contextualHistory = chatHistory.length > 10 ? chatHistory.sublist(chatHistory.length - 10) : chatHistory;
-
-    final payload = {
-        'contents': contextualHistory,
-        'systemInstruction': { 'parts': [{'text': systemPrompt}] },
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        final botResponse = result['candidates'][0]['content']['parts'][0]['text'];
-        _addMessage(botResponse);
-      } else {
-        _addMessage("Sorry, I'm having trouble connecting to my AI brain right now. Please try again later.");
-      }
-    } catch (e) {
-      _addMessage("Sorry, something went wrong. Please check your internet connection.");
-    } finally {
-      setState(() {
-        _isTyping = false;
-      });
-    }
-  }
-
-
-  void _processUserResponse(String response) {
-    // Restart logic is always available
-    if (response.toLowerCase().trim() == 'restart') {
+    _addMessage(ChatMessage(text: userMessage, isUser: true));
+    
+    // Handle restart command
+    if (userMessage.toLowerCase().trim() == 'restart') {
+      _chatService.restart();
       setState(() {
         _messages.clear();
-        chatHistory.clear();
-        userDetails = {'study': null, 'level': null, 'interests': null, 'goals': null, 'skills': null};
-        currentQuestion = 'welcome';
-        initialQuestionsComplete = false;
+        _conversationStarted = false;
       });
-      _askQuestion('welcome');
       return;
     }
 
-    if (initialQuestionsComplete) {
-      // If initial questions are done, every input is a direct query to the AI
-      _getAIResponse();
-      return;
-    }
+    // Show typing indicator
+    setState(() {
+      _messages.add(ChatMessage(text: "SkillUp is thinking...", type: MessageType.typing));
+    });
+    _scrollToBottom();
 
-    // Initial data gathering flow
-    switch (currentQuestion) {
-      case 'study':
-        userDetails['study'] = response;
-        _askQuestion('level');
-        break;
-      case 'level':
-        userDetails['level'] = response;
-        _askQuestion('interests');
-        break;
-      case 'interests':
-        userDetails['interests'] = response;
-        _askQuestion('skills');
-        break;
-       case 'skills':
-        userDetails['skills'] = response;
-        _askQuestion('goals');
-        break;
-      case 'goals':
-        userDetails['goals'] = response;
-        _askQuestion('recommendation');
-        break;
-    }
+    // Process response using the service
+    _processUserResponse(userMessage);
   }
 
-  void _askQuestion(String stage) {
-    _addMessage(conversationFlow[stage]!['question']!);
-    final nextStage = conversationFlow[stage]!['next']!;
-
-    if (nextStage == 'recommendation') {
-      // Create the initial prompt and call the AI
-      final initialPrompt = "My details are: Study: ${userDetails['study']}, Level: ${userDetails['level']}, Interests: ${userDetails['interests']}, Existing Skills: ${userDetails['skills']}, Goal: ${userDetails['goals']}. Please start by providing my 'Phase 1' roadmap.";
-      // Add this initial prompt to history so the AI knows the user's details
-      chatHistory.add({"role": "user", "parts": [{"text": initialPrompt}]});
-      _getAIResponse();
-      setState(() {
-        initialQuestionsComplete = true; // Switch to continuous chat mode
-      });
+  Future<void> _processUserResponse(String response) async {
+    if (!_chatService.initialQuestionsComplete) {
+      final botMessage = _chatService.processInitialResponse(response);
+      _addMessage(botMessage);
+      
+      // Check if we need to trigger the recommendation
+      if (_chatService.currentQuestionKey == 'recommendation') {
+        final recommendationPrompt = _chatService.recommendationPrompt;
+        final aiResponse = await _chatService.getAIResponse(recommendationPrompt);
+        _addMessage(aiResponse);
+      }
     } else {
-       setState(() {
-        currentQuestion = nextStage;
-      });
+      // It's a general follow-up question
+      final aiResponse = await _chatService.getAIResponse(response);
+      _addMessage(aiResponse);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kScaffoldBackground,
       appBar: AppBar(
-        title: const Text('SkillUp AI Bot'),
-        centerTitle: true,
-        elevation: 1,
+        backgroundColor: kScaffoldBackground, elevation: 0, centerTitle: true,
+        title: const Text('SkillUp AI', style: TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                 if (index == _messages.length) {
-                  return _buildTypingIndicator();
-                }
-                final message = _messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
-          ),
-          _buildTextInput(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                  topLeft: Radius.circular(20),
-                ),
-            ),
-            child: const Text("SkillUp is thinking...", style: TextStyle(color: Colors.black54)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(ChatMessage message) {
-    final isUser = message.isUser;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: isUser ? Colors.indigo[500] : Colors.white,
-                borderRadius: isUser
-                    ? const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      )
-                    : const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                        topLeft: Radius.circular(20),
-                      ),
-                boxShadow: [
-                  if(!isUser)
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2)
-                    )
-                ]
-              ),
-              child: Text(
-                message.text,
-                style: TextStyle(
-                  color: isUser ? Colors.white : Colors.black87,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextInput() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            offset: const Offset(0, -1),
-            blurRadius: 4,
-            color: Colors.black.withOpacity(0.05),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _textController,
-                onSubmitted: _handleSubmitted,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                  hintText: 'Type your message or "restart"...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: BorderSide.none,
+            child: !_conversationStarted
+                ? const InitialView() // ✨ REFACTORED to its own widget
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      // ✨ REFACTORED: Cleaner message handling
+                      if (message.type == MessageType.typing) {
+                        return const TypingIndicator();
+                      }
+                      return ChatMessageBubble(message: message, onSuggestionTapped: _handleSubmitted);
+                    },
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8.0),
-            IconButton(
-              icon: const Icon(Icons.send),
-              onPressed: () => _handleSubmitted(_textController.text),
-              color: Theme.of(context).primaryColor,
-            ),
-          ],
-        ),
+          ),
+          TextInputBar(
+            textController: _textController,
+            onSubmitted: _handleSubmitted,
+          ), // ✨ REFACTORED to its own widget
+        ],
       ),
     );
   }
-
-  @override
+   @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
@@ -416,3 +255,174 @@ When the user is ready for the final phase:
   }
 }
 
+
+// --- ✨ NEW WIDGETS FOR BETTER ORGANIZATION ---
+
+class InitialView extends StatelessWidget {
+  const InitialView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // This is your previous _buildInitialView, now cleanly separated.
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          Icon(Icons.auto_awesome, size: 48, color: kSecondaryTextColor.withOpacity(0.5)),
+          const SizedBox(height: 16),
+          const Text('Capabilities', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: kPrimaryTextColor)),
+          const SizedBox(height: 32),
+          _buildCapabilityCard('Personalized Roadmaps', '(From learning to landing a job)'),
+          const SizedBox(height: 16),
+          _buildCapabilityCard('Answer Your Questions', '(Ask me anything about your career path)'),
+          const SizedBox(height: 16),
+          _buildCapabilityCard('Conversational AI', '(I can chat like a human!)'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCapabilityCard(String title, String subtitle) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: kBotBubbleColor)),
+      child: Column(
+        children: [
+          Text(title, style: const TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.w600, fontSize: 16)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: kSecondaryTextColor, fontSize: 14), textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+}
+
+
+class ChatMessageBubble extends StatelessWidget {
+  final ChatMessage message;
+  final Function(String) onSuggestionTapped;
+  
+  const ChatMessageBubble({Key? key, required this.message, required this.onSuggestionTapped}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(20.0);
+    final isUser = message.isUser;
+    
+    return Column(
+      crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 5.0),
+          child: Row(
+            mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  decoration: BoxDecoration(
+                    color: isUser ? kUserBubbleColor : kBotBubbleColor,
+                    borderRadius: isUser
+                        ? borderRadius.copyWith(bottomRight: const Radius.circular(5))
+                        : borderRadius.copyWith(bottomLeft: const Radius.circular(5)),
+                  ),
+                  child: Text(message.text, style: TextStyle(color: isUser ? Colors.white : kPrimaryTextColor, fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // ✨ NEW: Display suggestion chips
+        if (message.suggestions.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, left: 8.0, right: 8.0),
+            child: Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: message.suggestions.map((suggestion) => ActionChip(
+                label: Text(suggestion),
+                onPressed: () => onSuggestionTapped(suggestion),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                  side: const BorderSide(color: kBotBubbleColor)
+                ),
+              )).toList(),
+            ),
+          )
+      ],
+    );
+  }
+}
+
+class TypingIndicator extends StatelessWidget {
+  const TypingIndicator({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+     return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          color: kBotBubbleColor,
+          borderRadius: BorderRadius.circular(20.0).copyWith(bottomLeft: const Radius.circular(5)),
+        ),
+        child: const Text("SkillUp is thinking...", style: TextStyle(color: kSecondaryTextColor, fontStyle: FontStyle.italic)),
+      ),
+    );
+  }
+}
+
+class TextInputBar extends StatelessWidget {
+  final TextEditingController textController;
+  final Function(String) onSubmitted;
+
+  const TextInputBar({Key? key, required this.textController, required this.onSubmitted}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      decoration: const BoxDecoration(
+        color: kInputFieldColor,
+        border: Border(top: BorderSide(color: kBotBubbleColor, width: 1.0)),
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: textController,
+                onSubmitted: onSubmitted,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
+                  hintText: 'Ask me anything...',
+                  hintStyle: const TextStyle(color: kSecondaryTextColor),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30.0), borderSide: const BorderSide(color: kBotBubbleColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30.0), borderSide: const BorderSide(color: kBotBubbleColor)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30.0), borderSide: const BorderSide(color: kAccentColor)),
+                  filled: true,
+                  fillColor: kInputFieldColor,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8.0),
+            InkWell(
+              onTap: () => onSubmitted(textController.text),
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(color: kAccentColor, shape: BoxShape.circle),
+                child: const Icon(Icons.send, color: Colors.white, size: 24),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

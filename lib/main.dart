@@ -7,6 +7,7 @@ import 'package:grade_learn/screens/dashboard.dart';
 import 'package:grade_learn/screens/internship_detail_page.dart';
 import 'package:grade_learn/screens/recent.dart';
 import 'package:grade_learn/screens/skill_detail_page.dart';
+import 'package:grade_learn/settings/edit_profile.dart';
 import 'package:provider/provider.dart'; // ⭐️ ADDED: Import for the Provider package
 import 'firebase_options.dart';
 

@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:grade_learn/auth/onboarding_page.dart';
+import 'package:grade_learn/settings/change_password.dart';
+import 'package:grade_learn/settings/edit_profile.dart';
+import 'package:grade_learn/settings/help_center.dart';
+import 'package:grade_learn/settings/privac';
+import 'package:grade_learn/settings/privacy_policy.dart';
 
 // --- Constants for consistent design ---
 const Color kPrimaryColor = Color(0xFF7A64D8);
@@ -64,9 +70,28 @@ class _SettingsPageState extends State<SettingsPage> {
                   _SettingsGroupCard(
                     title: 'Account',
                     children: [
-                      _SettingsTile(icon: Icons.person_outline, title: 'Edit Profile', onTap: () {}),
-                      _SettingsTile(icon: Icons.lock_outline, title: 'Change Password', onTap: () {}),
-                      _SettingsTile(icon: Icons.credit_card_outlined, title: 'Payment Methods', onTap: () {}),
+                      _SettingsTile(icon: Icons.person_outline, title: 'Edit Profile', onTap: () {
+    // Example: Navigate to EditProfilePage with dummy initial data
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const EditProfilePage(
+        ),
+      ),
+    );
+  },
+                      ),
+                      _SettingsTile(icon: Icons.lock_outline, title: 'Change Password', onTap: () {
+    // Example: Navigate to EditProfilePage with dummy initial data
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChangePasswordPage(
+        ),
+      ),
+    );
+  },),
+                      _SettingsTile(icon: Icons.credit_card_outlined, title: 'Payment Methods', onTap: () {},),
                     ],
                   ),
 
@@ -93,17 +118,31 @@ class _SettingsPageState extends State<SettingsPage> {
                   _SettingsGroupCard(
                     title: 'Support & About',
                     children: [
-                      _SettingsTile(icon: Icons.help_outline, title: 'Help Center', onTap: () {}),
-                      _SettingsTile(icon: Icons.privacy_tip_outlined, title: 'Privacy Policy', onTap: () {}),
-                      _SettingsTile(icon: Icons.description_outlined, title: 'Terms of Service', onTap: () {}),
+                      _SettingsTile(icon: Icons.help_outline, title: 'Help Center', onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const HelpCenterPage(),),);
+                          }),
+                      _SettingsTile(icon: Icons.privacy_tip_outlined, title: 'Privacy Policy', onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PrivacyPolicyPage(),),);
+                          }),
+                      _SettingsTile(icon: Icons.description_outlined, title: 'Terms of Service', onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const TermsAndConditionsPage(),),);
+                          }),
                     ],
                   ),
 
                   // --- Logout Button Card ---
                   const SizedBox(height: 16),
                   _LogoutButtonCard(onTap: () {
-                    // Handle Logout Logic
-                  }),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OnboardingPage(),),);
+                          }),
                   const SizedBox(height: 16),
                 ],
               ),

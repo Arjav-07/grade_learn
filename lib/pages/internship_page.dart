@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grade_learn/screens/internship_detail_page.dart';
 
 // --- Data Model for a Job Card ---
 class JobCardData {
@@ -26,7 +27,7 @@ class JobCardData {
   });
 }
 
-// --- Color Palette from the Course Theme ---
+// --- Color Palette ---
 const Color kOrangeHeader = Color(0xFFF9A86E);
 const Color kOrangePill = Color(0xFFE87A3E);
 const Color kDarkPill = Color(0xFF2C2C2C);
@@ -44,8 +45,7 @@ class InternshipPage extends StatefulWidget {
 
 class _InternshipPageState extends State<InternshipPage> {
   final TextEditingController _searchController = TextEditingController();
-  
-  // Master list of all jobs
+
   final List<JobCardData> _allJobs = [
     JobCardData(
       tagText: 'Internship',
@@ -55,8 +55,8 @@ class _InternshipPageState extends State<InternshipPage> {
       location: 'Bangalore, India',
       salary: '₹ 80,000 - 1,20,000 /month',
       duration: '4 Months',
-      cardColor: const Color(0xFFF9BE84), // Light peach
-      textColor: const Color(0xFF86542A), // Dark orange text
+      cardColor: const Color(0xFFF9BE84),
+      textColor: const Color(0xFF86542A),
     ),
     JobCardData(
       tagText: 'Actively hiring',
@@ -66,8 +66,8 @@ class _InternshipPageState extends State<InternshipPage> {
       location: 'Work From Home',
       salary: '₹ 12,000 - 1,50,000 /month',
       duration: '6 Months',
-      cardColor: const Color(0xFFE4D9FF), // Light purple
-      textColor: const Color(0xFF65499D), // Dark purple text
+      cardColor: const Color(0xFFE4D9FF),
+      textColor: const Color(0xFF65499D),
     ),
     JobCardData(
       tagText: 'Full-Time',
@@ -77,32 +77,28 @@ class _InternshipPageState extends State<InternshipPage> {
       location: 'Remote (India)',
       salary: '₹ 40,000 - 90,000 /month',
       duration: 'Permanent',
-      cardColor: kDarkPill, // Dark grey
-      textColor: Colors.white, // White text
+      cardColor: kDarkPill,
+      textColor: Colors.white,
     ),
-    
   ];
-  
-  // --- State Variables for Filtering ---
+
   List<JobCardData> _filteredJobs = [];
   String _selectedCategory = 'All';
   bool _showCategories = false;
-  
-  // Map category keys to display names and icons
+
   final Map<String, String> _categoryMap = {
     'All': 'All',
     'Actively hiring': 'Hiring',
     'Full-Time': 'Full-Time',
     'Internship': 'Internship',
   };
-  
+
   final Map<String, IconData> _iconMap = {
     'All': Icons.apps,
     'Hiring': Icons.trending_up,
     'Full-Time': Icons.business_center,
     'Internship': Icons.school,
   };
-
 
   @override
   void initState() {
@@ -118,19 +114,15 @@ class _InternshipPageState extends State<InternshipPage> {
     super.dispose();
   }
 
-  // --- LOGIC FOR COMBINED SEARCH AND CATEGORY FILTERING ---
   void _filterJobs() {
     final searchQuery = _searchController.text.toLowerCase();
     setState(() {
       _filteredJobs = _allJobs.where((job) {
-        // Check if the job matches the selected category (or if 'All' is selected)
-        final categoryMatches = _selectedCategory == 'All' || job.tagText == _selectedCategory;
-        
-        // Check if the job title or company matches the search query
+        final categoryMatches =
+            _selectedCategory == 'All' || job.tagText == _selectedCategory;
         final searchMatches = searchQuery.isEmpty ||
             job.jobTitle.toLowerCase().contains(searchQuery) ||
             job.company.toLowerCase().contains(searchQuery);
-            
         return categoryMatches && searchMatches;
       }).toList();
     });
@@ -140,8 +132,7 @@ class _InternshipPageState extends State<InternshipPage> {
     setState(() {
       _selectedCategory = categoryKey;
     });
-    // Re-run the filter logic when a new category is selected
-    _filterJobs(); 
+    _filterJobs();
   }
 
   @override
@@ -177,13 +168,11 @@ class _InternshipPageState extends State<InternshipPage> {
           Positioned(
             top: -40,
             right: -20,
-            child: SizedBox( // Use SizedBox to control the image size
-              height: 180, // Adjust height as needed
-              // Replace the Icon with Image.asset
+            child: SizedBox(
+              height: 180,
               child: Image.asset(
-                'assets/images/internship.png', // <--- Your image asset path here
-                fit: BoxFit.contain, // Adjust fit as needed
-                // REMOVED: color: Colors.black.withOpacity(0.08), 
+                'assets/images/internship.png',
+                fit: BoxFit.contain,
               ),
             ),
           ),
@@ -237,7 +226,6 @@ class _InternshipPageState extends State<InternshipPage> {
     );
   }
 
-  // The main content area below the header
   Widget _buildInternshipContent() {
     return Container(
       width: double.infinity,
@@ -257,12 +245,13 @@ class _InternshipPageState extends State<InternshipPage> {
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
-              child: _showCategories ? _buildCategorySelector() : const SizedBox.shrink(),
+              child: _showCategories
+                  ? _buildCategorySelector()
+                  : const SizedBox.shrink(),
             ),
             const SizedBox(height: 30),
             _buildSectionHeader(context, 'Recommended for you'),
             const SizedBox(height: 16),
-            // Build job cards from the filtered list
             _buildJobList(),
             const SizedBox(height: 40),
           ],
@@ -270,8 +259,7 @@ class _InternshipPageState extends State<InternshipPage> {
       ),
     );
   }
-  
-  // Widget to display the list of job cards
+
   Widget _buildJobList() {
     if (_filteredJobs.isEmpty) {
       return const Padding(
@@ -292,22 +280,32 @@ class _InternshipPageState extends State<InternshipPage> {
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final job = _filteredJobs[index];
-        return _buildJobCard(
-          jobTitle: job.jobTitle,
-          company: job.company,
-          location: job.location,
-          salary: job.salary,
-          duration: job.duration,
-          tagText: job.tagText,
-          tagIcon: job.tagIcon,
-          cardColor: job.cardColor,
-          textColor: job.textColor,
+        // --- 2. WRAP THE CARD WITH GESTUREDETECTOR ---
+        return GestureDetector(
+          onTap: () {
+            // --- 3. NAVIGATE ON TAP ---
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InternshipDetailsPage(),
+              ),
+            );
+          },
+          child: _buildJobCard(
+            jobTitle: job.jobTitle,
+            company: job.company,
+            location: job.location,
+            salary: job.salary,
+            duration: job.duration,
+            tagText: job.tagText,
+            tagIcon: job.tagIcon,
+            cardColor: job.cardColor,
+            textColor: job.textColor,
+          ),
         );
       },
     );
   }
-
-  // --- Reusable Themed Widgets ---
 
   Widget _buildSearchBar() {
     return Container(
@@ -344,7 +342,7 @@ class _InternshipPageState extends State<InternshipPage> {
       ),
     );
   }
-  
+
   Widget _buildCategorySelector() {
     return Container(
       width: double.infinity,
@@ -356,7 +354,7 @@ class _InternshipPageState extends State<InternshipPage> {
             final categoryKey = entry.key;
             final categoryName = entry.value;
             final bool isActive = _selectedCategory == categoryKey;
-            
+
             return GestureDetector(
               onTap: () => _onCategorySelected(categoryKey),
               child: _buildCategoryChip(
@@ -370,7 +368,7 @@ class _InternshipPageState extends State<InternshipPage> {
       ),
     );
   }
-  
+
   Widget _buildCategoryChip(String title, IconData icon, bool isActive) {
     return Padding(
       padding: const EdgeInsets.only(right: 10.0),
@@ -387,13 +385,13 @@ class _InternshipPageState extends State<InternshipPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: isActive ? const Color(0xFF2C2C2C) : const Color(0xFFF3F3F3),
+        backgroundColor:
+            isActive ? const Color(0xFF2C2C2C) : const Color(0xFFF3F3F3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
     );
   }
-
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Row(
@@ -501,9 +499,12 @@ class _InternshipPageState extends State<InternshipPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailRow(Icons.location_on_outlined, location, textColor),
-                    _buildDetailRow(Icons.currency_rupee_rounded, salary, textColor),
-                    _buildDetailRow(Icons.calendar_today_outlined, duration, textColor),
+                    _buildDetailRow(
+                        Icons.location_on_outlined, location, textColor),
+                    _buildDetailRow(
+                        Icons.currency_rupee_rounded, salary, textColor),
+                    _buildDetailRow(
+                        Icons.calendar_today_outlined, duration, textColor),
                   ],
                 ),
               ),

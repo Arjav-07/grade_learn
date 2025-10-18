@@ -1,338 +1,376 @@
-// --- New Detailed Internship Page ---
-
-// A placeholder for a real company logo asset
 import 'package:flutter/material.dart';
 
-const String companyLogoUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/G-logo.svg/2048px-G-logo.svg.png';
-
-class InternshipDetailSliverPage extends StatelessWidget {
-  const InternshipDetailSliverPage({super.key});
+class InternshipDetailsPage extends StatelessWidget {
+  const InternshipDetailsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
-      // Use bottomNavigationBar for a clean, persistent button at the bottom
-      bottomNavigationBar: _buildApplyButton(context),
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(context),
-          // The rest of the page content goes into this sliver
-          SliverToBoxAdapter(
+    // New theme color for the status bar area
+    const Color themeColor = Color(0xFFD1E5F8);
+
+    return Container(
+      color: themeColor,
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          bottomNavigationBar: _buildBottomBar(),
+          body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSection("About the Internship",
-                    "Join our dynamic team as a Flutter Developer Intern and contribute to building beautiful, high-performance mobile applications. This is a hands-on role where you will work closely with our senior developers and designers to translate ideas into reality."),
-                _buildResponsibilitiesSection(),
-                _buildSkillsSection(),
-                _buildPerksAndBenefitsSection(),
-                const SizedBox(height: 20), // Extra padding at the bottom
+                _buildHeader(context),
+                const SizedBox(height: 24),
+                _buildStatsSection(),
+                const SizedBox(height: 24),
+                _buildDescription(),
+                const SizedBox(height: 24),
+                // Replaced Lessons List with Internship Info Sections
+                _buildInternshipInfoSections(),
+                const SizedBox(height: 24),
               ],
             ),
-          )
-        ],
-      ),
-    );
-  }
-
-  /// Builds the new collapsing AppBar.
-  Widget _buildSliverAppBar(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 220.0,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: const Color(0xFF6A5AE0),
-      leading: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: CircleAvatar(
-          backgroundColor: Colors.black.withOpacity(0.2),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              // In a real app, use Navigator.pop(context)
-            },
           ),
         ),
       ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24.0).copyWith(top: 80), // Adjust padding for app bar
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF6A5AE0), Color(0xFF8879E8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Company Logo
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          image: const DecorationImage(
-                            image: NetworkImage(companyLogoUrl),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Flutter Developer Intern",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              "at Google",
-                              style: TextStyle(fontSize: 16, color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  // Internship metadata (Location, Duration, Stipend)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildInfoItem(Icons.location_on_outlined, "Remote"),
-                      _buildInfoItem(Icons.timer_outlined, "3 Months"),
-                      _buildInfoItem(Icons.currency_rupee, "25,000/month"),
-                    ],
-                  ),
-                   const SizedBox(height: 10),
-                ],
-              ),
-            ),
-             // Decorative shape on the right
-            Positioned(
-              top: 30,
-              right: -40,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                transform: Matrix4.rotationZ(0.5),
-              ),
-            )
-          ],
-        ),
-      ),
     );
   }
 
-  // Helper widget for metadata items in the header
-  Widget _buildInfoItem(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        ),
-      ],
-    );
-  }
-
-  // Generic widget for building a content section
-  Widget _buildSection(String title, String content) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            content,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey[700],
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Widget for "Key Responsibilities" section
-  Widget _buildResponsibilitiesSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Key Responsibilities",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildListItem("Collaborate with the team to design and ship new features."),
-          _buildListItem("Ensure the performance, quality, and responsiveness of applications."),
-          _buildListItem("Identify and correct bottlenecks and fix bugs."),
-          _buildListItem("Help maintain code quality, organization, and automation."),
-        ],
-      ),
-    );
-  }
-
-  // Widget for "Skills Required" section with chips
-  Widget _buildSkillsSection() {
-    final skills = ["Flutter", "Dart", "UI/UX", "Git", "Firebase", "REST APIs"];
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Skills Required",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: skills
-                .map((skill) => Chip(
-                      label: Text(skill),
-                      backgroundColor: const Color(0xFFEAEAF2),
-                      labelStyle: const TextStyle(color: Color(0xFF6A5AE0)),
-                    ))
-                .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Widget for "Perks & Benefits" section
-  Widget _buildPerksAndBenefitsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Perks & Benefits",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildListItem("Certificate of Internship"),
-          _buildListItem("Letter of Recommendation"),
-          _buildListItem("Flexible work hours"),
-          _buildListItem("5 days a week"),
-        ],
-      ),
-    );
-  }
-
-  // Helper for creating list items for responsibilities and perks
-  Widget _buildListItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 4.0),
-            child: Icon(Icons.check_circle_outline, size: 16, color: Color(0xFF6A5AE0)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 15, color: Colors.grey[700], height: 1.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Builds the floating "Apply Now" button at the bottom
-  Widget _buildApplyButton(BuildContext context) {
+  Widget _buildHeader(BuildContext context) {
+    const Color themeColor = Color(0xFFD1E5F8);
+    
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10).copyWith(bottom: MediaQuery.of(context).padding.bottom + 10),
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: themeColor,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildAppBar(context),
+          const SizedBox(height: 20),
+          _buildInternshipIcon(),
+          const SizedBox(height: 16),
+          _buildInternshipTypeChip(),
+          const SizedBox(height: 8),
+          _buildInternshipTitle(),
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  // Content updated for an internship
+  Widget _buildStatsSection() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          StatCard(
+            icon: Icons.calendar_today_outlined,
+            value: '3 Months',
+            label: 'Duration',
+            color: Color(0xFFD1E5F8),
+            iconColor: Color(0xFF1E5B89),
+          ),
+          SizedBox(width: 16),
+          StatCard(
+            icon: Icons.currency_rupee,
+            value: '25k /mo',
+            label: 'Stipend',
+            color: Color(0xFFE8F5E9),
+            iconColor: Color(0xFF2E7D32),
+          ),
+          SizedBox(width: 16),
+          StatCard(
+            icon: Icons.people_alt_outlined,
+            value: '1.2k+',
+            label: 'Applicants',
+            color: Color(0xFFFFF3E0),
+            iconColor: Color(0xFFE65100),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // New sections for internship details
+  Widget _buildInternshipInfoSections() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        children: [
+          _InfoSection(
+            title: 'About the Internship',
+            content: [
+              'Work with our senior developers to build and maintain our flagship Flutter application.',
+              'Participate in the entire application lifecycle, focusing on coding and debugging.',
+              'Collaborate with cross-functional teams to define, design, and ship new features.',
+            ],
+          ),
+          SizedBox(height: 20),
+          _InfoSection(
+            title: 'Skills Required',
+            content: [
+              'Proficiency in Dart and the Flutter framework.',
+              'Understanding of state management solutions like Provider or BLoC.',
+              'Experience with RESTful APIs and JSON.',
+              'Familiarity with Git for version control.',
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.white.withOpacity(0.3),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          const Text(
+            'Internship Details',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          CircleAvatar(
+            backgroundColor: Colors.white.withOpacity(0.3),
+            child: IconButton(
+              icon: const Icon(Icons.share_outlined, color: Colors.black87),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Icon changed to one relevant for a job/internship
+  Widget _buildInternshipIcon() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(40),
+      ),
+      child: const Icon(
+        Icons.business_center_outlined,
+        color: Color(0xFF1E5B89),
+        size: 40,
+      ),
+    );
+  }
+
+  Widget _buildInternshipTypeChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E5B89),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: const Text(
+        'Full-time',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInternshipTitle() {
+    return const Text(
+      'Flutter Developer Intern\nat Google',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+        height: 1.3,
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.0),
+      child: Text(
+        'This is an exciting opportunity for a student or recent graduate passionate about mobile development to gain hands-on experience.',
+        style: TextStyle(
+          fontSize: 15,
+          color: Colors.black54,
+          height: 1.5,
+        ),
+      ),
+    );
+  }
+
+  // Bottom bar button changed to "Apply Now"
+  Widget _buildBottomBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          )
+            color: Colors.black12.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -1),
+          ),
         ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(36),
+          topRight: Radius.circular(36),
+        ),
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () {
-            // Handle Apply Now logic
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6A5AE0),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: const Icon(Icons.bookmark_border,
+                size: 28, color: Colors.black54),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black87,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: const Text('Apply Now'),
             ),
           ),
-          child: const Text(
-            "Apply Now",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+        ],
+      ),
+    );
+  }
+}
+
+// The StatCard widget is reused from your original code
+class StatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  final Color iconColor;
+
+  const StatCard({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: iconColor, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+// A new reusable widget for displaying sections like "About" and "Skills"
+class _InfoSection extends StatelessWidget {
+  final String title;
+  final List<String> content;
+
+  const _InfoSection({required this.title, required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Create a bulleted list from the content
+        ...content.map((item) => Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("• ", style: TextStyle(fontSize: 16, color: Colors.black54)),
+              Expanded(
+                child: Text(
+                  item,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.black54,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )).toList(),
+      ],
+    );
+  }
+}

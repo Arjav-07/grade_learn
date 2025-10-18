@@ -1,35 +1,74 @@
-// The main widget for the lesson details screen, as shown in the image
 import 'package:flutter/material.dart';
 
 class LessonDetailsPage extends StatelessWidget {
   const LessonDetailsPage({super.key});
 
+  // Lesson data is now in a structured list
+  final List<Map<String, dynamic>> lessonsData = const [
+    {
+      'title': 'Greeting & Introducing',
+      'duration': '5 mins 20 sec',
+      'isCompleted': true,
+    },
+    {
+      'title': 'Ordering Food at a Restaurant',
+      'duration': '8 mins 10 sec',
+      'isCompleted': true,
+    },
+    {
+      'title': 'Asking for Directions',
+      'duration': '7 mins 30 sec',
+      'isCompleted': false,
+    },
+    {
+      'title': 'Shopping and Making Purchases',
+      'duration': '10 mins 05 sec',
+      'isCompleted': false,
+    },
+    {
+      'title': 'Making a Phone Call',
+      'duration': '6 mins 45 sec',
+      'isCompleted': false,
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // The bottom navigation bar which contains the bookmark icon and start button
-      bottomNavigationBar: _buildBottomBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
-            _buildStatsSection(),
-            const SizedBox(height: 24),
-            _buildDescription(),
-            const SizedBox(height: 24),
-            _buildLessonsList(),
-            // Add some padding at the bottom to ensure content isn't hidden
-            const SizedBox(height: 24),
-          ],
+    // This color will fill the status bar area.
+    return Container(
+      color: const Color(0xFFEADDFF),
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          bottomNavigationBar: _buildBottomBar(),
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 24),
+                _buildStatsSection(),
+                const SizedBox(height: 24),
+                _buildDescription(),
+                const SizedBox(height: 24),
+                _buildLessonsList(),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  // Builds the top header section with the purple background
   Widget _buildHeader(BuildContext context) {
+    final completedLessons =
+        lessonsData.where((lesson) => lesson['isCompleted'] as bool).length;
+    final totalLessons = lessonsData.length;
+    final progress = totalLessons > 0 ? completedLessons / totalLessons : 0.0;
+
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -39,41 +78,107 @@ class LessonDetailsPage extends StatelessWidget {
           bottomRight: Radius.circular(30),
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(context),
-            const SizedBox(height: 20),
-            _buildCourseIcon(),
-            const SizedBox(height: 16),
-            _buildBeginnerChip(),
-            const SizedBox(height: 8),
-            _buildCourseTitle(),
-            const SizedBox(height: 30),
-          ],
-        ),
+      child: Column(
+        children: [
+          _buildAppBar(context),
+          const SizedBox(height: 20),
+          _buildCourseIcon(),
+          const SizedBox(height: 16),
+          _buildBeginnerChip(),
+          const SizedBox(height: 8),
+          _buildCourseTitle(),
+          const SizedBox(height: 16),
+          _buildProgressIndicator(progress),
+          const SizedBox(height: 30),
+        ],
       ),
     );
   }
 
-  // Builds the custom app bar with back and share buttons
+  Widget _buildProgressIndicator(double progress) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Progress',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                '${(progress * 100).toInt()}%',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: Colors.white.withOpacity(0.5),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(Color(0xFF6750A4)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLessonsList() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Lessons',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...lessonsData.map((lesson) {
+            return LessonTile(
+              title: lesson['title'] as String,
+              duration: lesson['duration'] as String,
+              isCompleted: lesson['isCompleted'] as bool,
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAppBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back button
           CircleAvatar(
             backgroundColor: Colors.white.withOpacity(0.3),
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black87),
               onPressed: () {
-                // In a real app, you would use Navigator.pop(context)
+                Navigator.pop(context);
               },
             ),
           ),
-          // Page Title
           const Text(
             'Lesson Details',
             style: TextStyle(
@@ -82,7 +187,6 @@ class LessonDetailsPage extends StatelessWidget {
               color: Colors.black87,
             ),
           ),
-          // Share button
           CircleAvatar(
             backgroundColor: Colors.white.withOpacity(0.3),
             child: IconButton(
@@ -95,7 +199,6 @@ class LessonDetailsPage extends StatelessWidget {
     );
   }
 
-  // Builds the icon with the two speech bubbles
   Widget _buildCourseIcon() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -111,7 +214,6 @@ class LessonDetailsPage extends StatelessWidget {
     );
   }
 
-  // Builds the "Beginner" chip
   Widget _buildBeginnerChip() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -129,7 +231,6 @@ class LessonDetailsPage extends StatelessWidget {
     );
   }
 
-  // Builds the main course title
   Widget _buildCourseTitle() {
     return const Text(
       'Mastering Everyday\nConversations',
@@ -143,7 +244,6 @@ class LessonDetailsPage extends StatelessWidget {
     );
   }
 
-  // Builds the section with statistics (Lessons, Quizzes, Hours)
   Widget _buildStatsSection() {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.0),
@@ -178,7 +278,6 @@ class LessonDetailsPage extends StatelessWidget {
     );
   }
 
-  // Builds the course description text
   Widget _buildDescription() {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.0),
@@ -193,85 +292,34 @@ class LessonDetailsPage extends StatelessWidget {
     );
   }
 
-  // Builds the list of lessons section
-  Widget _buildLessonsList() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Lessons',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 16),
-          // A single lesson item
-          LessonTile(
-            title: 'Greeting & Introducing',
-            duration: '5 mins 20 sec',
-            isCompleted: true,
-          ),
-          // You can add more LessonTile widgets here for more lessons
-          LessonTile(
-            title: 'Ordering Food at a Restaurant',
-            duration: '8 mins 10 sec',
-            isCompleted: true,
-          ),
-          LessonTile(
-            title: 'Asking for Directions',
-            duration: '7 mins 30 sec',
-            isCompleted: false,
-          ),
-          LessonTile(
-            title: 'Shopping and Making Purchases',
-            duration: '10 mins 05 sec',
-            isCompleted: false,
-          ),
-           LessonTile(
-            title: 'Making a Phone Call',
-            duration: '6 mins 45 sec',
-            isCompleted: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Builds the fixed bottom bar with bookmark and start button
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, -2),
-          ),
-        ],
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(40),
-          topRight: Radius.circular(40),
-        )
-      ),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -1),
+            ),
+          ],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(36),
+            topRight: Radius.circular(36),
+          )),
       child: Row(
         children: [
-          // Bookmark button
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(40),
             ),
-            child: const Icon(Icons.bookmark_border, size: 28, color: Colors.black54),
+            child: const Icon(Icons.bookmark_border,
+                size: 28, color: Colors.black54),
           ),
           const SizedBox(width: 16),
-          // Start Lessons button
           Expanded(
             child: ElevatedButton(
               onPressed: () {},
@@ -296,7 +344,7 @@ class LessonDetailsPage extends StatelessWidget {
   }
 }
 
-// A reusable widget for the statistics cards
+// Reusable widget for statistics cards
 class StatCard extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -350,7 +398,7 @@ class StatCard extends StatelessWidget {
   }
 }
 
-// A reusable widget for a single lesson tile in the list
+// Reusable widget for a single lesson tile
 class LessonTile extends StatelessWidget {
   final String title;
   final String duration;
@@ -369,19 +417,17 @@ class LessonTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-          )
-        ]
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+            )
+          ]),
       child: Row(
         children: [
-          // Icon on the left
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -391,7 +437,6 @@ class LessonTile extends StatelessWidget {
             child: const Icon(Icons.book_outlined, color: Color(0xFF00468D)),
           ),
           const SizedBox(width: 16),
-          // Title and duration
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,7 +460,6 @@ class LessonTile extends StatelessWidget {
               ],
             ),
           ),
-          // Checkmark icon if completed
           if (isCompleted)
             Container(
               padding: const EdgeInsets.all(4),

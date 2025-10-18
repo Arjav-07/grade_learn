@@ -317,7 +317,7 @@ class _ProfileAppState extends State<ProfileApp> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const RecentsPage()),
+                  MaterialPageRoute(builder: (context) => const WatchlistPage()),
                 );
               },
             ),

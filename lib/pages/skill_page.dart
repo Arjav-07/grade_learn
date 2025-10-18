@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grade_learn/screens/skill_detail_page.dart';
 
 // --- Data Model for a Course ---
 class Course {
@@ -83,7 +84,7 @@ class _SkillPageState extends State<SkillPage> {
     'THE MICROCOSM AROUND US': 'Biology',
     'ANCIENT CIVILIZATIONS': 'History',
   };
-  
+
   // Map display names to icons
   final Map<String, IconData> _iconMap = {
     'All': Icons.apps,
@@ -92,7 +93,6 @@ class _SkillPageState extends State<SkillPage> {
     'Biology': Icons.biotech,
     'History': Icons.history_edu,
   };
-
 
   @override
   void initState() {
@@ -113,7 +113,8 @@ class _SkillPageState extends State<SkillPage> {
     final searchQuery = _searchController.text.toLowerCase();
     setState(() {
       _filteredCourses = _allCourses.where((course) {
-        final categoryMatches = _selectedCategory == 'All' || course.category == _selectedCategory;
+        final categoryMatches =
+            _selectedCategory == 'All' || course.category == _selectedCategory;
         final searchMatches = searchQuery.isEmpty ||
             course.title.toLowerCase().contains(searchQuery) ||
             course.category.toLowerCase().contains(searchQuery);
@@ -126,9 +127,8 @@ class _SkillPageState extends State<SkillPage> {
     setState(() {
       _selectedCategory = categoryKey;
     });
-    _filterCourses(); 
+    _filterCourses();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -139,17 +139,16 @@ class _SkillPageState extends State<SkillPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFB67A),
-      // --- MODIFIED: The SafeArea widget is now set to ignore the bottom ---
       body: SafeArea(
-        bottom: false, // This is the key change
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             children: [
               _buildHeader(),
               Container(
                 decoration: const BoxDecoration(
-                   color: Colors.white,
-                   borderRadius: BorderRadius.only(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(46),
                     topRight: Radius.circular(46),
                   ),
@@ -162,27 +161,41 @@ class _SkillPageState extends State<SkillPage> {
                       AnimatedSize(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
-                        child: _showCategories ? _buildCategorySelector() : const SizedBox.shrink(),
+                        child: _showCategories
+                            ? _buildCategorySelector()
+                            : const SizedBox.shrink(),
                       ),
                       const SizedBox(height: 20),
                       ..._filteredCourses.map((course) => Padding(
-                        padding: const EdgeInsets.only(bottom: 20.0),
-                        child: CourseCard(
-                              backgroundColor: course.backgroundColor,
-                              iconData: course.iconData,
-                              category: course.category,
-                              title: course.title,
-                              userCount: course.userCount,
-                              iconColor: course.iconColor,
-                              textColor: course.textColor,
+                            padding: const EdgeInsets.only(bottom: 20.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const LessonDetailsPage(),
+                                  ),
+                                );
+                              },
+                              child: CourseCard(
+                                backgroundColor: course.backgroundColor,
+                                iconData: course.iconData,
+                                category: course.category,
+                                title: course.title,
+                                userCount: course.userCount,
+                                iconColor: course.iconColor,
+                                textColor: course.textColor,
+                              ),
                             ),
-                      )).toList(),
+                          )),
                       if (_filteredCourses.isEmpty)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 50),
                           child: Text(
                             'No courses found.',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 16),
                           ),
                         )
                     ],
@@ -198,7 +211,6 @@ class _SkillPageState extends State<SkillPage> {
 
   Widget _buildHeader() {
     return Padding(
-      // Adjusted top padding since SafeArea handles the status bar space
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
       child: Stack(
         clipBehavior: Clip.none,
@@ -209,7 +221,9 @@ class _SkillPageState extends State<SkillPage> {
             right: -20,
             child: SizedBox(
               height: 180,
-              child: Image.asset('assets/images/grad_cap.jpg', fit: BoxFit.contain),
+              // Make sure 'assets/images/grad_cap.jpg' exists
+              child: Image.asset('assets/images/grad_cap.jpg',
+                  fit: BoxFit.contain),
             ),
           ),
           Column(
@@ -221,19 +235,24 @@ class _SkillPageState extends State<SkillPage> {
                   color: Colors.black.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 28),
+                child: const Icon(Icons.arrow_back_ios_new,
+                    color: Colors.black, size: 28),
               ),
               const SizedBox(height: 20),
               const Text(
                 'My\ncourses',
-                style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800, color: Colors.black),
+                style: TextStyle(
+                    fontSize: 38,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black),
               ),
               const SizedBox(height: 20),
               Row(
                 children: [
                   _buildStatPill('12 Subjects', const Color(0xFF2C2C2C)),
                   const SizedBox(width: 10),
-                  _buildStatPill('43 Lessons', Colors.white.withOpacity(0.2)),
+                  _buildStatPill(
+                      '43 Lessons', Colors.white.withOpacity(0.2)),
                 ],
               ),
             ],
@@ -252,7 +271,8 @@ class _SkillPageState extends State<SkillPage> {
       ),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w800),
+        style: const TextStyle(
+            fontSize: 18, color: Colors.white, fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -268,7 +288,7 @@ class _SkillPageState extends State<SkillPage> {
             final categoryKey = entry.key;
             final categoryName = entry.value;
             final bool isActive = _selectedCategory == categoryKey;
-            
+
             return GestureDetector(
               onTap: () => _onCategorySelected(categoryKey),
               child: _buildCategoryChip(
@@ -334,7 +354,8 @@ class _SkillPageState extends State<SkillPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: isActive ? const Color(0xFF2C2C2C) : const Color(0xFFF3F3F3),
+        backgroundColor:
+            isActive ? const Color(0xFF2C2C2C) : const Color(0xFFF3F3F3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
@@ -342,8 +363,7 @@ class _SkillPageState extends State<SkillPage> {
   }
 }
 
-
-// --- Reusable Course Card Widget (No changes needed here) ---
+// --- Reusable Course Card Widget ---
 class CourseCard extends StatelessWidget {
   final Color backgroundColor;
   final IconData iconData;

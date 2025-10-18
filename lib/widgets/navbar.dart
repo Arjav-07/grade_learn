@@ -68,7 +68,7 @@ class NavBar extends StatelessWidget {
               ),
               child: Icon(
                 _navBarItems[index],
-                size: 26,
+                size: 28,
                 color: isSelected ? Colors.white : _unselectedIconColor,
               ),
             ),

@@ -3,6 +3,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
  // ⭐️ ADDED: Import for the Chatbot Provider
 import 'package:grade_learn/models/chatbot.dart'; // ⭐️ ADDED: Import for the new chat screen
+import 'package:grade_learn/screens/dashboard.dart';
+import 'package:grade_learn/screens/internship_detail_page.dart';
+import 'package:grade_learn/screens/recent.dart';
+import 'package:grade_learn/screens/skill_detail_page.dart';
 import 'package:provider/provider.dart'; // ⭐️ ADDED: Import for the Provider package
 import 'firebase_options.dart';
 
@@ -32,10 +36,10 @@ Future<void> main() async {
   );
   await dotenv.load(fileName: ".env");
 
-  // ⭐️ UPDATED: Wrapped the app with Provider (CareerAdvisorChat is not a ChangeNotifier)
+  // ⭐️ UPDATED: Wrapped the app with Provider (SkillUpApp is not a ChangeNotifier)
     runApp(
-      Provider<CareerAdvisorChat>(
-        create: (context) => CareerAdvisorChat(),
+      Provider<SkillUpApp>(
+        create: (context) => SkillUpApp(),
         child: const MyApp(),
       ),
     );
@@ -73,7 +77,8 @@ class MyApp extends StatelessWidget {
         app_routes.MyRoutes.SkillPageRoute: (context) => const SkillPage(),
         app_routes.MyRoutes.ChatWelcomeRoute: (context) => const ChatWelcome(),
         // ⭐️ UPDATED: The ChatBotRoute now points to your new themed, conversational screen
-        app_routes.MyRoutes.ChatBotRoute: (context) => const CareerAdvisorChat(),
+        app_routes.MyRoutes.ChatBotRoute: (context) => const SkillUpApp
+        (),
         app_routes.MyRoutes.ProfileAppRoutes: (context) =>
             const PlaceholderPage(title: 'Profile'),
       },

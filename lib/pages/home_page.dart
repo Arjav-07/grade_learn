@@ -1,4 +1,3 @@
-// Define the custom color palette from the image
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:grade_learn/services/user_service.dart';
@@ -17,20 +16,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-// Set Home as the default selected item
-  
-  // 🌟 NEW: Variables to store user data
   final UserService _userService = UserService();
-  String _username = 'User'; // Default fallback
+  String _username = 'User';
   bool _isLoadingUsername = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUsername(); // 🌟 Fetch username when page loads
+    _loadUsername();
   }
 
-  // 🌟 NEW: Method to fetch username from Firestore
   Future<void> _loadUsername() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     
@@ -45,20 +40,20 @@ class _HomePageState extends State<HomePage> {
           });
         } else {
           setState(() {
-            _username = 'User'; // Fallback if no username found
+            _username = 'User';
             _isLoadingUsername = false;
           });
         }
       } catch (e) {
         print('Error loading username: $e');
         setState(() {
-          _username = 'User'; // Fallback on error
+          _username = 'User';
           _isLoadingUsername = false;
         });
       }
     } else {
       setState(() {
-        _username = 'Guest'; // Not logged in
+        _username = 'Guest';
         _isLoadingUsername = false;
       });
     }
@@ -69,36 +64,36 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      // Wrap the content in a Stack to position the NavBar at the bottom
-      body: Stack(
-        children: [
-          // Main content takes up most of the screen
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      const SizedBox(height: 80),
-                      _buildHeader(),
-                      const SizedBox(height: 20),
-                      _buildOlympiadCard(),
-                      const SizedBox(height: 20),
-                      _buildStatsRow(), // This uses the new themed card
-                      const SizedBox(height: 30),
-                      _buildProgressPerformanceCard(),
-                      // Extra space to prevent content from being hidden behind the NavBar
-                      const SizedBox(height: 120), 
-                    ],
+      // --- MODIFIED: Wrapped the body in a SafeArea widget for the top only ---
+      body: SafeArea(
+        bottom: false, // Ensures padding is only applied to the top
+        child: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(
+                      [
+                        // Adjusted top spacing as SafeArea now handles the status bar area
+                        const SizedBox(height: 20), 
+                        _buildHeader(),
+                        const SizedBox(height: 20),
+                        _buildOlympiadCard(),
+                        const SizedBox(height: 20),
+                        _buildStatsRow(),
+                        const SizedBox(height: 30),
+                        _buildProgressPerformanceCard(),
+                        const SizedBox(height: 120), 
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          // Navigation Bar positioned at the bottom
-          
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -111,13 +106,11 @@ class _HomePageState extends State<HomePage> {
       children: [
         Row(
           children: [
-            // Placeholder for the user avatar image
             CircleAvatar(
               radius: 40,
               backgroundColor: Colors.grey.shade200,
-              child: CircleAvatar(
+              child: const CircleAvatar(
                 radius: 38,
-                // Replace with actual image asset
                 backgroundImage: AssetImage('assets/images/profile.png')
               ) 
             ),
@@ -125,7 +118,6 @@ class _HomePageState extends State<HomePage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🌟 UPDATED: Display dynamic username with loading state
                 _isLoadingUsername
                     ? const SizedBox(
                         width: 100,
@@ -135,7 +127,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       )
                     : Text(
-                        'Hello, $_username', // 🌟 Dynamic username
+                        'Hello, $_username',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -163,7 +155,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        // Notification Bell Icon
         Container(
           width: 60,
           height: 60,
@@ -228,28 +219,26 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // --- REVISED ARROW BUTTON ---
                 Container(
-                  width: 50, // Fixed width
-                  height: 50, // Fixed height
+                  width: 50,
+                  height: 50,
                   decoration: BoxDecoration(
-                    color: kDarkTextColor, // Dark background
+                    color: kDarkTextColor,
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: Colors.white, width: 2), // White outer ring
+                        color: Colors.white, width: 2),
                   ),
                   child: const Center(
                     child: Icon(
                       Icons.arrow_forward,
                       color: Colors.white,
-                      size: 24, // Slightly larger arrow icon
+                      size: 24,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          // Placeholder for the Trophy image
           Expanded(
             child: Image.asset(
               'assets/images/trophy.png',
@@ -261,7 +250,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- NEW WIDGET IMPLEMENTATION FOR THE IMAGE THEME ---
   Widget _buildThemedStatCard({
     required String title,
     required String value,
@@ -269,19 +257,17 @@ class _HomePageState extends State<HomePage> {
     required Color iconAccentColor,
     required IconData icon,
   }) {
-    // Determine text color based on the card color (using a light text for the light-colored cards)
     final Color textColor = kDarkTextColor;
     
     return Expanded(
       child: Container(
-        height: 150, // Fixed height for visual consistency
+        height: 150,
         decoration: BoxDecoration(
-          color: cardColor.withOpacity(0.2), // Use a very light tint of the accent color for the main body
+          color: cardColor.withOpacity(0.2),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Stack(
           children: [
-            // Top-left accent shape for the icon
             Positioned(
               top: 0,
               left: 0,
@@ -307,12 +293,11 @@ class _HomePageState extends State<HomePage> {
             ),
             
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, top: 20.0, right: 20.0, bottom: 20.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 5), // Spacer to push the title down
-                  // Title Text
+                  const SizedBox(height: 5),
                   Align(
                     alignment: Alignment.topRight,
                     child: Text(
@@ -325,14 +310,13 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const Spacer(),
-                  // Value Text
                   Text(
                     value,
                     style: TextStyle(
                       fontSize: 55,
                       fontWeight: FontWeight.w900,
                       color: textColor,
-                      height: 1.0, // Tighter line height
+                      height: 1.0,
                     ),
                   ),
                 ],
@@ -344,10 +328,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // UPDATED WIDGET TO USE THE THEMED CARDS
   Widget _buildStatsRow() {
-    // The main card color will be the lightened background color
-
     return Row(
       children: [
         Expanded(
@@ -405,7 +386,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 20),
-          // The Progress Bar/Timeline
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -413,19 +393,19 @@ class _HomePageState extends State<HomePage> {
                 month: 'June',
                 lessons: 23,
                 color: kLightOrangeColor,
-                percentage: 0.45, // Arbitrary visual percentage
+                percentage: 0.45,
               ),
               _buildProgressSegment(
                 month: 'July',
                 lessons: 43,
                 color: kLightPurpleColor,
-                percentage: 0.85, // Arbitrary visual percentage
+                percentage: 0.85,
               ),
               _buildProgressSegment(
                 month: 'August',
                 lessons: 12,
                 color: kDarkTextColor.withOpacity(0.15),
-                percentage: 0.25, // Arbitrary visual percentage
+                percentage: 0.25,
               ),
             ],
           ),
@@ -443,12 +423,11 @@ class _HomePageState extends State<HomePage> {
     return Expanded(
       child: Column(
         children: [
-          // Vertical Bar
           Container(
-            height: 100, // Fixed total height for the graph
+            height: 100,
             alignment: Alignment.bottomCenter,
             child: Container(
-              height: 100 * percentage, // Dynamic height based on percentage
+              height: 100 * percentage,
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(20),
@@ -456,7 +435,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 10),
-          // Horizontal Indicator Line with a circle
           Row(
             children: [
               Expanded(
@@ -482,7 +460,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 5),
-          // Text Labels
           Column(
             children: [
               Text(

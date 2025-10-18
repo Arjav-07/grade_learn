@@ -1,8 +1,63 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:grade_learn/auth/onboarding_page.dart';
+import 'package:grade_learn/pages/setting.dart';
+import 'package:grade_learn/screens/applied.dart';
+import 'package:grade_learn/screens/completed.dart';
+import 'package:grade_learn/screens/dashboard.dart';
+import 'package:grade_learn/screens/recent.dart';
+import 'package:grade_learn/services/user_service.dart';
 
-class ProfileApp extends StatelessWidget {
+class ProfileApp extends StatefulWidget {
   const ProfileApp({super.key});
+
+  @override
+  State<ProfileApp> createState() => _ProfileAppState();
+}
+
+class _ProfileAppState extends State<ProfileApp> {
+  // User-related state
+  final UserService _userService = UserService();
+  String _username = 'User';
+  bool _isLoadingUsername = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      try {
+        final userData = await _userService.fetchUserByUid(currentUser.uid);
+        if (userData != null && userData['username'] != null) {
+          setState(() {
+            _username = userData['username'];
+            _isLoadingUsername = false;
+          });
+        } else {
+          setState(() {
+            _username = 'User';
+            _isLoadingUsername = false;
+          });
+        }
+      } catch (e) {
+        debugPrint('Error loading username: $e');
+        setState(() {
+          _username = 'User';
+          _isLoadingUsername = false;
+        });
+      }
+    } else {
+      setState(() {
+        _username = 'Guest';
+        _isLoadingUsername = false;
+      });
+    }
+  }
 
   Widget _buildStatCard({
     required String title,
@@ -12,12 +67,12 @@ class ProfileApp extends StatelessWidget {
   }) {
     return Expanded(
       child: Container(
-        height: 90,
+        height: 92,
         margin: const EdgeInsets.symmetric(horizontal: 4.0),
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(14.0),
         decoration: BoxDecoration(
           color: color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(30),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,6 +106,7 @@ class ProfileApp extends StatelessWidget {
     required String title,
     required String subtitle,
     required Color iconColor,
+    VoidCallback? onTap,
   }) {
     const Color kCardColor = Colors.white;
 
@@ -71,7 +127,7 @@ class ProfileApp extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {},
+            onTap: onTap,
             borderRadius: BorderRadius.circular(18),
             child: ListTile(
               contentPadding:
@@ -108,6 +164,20 @@ class ProfileApp extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // Sign out helper
+  Future<void> _signOutAndNavigate(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      debugPrint('Error signing out: $e');
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const OnboardingPage()),
+      (route) => false,
     );
   }
 
@@ -149,14 +219,22 @@ class ProfileApp extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Hello, Arjav',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          ),
+                          _isLoadingUsername
+                              ? const SizedBox(
+                                  width: 140,
+                                  child: LinearProgressIndicator(
+                                    color: cardBlue,
+                                    backgroundColor: Colors.transparent,
+                                  ),
+                                )
+                              : Text(
+                                  'Hello, $_username',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
+                                  ),
+                                ),
                           Row(
                             children: [
                               Icon(Icons.flash_on,
@@ -175,19 +253,30 @@ class ProfileApp extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Colors.grey.shade300, width: 1.5),
-                    ),
-                    child: const Icon(
-                      Icons.settings,
-                      color: primaryColor,
-                      size: 28,
+                  // --- MODIFIED: Wrapped settings icon to make it tappable ---
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SettingsPage()),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Colors.grey.shade300, width: 1.5),
+                      ),
+                      child: const Icon(
+                        Icons.settings,
+                        color: primaryColor,
+                        size: 28,
+                      ),
                     ),
                   ),
                 ],
@@ -219,30 +308,56 @@ class ProfileApp extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // --- 3. Scrollable Menu List (now part of main scroll) ---
+            // --- 3. Scrollable Menu List ---
             _buildDetailTile(
               icon: Icons.access_time,
               title: 'Recents',
               subtitle: 'Past Enrolls',
               iconColor: iconDark,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RecentsPage()),
+                );
+              },
             ),
             _buildDetailTile(
               icon: Icons.leaderboard_outlined,
               title: 'My Dashboard',
               subtitle: 'Get your Statistics',
               iconColor: iconDark,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const DashboardPage()),
+                );
+              },
             ),
             _buildDetailTile(
               icon: Icons.route_outlined,
               title: 'Applied',
               subtitle: '7',
               iconColor: iconDark,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AppliedPage()),
+                );
+              },
             ),
             _buildDetailTile(
               icon: Icons.emoji_events_outlined,
               title: 'Completed',
               subtitle: 'Show all',
               iconColor: iconDark,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const CompletedPage()),
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -253,14 +368,10 @@ class ProfileApp extends StatelessWidget {
               child: SizedBox(
                 height: 50,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const OnboardingPage()),
-            );
-                  },
+                  onPressed: () => _signOutAndNavigate(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF7A64D8).withOpacity(0.7),
+                    backgroundColor:
+                        const Color(0xFF7A64D8).withOpacity(0.7),
                     foregroundColor: Colors.white, // White text/icon
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -277,7 +388,7 @@ class ProfileApp extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
           ],
         ),

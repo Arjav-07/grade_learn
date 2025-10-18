@@ -5,43 +5,36 @@ class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collectionName = 'users';
 
-  // --- 1. Function to store the User Profile (Called during registration) ---
-  // The Document ID is explicitly set to the Firebase Auth UID for secure lookups.
+  // --- 1. Create User Profile (Called during registration) ---
   Future<void> createUserProfile({
     required String uid,
     required String username,
     required String email,
   }) async {
     final userDocRef = _firestore.collection(_collectionName).doc(uid);
-
-    // Save the required fields to the database.
     await userDocRef.set({
       'username': username,
       'uid': uid,
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
+      'progress': 0, // Example of adding a default field
     });
     print('User profile created for $username with UID: $uid');
   }
 
-  // --- 2. Function to fetch user data by username (for cross-user lookup) ---
-  // This function demonstrates how another user can search for a profile.
+  // --- 2. Fetch User Data by Username ---
   Future<Map<String, dynamic>?> fetchUserByUsername(String targetUsername) async {
     if (targetUsername.isEmpty) return null;
-
     try {
-      // Query the collection based on the 'username' field.
       final querySnapshot = await _firestore
           .collection(_collectionName)
           .where('username', isEqualTo: targetUsername)
-          .limit(1) // Assuming usernames are unique
+          .limit(1)
           .get();
-
       if (querySnapshot.docs.isNotEmpty) {
-        // Return the data map from the found document
         return querySnapshot.docs.first.data();
       } else {
-        return null; // Username not found
+        return null;
       }
     } catch (e) {
       print('Error fetching user by username: $e');
@@ -49,20 +42,13 @@ class UserService {
     }
   }
 
-  // --- 3. Function to fetch current user's profile by UID ---
-  // This function retrieves the logged-in user's profile data
+  // --- 3. Fetch Current User's Profile by UID ---
   Future<Map<String, dynamic>?> fetchUserByUid(String uid) async {
     if (uid.isEmpty) return null;
-
     try {
-      // Get the document directly using the UID as document ID
-      final docSnapshot = await _firestore
-          .collection(_collectionName)
-          .doc(uid)
-          .get();
-
+      final docSnapshot =
+          await _firestore.collection(_collectionName).doc(uid).get();
       if (docSnapshot.exists) {
-        // Return the data map from the document
         return docSnapshot.data();
       } else {
         print('No user found with UID: $uid');
@@ -74,13 +60,11 @@ class UserService {
     }
   }
 
-  // --- 4. Stream to listen to current user's profile changes in real-time ---
-  // This returns a stream that updates whenever the user's profile changes
+  // --- 4. Stream User Profile Changes ---
   Stream<Map<String, dynamic>?> watchUserProfile(String uid) {
     if (uid.isEmpty) {
       return Stream.value(null);
     }
-
     return _firestore
         .collection(_collectionName)
         .doc(uid)
@@ -91,5 +75,52 @@ class UserService {
       }
       return null;
     });
+  }
+
+  // --- 5. (NEW) Update User Profile ---
+  // This function allows updating one or more fields of a user's profile.
+  // The 'data' parameter is a map of fields to update, e.g., {'username': 'newUsername'}
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    if (uid.isEmpty) return;
+    try {
+      final userDocRef = _firestore.collection(_collectionName).doc(uid);
+      await userDocRef.update(data);
+      print('User profile for UID: $uid updated successfully.');
+    } catch (e) {
+      print('Error updating user profile: $e');
+      // Optionally re-throw the error to handle it in the UI
+      // throw e;
+    }
+  }
+
+  // --- 6. (NEW) Delete User Profile ---
+  // This permanently deletes a user's document from Firestore.
+  // Typically called when a user deletes their account.
+  Future<void> deleteUserProfile(String uid) async {
+    if (uid.isEmpty) return;
+    try {
+      await _firestore.collection(_collectionName).doc(uid).delete();
+      print('User profile for UID: $uid deleted successfully.');
+    } catch (e) {
+      print('Error deleting user profile: $e');
+    }
+  }
+
+  // --- 7. (NEW) Check if Username Exists ---
+  // A utility function to check for username uniqueness before registration.
+  // Returns 'true' if the username is already taken.
+  Future<bool> checkIfUsernameExists(String username) async {
+    if (username.isEmpty) return false;
+    try {
+      final result = await _firestore
+          .collection(_collectionName)
+          .where('username', isEqualTo: username)
+          .limit(1)
+          .get();
+      return result.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking username existence: $e');
+      return false; // Fails safe, assuming username doesn't exist
+    }
   }
 }

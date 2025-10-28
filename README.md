@@ -1,16 +1,38 @@
-# grade_learn
+# 🎓 Grade Learn
 
-A new Flutter project.
+> Unlock your academic potential.
 
-## Getting Started
+Grade Learn is a cross-platform mobile app built with **Flutter**, designed to help **students** manage **their courses, track academic progress, and access learning materials** all in one place.
 
-This project is a starting point for a Flutter application.
+This project was created to simplify the learning process and provide accessible, high-quality tools for academic success.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## ✨ Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* **Course Hub:** Browse, purchase, and manage your enrolled courses.
+* **Grade Tracker:** Log assignments, quizzes, and exams to monitor your progress by subject.
+* **Profile Management:** Easily edit your profile, change your password, and manage secure payment methods.
+* **Notification Center:** Stay updated with customizable push and email notifications for deadlines and announcements.
+* **Support Center:** Access a built-in Help Center, Privacy Policy, and Terms of Service.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** **Flutter**
+* **Backend:** [Firebase (Authentication, Firestore, Storage)]
+* **State Management:** [Provider, Bloc, Riverpod]
+* **Database:** [Firestore, SQLite]
+
+---
+
+## 🖼️ Screenshots
+
+![alt text](http://url/to/img.png)
+![alt text]([https://github.com/Arjav-07/grade_learn/blob/[branch]/image.jpg](https://github.com/Arjav-07/grade_learn/blob/main/assets/images/Onboarding%20Screen.png)?raw=true)
+
+---
+## 📧 Contact
+
+[ARJAV BHISARA] - [arjavbhisara07@gmail.com]

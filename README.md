@@ -29,9 +29,9 @@ This project was created to simplify the learning process and provide accessible
 
 ## 🖼️ Screenshots
 
-| Onboarding Screen | Dashboard (Placeholder) | Grade Tracker (Placeholder) |
+| Onboarding Screen | Dashboard (Main Screen) | Detailed (Detailed Screen) |
 | :---: | :---: | :---: |
-| ![Onboarding Screen](https://github.com/Arjav-07/grade_learn/blob/main/assets/images/Onboarding%20Screen.png?raw=true) |  |  |
+| ![Onboarding Screen](https://github.com/Arjav-07/grade_learn/blob/main/assets/images/Onboarding%20Screen.png?raw=true) | ![Main Screen](https://github.com/Arjav-07/grade_learn/blob/main/assets/images/Main%20Screen.png?raw=true) | ![Main Screen](https://github.com/Arjav-07/grade_learn/blob/main/assets/images/Detailed%20Screen.png?raw=true) |
 
 ---
 

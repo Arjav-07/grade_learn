@@ -1,15 +1,11 @@
-// main_navigation_screen.dart (or include this in a suitable file)
-
 import 'package:flutter/material.dart';
 import 'package:grade_learn/pages/chatwelcome_page.dart';
-import 'package:grade_learn/pages/home_page.dart'; // Import your pages
+import 'package:grade_learn/pages/home_page.dart'; 
 import 'package:grade_learn/pages/internship_page.dart';
 import 'package:grade_learn/pages/profile.dart';
 import 'package:grade_learn/pages/skill_page.dart';
 import 'package:grade_learn/widgets/navbar.dart';
 
-// You will likely have to replace the placeholder imports below
-// with the actual imports for your other pages.
 class PlaceholderPage extends StatelessWidget {
   final String title;
   const PlaceholderPage({Key? key, required this.title}) : super(key: key);
@@ -33,15 +29,13 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  // 0: Home, 1: Dashboard, 2: Favorites, 3: Courses, 4: Settings
   int _selectedIndex = 0;
 
-  // The list of pages corresponding to the NavBar items
   final List<Widget> _widgetOptions = <Widget>[
     const HomePage(), // Index 0
-    const SkillPage(), // Index 3 (Assuming this is your 'Courses/Content' page)
-    const InternshipPage(), // Index 1
-    const ChatWelcome(), // Index 2
+    const SkillPage(), // Index 1 
+    const InternshipPage(), // Index 2
+    const ChatWelcome(), // Index 3
     const ProfileApp(), // Index 4
   ];
 
@@ -54,18 +48,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The body displays the currently selected page
       body: Stack(
         children: <Widget>[
-          // The current page widget
           _widgetOptions.elementAt(_selectedIndex),
-
-          // The NavBar is always aligned to the bottom
           Align(
             alignment: Alignment.bottomCenter,
             child: NavBar(
               selectedIndex: _selectedIndex,
-              onTap: _onItemTapped, // This updates the state and rebuilds
+              onTap: _onItemTapped,
             ),
           ),
         ],

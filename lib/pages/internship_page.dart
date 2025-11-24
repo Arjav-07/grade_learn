@@ -229,7 +229,7 @@ class _InternshipPageState extends State<InternshipPage> {
 
   Widget _buildStatPill(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(28),

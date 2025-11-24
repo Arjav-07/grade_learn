@@ -180,7 +180,7 @@ class ChatWelcome extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SkillUpApp()),
+              MaterialPageRoute(builder: (context) => const ChatBotPage()),
             );
             // Action for starting the chat
           },

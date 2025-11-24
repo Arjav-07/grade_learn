@@ -1,13 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:grade_learn/pages/internship_page.dart';
 
+// Renamed the parameter type to LessonCardData
 class InternshipDetailsPage extends StatelessWidget {
-  const InternshipDetailsPage({super.key});
+  final LessonCardData lessonData;
+  const InternshipDetailsPage({super.key, required this.lessonData});
+
+  // --- Constants used in the current design ---
+  static const Color themeColor = Color(0xFFD1E5F8);
+  static const Color primaryIconColor = Color(0xFF1E5B89);
+
+  // Helper to format the price for the stat card
+  String _formatPrice(String price) {
+    if (price.toLowerCase() == 'free') {
+      return 'FREE';
+    }
+    // Takes the first part of a price string like '$ 49.99 (one time)' -> '$ 49.99'
+    return price.split(' ').sublist(0, 2).join(' ');
+  }
+
+  // Helper to format duration for the stat card
+  String _formatDuration(String duration) {
+    // Takes the first part of a duration string like '10 Hours' -> '10 Hrs'
+    if (duration.contains(' ')) {
+      return '${duration.split(' ').first} Hrs';
+    }
+    return duration; 
+  }
 
   @override
   Widget build(BuildContext context) {
-    // New theme color for the status bar area
-    const Color themeColor = Color(0xFFD1E5F8);
-
     return Container(
       color: themeColor,
       child: SafeArea(
@@ -26,8 +48,7 @@ class InternshipDetailsPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 _buildDescription(),
                 const SizedBox(height: 24),
-                // Replaced Lessons List with Internship Info Sections
-                _buildInternshipInfoSections(),
+                _buildLessonInfoSections(), // Renamed method
                 const SizedBox(height: 24),
               ],
             ),
@@ -38,8 +59,6 @@ class InternshipDetailsPage extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    const Color themeColor = Color(0xFFD1E5F8);
-    
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -53,44 +72,44 @@ class InternshipDetailsPage extends StatelessWidget {
         children: [
           _buildAppBar(context),
           const SizedBox(height: 20),
-          _buildInternshipIcon(),
+          _buildLessonIcon(), // Updated icon
           const SizedBox(height: 16),
-          _buildInternshipTypeChip(),
+          _buildLessonCategoryChip(), // Updated chip
           const SizedBox(height: 8),
-          _buildInternshipTitle(),
+          _buildLessonTitle(), // Updated title
           const SizedBox(height: 30),
         ],
       ),
     );
   }
 
-  // Content updated for an internship
+  // 2. Dynamic Stats Section (now displaying lesson info)
   Widget _buildStatsSection() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           StatCard(
-            icon: Icons.calendar_today_outlined,
-            value: '3 Months',
-            label: 'Duration',
-            color: Color(0xFFD1E5F8),
-            iconColor: Color(0xFF1E5B89),
+            icon: Icons.schedule,
+            value: _formatDuration(lessonData.totalDuration), // Duration
+            label: 'Total Time',
+            color: const Color(0xFFD1E5F8),
+            iconColor: primaryIconColor,
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           StatCard(
-            icon: Icons.currency_rupee,
-            value: '25k /mo',
-            label: 'Stipend',
-            color: Color(0xFFE8F5E9),
-            iconColor: Color(0xFF2E7D32),
+            icon: Icons.attach_money,
+            value: _formatPrice(lessonData.price), // Price
+            label: 'Price',
+            color: const Color(0xFFE8F5E9),
+            iconColor: const Color(0xFF2E7D32),
           ),
-          SizedBox(width: 16),
-          StatCard(
-            icon: Icons.people_alt_outlined,
-            value: '1.2k+',
-            label: 'Applicants',
+          const SizedBox(width: 16),
+          const StatCard(
+            icon: Icons.star_border, // Changed icon
+            value: '4.8',
+            label: 'Rating',
             color: Color(0xFFFFF3E0),
             iconColor: Color(0xFFE65100),
           ),
@@ -99,29 +118,31 @@ class InternshipDetailsPage extends StatelessWidget {
     );
   }
 
-  // New sections for internship details
-  Widget _buildInternshipInfoSections() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
+  // 3. Dynamic Info Sections (now displaying course content)
+  Widget _buildLessonInfoSections() {
+    // Static placeholder content, but dynamically titled
+    const List<String> contentGoals = [
+      'Master fundamental concepts of the technology.',
+      'Build 5 real-world projects to solidify your knowledge.',
+      'Prepare for certification exams in this domain.',
+      'Learn best practices from industry experts.',
+    ];
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _InfoSection(
-            title: 'About the Internship',
+            title: 'About the Course',
             content: [
-              'Work with our senior developers to build and maintain our flagship Flutter application.',
-              'Participate in the entire application lifecycle, focusing on coding and debugging.',
-              'Collaborate with cross-functional teams to define, design, and ship new features.',
+              'This **${lessonData.level}** level course is taught by **${lessonData.instructor}** and covers the entire topic of ${lessonData.lessonTitle}. It is designed for hands-on learning.',
             ],
           ),
-          SizedBox(height: 20),
-          _InfoSection(
-            title: 'Skills Required',
-            content: [
-              'Proficiency in Dart and the Flutter framework.',
-              'Understanding of state management solutions like Provider or BLoC.',
-              'Experience with RESTful APIs and JSON.',
-              'Familiarity with Git for version control.',
-            ],
+          const SizedBox(height: 20),
+          const _InfoSection(
+            title: 'What you will learn',
+            content: contentGoals,
           ),
         ],
       ),
@@ -142,7 +163,7 @@ class InternshipDetailsPage extends StatelessWidget {
             ),
           ),
           const Text(
-            'Internship Details',
+            'Course Details', // Updated text
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -161,32 +182,33 @@ class InternshipDetailsPage extends StatelessWidget {
     );
   }
 
-  // Icon changed to one relevant for a job/internship
-  Widget _buildInternshipIcon() {
+  Widget _buildLessonIcon() {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: const Icon(
-        Icons.business_center_outlined,
-        color: Color(0xFF1E5B89),
+      child: Icon(
+        // Dynamic icon from the lesson data
+        lessonData.tagIcon ?? Icons.code,
+        color: primaryIconColor,
         size: 40,
       ),
     );
   }
 
-  Widget _buildInternshipTypeChip() {
+  Widget _buildLessonCategoryChip() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E5B89),
-        borderRadius: BorderRadius.circular(28),
+      decoration: const BoxDecoration(
+        color: primaryIconColor,
+        borderRadius: BorderRadius.all(Radius.circular(28)),
       ),
-      child: const Text(
-        'Full-time',
-        style: TextStyle(
+      child: Text(
+        // Dynamic tag text
+        lessonData.tagText ?? 'Course',
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
@@ -194,11 +216,12 @@ class InternshipDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInternshipTitle() {
-    return const Text(
-      'Flutter Developer Intern\nat Google',
+  Widget _buildLessonTitle() {
+    return Text(
+      // Dynamic title: Lesson Title by Instructor
+      '${lessonData.lessonTitle}\nby ${lessonData.instructor}',
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -208,11 +231,12 @@ class InternshipDetailsPage extends StatelessWidget {
   }
 
   Widget _buildDescription() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Text(
-        'This is an exciting opportunity for a student or recent graduate passionate about mobile development to gain hands-on experience.',
-        style: TextStyle(
+        // Dynamic description snippet
+        'This **${lessonData.totalDuration}** course is categorized as **${lessonData.level}** level. Start learning ${lessonData.lessonTitle} today!',
+        style: const TextStyle(
           fontSize: 15,
           color: Colors.black54,
           height: 1.5,
@@ -221,7 +245,6 @@ class InternshipDetailsPage extends StatelessWidget {
     );
   }
 
-  // Bottom bar button changed to "Apply Now"
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -266,7 +289,7 @@ class InternshipDetailsPage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              child: const Text('Apply Now'),
+              child: const Text('Enroll Now'), // Updated text
             ),
           ),
         ],
@@ -275,7 +298,7 @@ class InternshipDetailsPage extends StatelessWidget {
   }
 }
 
-// The StatCard widget is reused from your original code
+// Reused StatCard widget
 class StatCard extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -329,7 +352,7 @@ class StatCard extends StatelessWidget {
   }
 }
 
-// A new reusable widget for displaying sections like "About" and "Skills"
+// Reused _InfoSection widget
 class _InfoSection extends StatelessWidget {
   final String title;
   final List<String> content;

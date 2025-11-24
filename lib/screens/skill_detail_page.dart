@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:grade_learn/pages/skill_page.dart';
 
 class LessonDetailsPage extends StatelessWidget {
-  const LessonDetailsPage({super.key});
+  // 1. Accepts the dynamic Course object
+  final Course course;
+  const LessonDetailsPage({super.key, required this.course});
 
-  // Lesson data is now in a structured list
+  // Lesson data (static for the sub-list)
   final List<Map<String, dynamic>> lessonsData = const [
     {
       'title': 'Greeting & Introducing',
@@ -31,12 +34,15 @@ class LessonDetailsPage extends StatelessWidget {
       'isCompleted': false,
     },
   ];
+  
+  // NOTE: This color is derived from the course data for theme consistency
+  Color get headerColor => course.backgroundColor.withOpacity(0.2); 
+  Color get primaryColor => course.iconColor; // Use iconColor as main accent
 
   @override
   Widget build(BuildContext context) {
-    // This color will fill the status bar area.
     return Container(
-      color: const Color(0xFFEADDFF),
+      color: headerColor,
       child: SafeArea(
         top: true,
         bottom: false,
@@ -71,9 +77,9 @@ class LessonDetailsPage extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Color(0xFFEADDFF),
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: headerColor,
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
@@ -88,14 +94,17 @@ class LessonDetailsPage extends StatelessWidget {
           const SizedBox(height: 8),
           _buildCourseTitle(),
           const SizedBox(height: 16),
-          _buildProgressIndicator(progress),
+          _buildProgressIndicator(progress, completedLessons, totalLessons),
           const SizedBox(height: 30),
         ],
       ),
     );
   }
 
-  Widget _buildProgressIndicator(double progress) {
+  Widget _buildProgressIndicator(double progress, int completed, int total) {
+    // Ensure the progress bar color is visually distinct
+    final Color progressColor = primaryColor;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32.0),
       child: Column(
@@ -112,7 +121,7 @@ class LessonDetailsPage extends StatelessWidget {
                 ),
               ),
               Text(
-                '${(progress * 100).toInt()}%',
+                '$completed of $total lessons completed',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -128,8 +137,7 @@ class LessonDetailsPage extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: Colors.white.withOpacity(0.5),
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(Color(0xFF6750A4)),
+              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),
           ),
         ],
@@ -157,6 +165,8 @@ class LessonDetailsPage extends StatelessWidget {
               title: lesson['title'] as String,
               duration: lesson['duration'] as String,
               isCompleted: lesson['isCompleted'] as bool,
+              // Pass the primary color for the tile icons
+              primaryColor: primaryColor,
             );
           }).toList(),
         ],
@@ -206,9 +216,10 @@ class LessonDetailsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: const Icon(
-        Icons.speaker_notes,
-        color: Color(0xFF6750A4),
+      child: Icon(
+        // ➡️ Dynamic Icon
+        course.iconData,
+        color: primaryColor,
         size: 40,
       ),
     );
@@ -218,12 +229,14 @@ class LessonDetailsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF6750A4),
+        // ➡️ Dynamic Color
+        color: primaryColor,
         borderRadius: BorderRadius.circular(28),
       ),
-      child: const Text(
-        'Beginner',
-        style: TextStyle(
+      child: Text(
+        // ➡️ Dynamic Category
+        course.category.split(' ').first,
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
@@ -232,10 +245,11 @@ class LessonDetailsPage extends StatelessWidget {
   }
 
   Widget _buildCourseTitle() {
-    return const Text(
-      'Mastering Everyday\nConversations',
+    return Text(
+      // ➡️ Dynamic Title
+      course.title,
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -245,33 +259,36 @@ class LessonDetailsPage extends StatelessWidget {
   }
 
   Widget _buildStatsSection() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Stat 1: Total Lessons (Dynamic from hardcoded list)
           StatCard(
             icon: Icons.book_outlined,
-            value: '20',
+            value: lessonsData.length.toString(),
             label: 'Lessons',
-            color: Color(0xFFD3E5FD),
-            iconColor: Color(0xFF00468D),
+            color: const Color(0xFFD3E5FD),
+            iconColor: const Color(0xFF00468D),
           ),
-          SizedBox(width: 16),
-          StatCard(
+          const SizedBox(width: 16),
+          // Stat 2: Quizzes (Static for now)
+          const StatCard(
             icon: Icons.quiz_outlined,
             value: '12',
             label: 'Quizzes',
             color: Color(0xFFFFE8D6),
             iconColor: Color(0xFFC26A00),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
+          // Stat 3: Total Students (Dynamic from course object)
           StatCard(
-            icon: Icons.access_time,
-            value: '5.0',
-            label: 'Hours',
-            color: Color(0xFFF3E5F5),
-            iconColor: Color(0xFF6A1B9A),
+            icon: Icons.group,
+            value: '${course.userCount}+',
+            label: 'Students',
+            color: const Color(0xFFF3E5F5),
+            iconColor: const Color(0xFF6A1B9A),
           ),
         ],
       ),
@@ -279,11 +296,12 @@ class LessonDetailsPage extends StatelessWidget {
   }
 
   Widget _buildDescription() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Text(
-        'Enhance your daily communication skills with practical lessons and engaging quizzes. Master common phrases, improve pronunciation.',
-        style: TextStyle(
+        // ➡️ Dynamic Description
+        'Enhance your skills in **${course.category}** with this course, **${course.title}**. Master common concepts and improve your practical application today.',
+        style: const TextStyle(
           fontSize: 15,
           color: Colors.black54,
           height: 1.5,
@@ -403,12 +421,14 @@ class LessonTile extends StatelessWidget {
   final String title;
   final String duration;
   final bool isCompleted;
+  final Color primaryColor;
 
   const LessonTile({
     super.key,
     required this.title,
     required this.duration,
     this.isCompleted = false,
+    this.primaryColor = const Color(0xFF6750A4), // Default color
   });
 
   @override
@@ -431,10 +451,11 @@ class LessonTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFD3E5FD),
+              // Use a lighter shade of the primary color for background
+              color: primaryColor.withOpacity(0.2), 
               borderRadius: BorderRadius.circular(40),
             ),
-            child: const Icon(Icons.book_outlined, color: Color(0xFF00468D)),
+            child: Icon(Icons.book_outlined, color: primaryColor), // Primary color icon
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -463,8 +484,8 @@ class LessonTile extends StatelessWidget {
           if (isCompleted)
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Color(0xFF6750A4),
+              decoration: BoxDecoration(
+                color: primaryColor, // Completed checkmark uses primary color
                 shape: BoxShape.circle,
               ),
               child: const Icon(

@@ -85,7 +85,7 @@ class ChatWelcome extends StatelessWidget {
           const Spacer(),
           // App Title (Center)
           const Text(
-            'Grade Learn',
+            'Skill Waves',
             
             style: TextStyle(
               fontSize: 22,
@@ -144,7 +144,7 @@ class ChatWelcome extends StatelessWidget {
         children: [
           const TextSpan(text: 'Welcome to\n'),
           TextSpan(
-            text: 'Grade Learn ',
+            text: 'Skill Waves',
             style: TextStyle(
               color: kPrimaryGreen,
             ),

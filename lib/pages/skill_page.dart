@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:grade_learn/screens/skill_detail_page.dart';
 
-// --- Data Model for a Course ---
+// --- Data Model for a Course (Shared between files) ---
 class Course {
   final String title;
-  final String category;
+  final String category; // Used for filtering (e.g., 'GEOMETRY IN ACTION')
   final IconData iconData;
   final Color backgroundColor;
   final Color iconColor;
@@ -133,7 +133,7 @@ class _SkillPageState extends State<SkillPage> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // Make status bar transparent
+      statusBarColor: Colors.transparent, 
       statusBarIconBrightness: Brightness.dark,
     ));
 
@@ -166,6 +166,7 @@ class _SkillPageState extends State<SkillPage> {
                             : const SizedBox.shrink(),
                       ),
                       const SizedBox(height: 20),
+                      // --- DYNAMIC COURSE LIST AND NAVIGATION ---
                       ..._filteredCourses.map((course) => Padding(
                             padding: const EdgeInsets.only(bottom: 20.0),
                             child: GestureDetector(
@@ -173,8 +174,9 @@ class _SkillPageState extends State<SkillPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
+                                    // ➡️ PASS THE COURSE OBJECT TO THE DETAIL PAGE
                                     builder: (context) =>
-                                        const LessonDetailsPage(),
+                                        LessonDetailsPage(course: course), 
                                   ),
                                 );
                               },
@@ -221,9 +223,9 @@ class _SkillPageState extends State<SkillPage> {
             right: -20,
             child: SizedBox(
               height: 180,
-              // Make sure 'assets/images/grad_cap.jpg' exists
+              // NOTE: Image path must be configured in pubspec.yaml
               child: Image.asset('assets/images/grad_cap.jpg',
-                  fit: BoxFit.contain),
+                  fit: BoxFit.contain), 
             ),
           ),
           Column(
@@ -454,6 +456,7 @@ class CourseCard extends StatelessWidget {
 
   Widget _buildAvatarStack() {
     const double overlap = 20.0;
+    // NOTE: Replace with actual image URLs or local assets
     final urls = [
       'https://randomuser.me/api/portraits/women/79.jpg',
       'https://randomuser.me/api/portraits/men/41.jpg',

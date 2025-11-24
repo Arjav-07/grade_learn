@@ -3,8 +3,8 @@ import 'package:grade_learn/auth/onboarding_page.dart';
 import 'package:grade_learn/settings/change_password.dart';
 import 'package:grade_learn/settings/edit_profile.dart';
 import 'package:grade_learn/settings/help_center.dart';
-import 'package:grade_learn/settings/privac';
 import 'package:grade_learn/settings/privacy_policy.dart';
+import 'package:grade_learn/settings/terms_and_conditions.dart';
 
 // --- Constants for consistent design ---
 const Color kPrimaryColor = Color(0xFF7A64D8);
@@ -25,7 +25,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     // --- UI Constants for consistent theming ---
-    const Color primaryBackgroundColor = Color(0xFFFFD9C0);
     const Color cardBackgroundColor = Colors.white;
     const BorderRadius topBorderRadius = BorderRadius.only(
       topLeft: Radius.circular(32),

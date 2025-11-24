@@ -55,7 +55,6 @@ class AppliedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // --- UI Constants for consistent theming ---
-    const Color primaryBackgroundColor = Color(0xFFFFD9C0);
     const Color cardBackgroundColor = Colors.white;
     const BorderRadius topBorderRadius = BorderRadius.only(
       topLeft: Radius.circular(32),

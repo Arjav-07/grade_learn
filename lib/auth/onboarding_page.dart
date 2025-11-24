@@ -38,14 +38,14 @@ class _OnboardingScreenState extends State<OnboardingPage> {
   final List<OnboardingModel> _pages = [
     OnboardingModel(
       illustrationPath: 'assets/images/onboarding1.png',
-      title: 'A shop in your pocket.',
+      title: 'A guidance in your pocket.',
       subtitle:
-          "We’re very lucky to find you! With Shoppy we can save your lovely time.",
+          "We’re very lucky to find you! With guidance we can save your lovely time.",
     ),
     OnboardingModel(
       illustrationPath: 'assets/images/onboarding2.png',
       title: 'Everything can be find!',
-      subtitle: "With Shoppy we will not let you be confused. Enjoy shopping!",
+      subtitle: "With SkillWaves we will not let you be confused. Enjoy shopping!",
     ),
   ];
 

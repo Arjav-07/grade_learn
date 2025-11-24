@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:grade_learn/screens/internship_detail_page.dart';
 
-// --- Data Model for a Job Card ---
-class JobCardData {
-  final String jobTitle;
-  final String company;
-  final String location;
-  final String salary;
-  final String duration;
+// --- Data Model for a Lesson Card (Renamed and updated fields) ---
+class LessonCardData {
+  final String lessonTitle; // Formerly jobTitle
+  final String instructor; // Formerly company
+  final String level; // Formerly location
+  final String price; // Formerly salary
+  final String totalDuration; // Formerly duration
   final String? tagText;
   final IconData? tagIcon;
   final Color cardColor;
   final Color textColor;
 
-  JobCardData({
-    required this.jobTitle,
-    required this.company,
-    required this.location,
-    required this.salary,
-    required this.duration,
+  LessonCardData({
+    required this.lessonTitle,
+    required this.instructor,
+    required this.level,
+    required this.price,
+    required this.totalDuration,
     this.tagText,
     this.tagIcon,
     required this.cardColor,
@@ -46,83 +46,97 @@ class InternshipPage extends StatefulWidget {
 class _InternshipPageState extends State<InternshipPage> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<JobCardData> _allJobs = [
-    JobCardData(
-      tagText: 'Internship',
-      tagIcon: Icons.hourglass_bottom_outlined,
-      jobTitle: 'UX Designer',
-      company: 'Figma',
-      location: 'Bangalore, India',
-      salary: '₹ 80,000 - 1,20,000 /month',
-      duration: '4 Months',
+  // Updated Data to LessonCardData
+  final List<LessonCardData> _allLessons = [
+    LessonCardData(
+      tagText: 'Web Dev',
+      tagIcon: Icons.html_outlined,
+      lessonTitle: 'Introduction to React.js',
+      instructor: 'Dr. Angela Yu',
+      level: 'Intermediate',
+      price: '\$ 49.99 (one time)',
+      totalDuration: '10 Hours',
       cardColor: const Color(0xFFF9BE84),
       textColor: const Color(0xFF86542A),
     ),
-    JobCardData(
-      tagText: 'Actively hiring',
+    LessonCardData(
+      tagText: 'Trending',
       tagIcon: Icons.trending_up,
-      jobTitle: 'Graphic Design',
-      company: 'Idea Usher',
-      location: 'Work From Home',
-      salary: '₹ 12,000 - 1,50,000 /month',
-      duration: '6 Months',
+      lessonTitle: 'Complete Python Bootcamp',
+      instructor: 'Jose Portilla',
+      level: 'Beginner',
+      price: '\$ 19.99 (sale price)',
+      totalDuration: '22 Hours',
       cardColor: const Color(0xFFE4D9FF),
       textColor: const Color(0xFF65499D),
     ),
-    JobCardData(
-      tagText: 'Full-Time',
-      tagIcon: Icons.business_center_outlined,
-      jobTitle: 'Flutter Developer',
-      company: 'Skill Waves',
-      location: 'Remote (India)',
-      salary: '₹ 40,000 - 90,000 /month',
-      duration: 'Permanent',
+    LessonCardData(
+      tagText: 'Mobile',
+      tagIcon: Icons.phone_android,
+      lessonTitle: 'Advanced Flutter State Management',
+      instructor: 'Andrea Bizzotto',
+      level: 'Expert',
+      price: '\$ 99.00',
+      totalDuration: '18 Lessons',
       cardColor: kDarkPill,
+      textColor: Colors.white,
+    ),
+    LessonCardData(
+      tagText: 'Database',
+      tagIcon: Icons.storage,
+      lessonTitle: 'SQL and PostgreSQL Basics',
+      instructor: 'Zomato Academy',
+      level: 'Beginner',
+      price: 'Free',
+      totalDuration: '5 Hours',
+      cardColor: const Color(0xFF673AB7),
       textColor: Colors.white,
     ),
   ];
 
-  List<JobCardData> _filteredJobs = [];
+  List<LessonCardData> _filteredLessons = [];
   String _selectedCategory = 'All';
   bool _showCategories = false;
 
   final Map<String, String> _categoryMap = {
     'All': 'All',
-    'Actively hiring': 'Hiring',
-    'Full-Time': 'Full-Time',
-    'Internship': 'Internship',
+    'Web Dev': 'Web Dev',
+    'Mobile': 'Mobile',
+    'Database': 'Database',
+    'Trending': 'Trending',
   };
 
   final Map<String, IconData> _iconMap = {
     'All': Icons.apps,
-    'Hiring': Icons.trending_up,
-    'Full-Time': Icons.business_center,
-    'Internship': Icons.school,
+    'Web Dev': Icons.html_outlined,
+    'Mobile': Icons.phone_android,
+    'Database': Icons.storage,
+    'Trending': Icons.trending_up,
   };
 
   @override
   void initState() {
     super.initState();
-    _filteredJobs = _allJobs;
-    _searchController.addListener(_filterJobs);
+    _filteredLessons = _allLessons;
+    _searchController.addListener(_filterLessons);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterJobs);
+    _searchController.removeListener(_filterLessons);
     _searchController.dispose();
     super.dispose();
   }
 
-  void _filterJobs() {
+  void _filterLessons() {
     final searchQuery = _searchController.text.toLowerCase();
     setState(() {
-      _filteredJobs = _allJobs.where((job) {
+      _filteredLessons = _allLessons.where((lesson) {
         final categoryMatches =
-            _selectedCategory == 'All' || job.tagText == _selectedCategory;
+            _selectedCategory == 'All' || lesson.tagText == _selectedCategory;
         final searchMatches = searchQuery.isEmpty ||
-            job.jobTitle.toLowerCase().contains(searchQuery) ||
-            job.company.toLowerCase().contains(searchQuery);
+            lesson.lessonTitle.toLowerCase().contains(searchQuery) ||
+            lesson.instructor.toLowerCase().contains(searchQuery);
         return categoryMatches && searchMatches;
       }).toList();
     });
@@ -132,7 +146,7 @@ class _InternshipPageState extends State<InternshipPage> {
     setState(() {
       _selectedCategory = categoryKey;
     });
-    _filterJobs();
+    _filterLessons();
   }
 
   @override
@@ -150,7 +164,7 @@ class _InternshipPageState extends State<InternshipPage> {
           child: Column(
             children: [
               _buildHeader(),
-              _buildInternshipContent(),
+              _buildLessonContent(),
             ],
           ),
         ),
@@ -165,13 +179,15 @@ class _InternshipPageState extends State<InternshipPage> {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
+          // Changed image for lessons/courses
           Positioned(
             top: -40,
             right: -20,
             child: SizedBox(
               height: 180,
               child: Image.asset(
-                'assets/images/internship.png',
+                // NOTE: Use a different asset for "learning" if available
+                'assets/images/grad_cap.jpg', 
                 fit: BoxFit.contain,
               ),
             ),
@@ -190,7 +206,7 @@ class _InternshipPageState extends State<InternshipPage> {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Find your \ninternship',
+                'Find your \nnext course', // Updated text
                 style: TextStyle(
                     fontSize: 38,
                     fontWeight: FontWeight.w800,
@@ -199,9 +215,9 @@ class _InternshipPageState extends State<InternshipPage> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  _buildStatPill('72% Profile', const Color(0xFF2C2C2C)),
+                  _buildStatPill('92% Progress', const Color(0xFF2C2C2C)), // Updated stat
                   const SizedBox(width: 10),
-                  _buildStatPill('12 Applied', Colors.white.withOpacity(0.2)),
+                  _buildStatPill('5 Enrolled', Colors.white.withOpacity(0.2)), // Updated stat
                 ],
               ),
             ],
@@ -226,7 +242,7 @@ class _InternshipPageState extends State<InternshipPage> {
     );
   }
 
-  Widget _buildInternshipContent() {
+  Widget _buildLessonContent() {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -250,9 +266,9 @@ class _InternshipPageState extends State<InternshipPage> {
                   : const SizedBox.shrink(),
             ),
             const SizedBox(height: 30),
-            _buildSectionHeader(context, 'Recommended for you'),
+            _buildSectionHeader(context, 'Recommended Courses'), // Updated text
             const SizedBox(height: 16),
-            _buildJobList(),
+            _buildLessonList(),
             const SizedBox(height: 40),
           ],
         ),
@@ -260,13 +276,13 @@ class _InternshipPageState extends State<InternshipPage> {
     );
   }
 
-  Widget _buildJobList() {
-    if (_filteredJobs.isEmpty) {
+  Widget _buildLessonList() {
+    if (_filteredLessons.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 40.0),
         child: Center(
           child: Text(
-            'No matching jobs found.',
+            'No matching lessons found.', // Updated text
             style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
         ),
@@ -276,31 +292,31 @@ class _InternshipPageState extends State<InternshipPage> {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      itemCount: _filteredJobs.length,
+      itemCount: _filteredLessons.length,
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final job = _filteredJobs[index];
-        // --- 2. WRAP THE CARD WITH GESTUREDETECTOR ---
+        final lesson = _filteredLessons[index];
+        // --- NAVIGATE AND PASS THE DATA ---
         return GestureDetector(
           onTap: () {
-            // --- 3. NAVIGATE ON TAP ---
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const InternshipDetailsPage(),
+                // Pass the LessonCardData object
+                builder: (context) => InternshipDetailsPage(lessonData: lesson), 
               ),
             );
           },
-          child: _buildJobCard(
-            jobTitle: job.jobTitle,
-            company: job.company,
-            location: job.location,
-            salary: job.salary,
-            duration: job.duration,
-            tagText: job.tagText,
-            tagIcon: job.tagIcon,
-            cardColor: job.cardColor,
-            textColor: job.textColor,
+          child: _buildLessonCard(
+            lessonTitle: lesson.lessonTitle,
+            instructor: lesson.instructor,
+            level: lesson.level,
+            price: lesson.price,
+            totalDuration: lesson.totalDuration,
+            tagText: lesson.tagText,
+            tagIcon: lesson.tagIcon,
+            cardColor: lesson.cardColor,
+            textColor: lesson.textColor,
           ),
         );
       },
@@ -323,7 +339,7 @@ class _InternshipPageState extends State<InternshipPage> {
             child: TextField(
               controller: _searchController,
               decoration: const InputDecoration(
-                hintText: 'Search for jobs...',
+                hintText: 'Search for courses...', // Updated text
                 hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
                 border: InputBorder.none,
               ),
@@ -430,12 +446,13 @@ class _InternshipPageState extends State<InternshipPage> {
     );
   }
 
-  Widget _buildJobCard({
-    required String jobTitle,
-    required String company,
-    required String location,
-    required String salary,
-    required String duration,
+  // Updated method name and parameters to reflect lessons
+  Widget _buildLessonCard({
+    required String lessonTitle,
+    required String instructor,
+    required String level,
+    required String price,
+    required String totalDuration,
     String? tagText,
     IconData? tagIcon,
     required Color cardColor,
@@ -476,7 +493,7 @@ class _InternshipPageState extends State<InternshipPage> {
             ),
           if (tagText != null) const SizedBox(height: 16),
           Text(
-            jobTitle,
+            lessonTitle,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -485,7 +502,7 @@ class _InternshipPageState extends State<InternshipPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            company,
+            instructor,
             style: TextStyle(fontSize: 16, color: textColor.withOpacity(0.8)),
           ),
           Padding(
@@ -500,11 +517,11 @@ class _InternshipPageState extends State<InternshipPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildDetailRow(
-                        Icons.location_on_outlined, location, textColor),
+                        Icons.school_outlined, level, textColor), // Level
                     _buildDetailRow(
-                        Icons.currency_rupee_rounded, salary, textColor),
+                        Icons.payments_outlined, price, textColor), // Price
                     _buildDetailRow(
-                        Icons.calendar_today_outlined, duration, textColor),
+                        Icons.schedule, totalDuration, textColor), // Duration
                   ],
                 ),
               ),

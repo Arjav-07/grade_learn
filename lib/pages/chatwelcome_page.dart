@@ -149,7 +149,6 @@ class ChatWelcome extends StatelessWidget {
               color: kPrimaryGreen,
             ),
           ),
-          const TextSpan(text: '👋'),
         ],
       ),
     );

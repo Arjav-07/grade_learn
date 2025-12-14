@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 class ChatBotPage extends StatelessWidget {
   const ChatBotPage({Key? key}) : super(key: key);
 
-  static const double _radius = 26.0;
+  static const double _radius = 20.0;
   static final Color _primaryColor = Color(0xFF7A64D8); 
 
   // Simple input field
@@ -26,7 +26,7 @@ class ChatBotPage extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_radius),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       ),
       onChanged: onChanged,
       style: const TextStyle(fontFamily: null),
@@ -39,7 +39,9 @@ class ChatBotPage extends StatelessWidget {
     final profile = provider.userProfile;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Career Guidance AI',
@@ -113,9 +115,9 @@ class ChatBotPage extends StatelessWidget {
                   : () => context.read<ChatbotProvider>().getCareerGuidance(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 28),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(_radius),
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
               child: provider.isLoading
@@ -129,7 +131,7 @@ class ChatBotPage extends StatelessWidget {
                     )
                   : const Text(
                       "Get My Guidance",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w500),
                     ),
             ),
 

@@ -1,29 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grade_learn/screens/skill_detail_page.dart';
 
-// --- Data Model for a Course (Shared between files) ---
-class Course {
-  final String title;
-  final String category; // Used for filtering (e.g., 'GEOMETRY IN ACTION')
-  final IconData iconData;
-  final Color backgroundColor;
-  final Color iconColor;
-  final Color textColor;
-  final int userCount;
+// -------------------------------------------------------------------
+// 2. Mocking the Entry Point and Course Detail Screen for a runnable demo
+// -------------------------------------------------------------------
 
-  Course({
-    required this.title,
-    required this.category,
-    required this.iconData,
-    required this.backgroundColor,
-    this.iconColor = Colors.white,
-    this.textColor = Colors.white,
-    required this.userCount,
-  });
+// This replaces your main() from the first file, so the app runs with Riverpod scope
+void main() {
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
-// --- Main Page Widget ---
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'Course Skill Demo',
+      debugShowCheckedModeBanner: false,
+      home: SkillPage(), // Start with the SkillPage
+    );
+  }
+}
+
+// -------------------------------------------------------------------
+// 3. Main Page Widget (SkillPage - CONNECTED)
+// -------------------------------------------------------------------
+
 class SkillPage extends StatefulWidget {
   const SkillPage({super.key});
 
@@ -46,15 +55,18 @@ class _SkillPageState extends State<SkillPage> {
       category: 'GEOMETRY IN ACTION',
       title: 'Creative approaches to\nplane shapes',
       userCount: 43,
+      iconColor: Colors.white,
+      textColor: Colors.white,
     ),
     Course(
-      backgroundColor: const Color(0xFFE4D9FF),
-      iconData: Icons.science_outlined,
-      iconColor: const Color(0xFF65499D),
-      textColor: const Color(0xFF65499D),
-      category: 'THE MICROCOSM AROUND US',
-      title: 'Discoveries in\ncell biology',
-      userCount: 12,
+      // NOTE: This course mimics the appearance of the mock data used in CourseDetailScreen
+      backgroundColor: const Color(0xFFD3E5FD), // Light blue from stat card 1
+      iconData: Icons.language,
+      iconColor: const Color(0xFF00468D), // Dark blue from stat card 1
+      textColor: const Color(0xFF00468D),
+      category: 'LANGUAGE CONVERSATION', // Changed to match the category used in detail screen
+      title: 'Spanish Conversation Mastery',
+      userCount: 1540,
     ),
     Course(
       backgroundColor: const Color(0xFFF9BE84),
@@ -81,7 +93,7 @@ class _SkillPageState extends State<SkillPage> {
     'All': 'All',
     'LITERARY ANALYSIS': 'Literature',
     'GEOMETRY IN ACTION': 'Math',
-    'THE MICROCOSM AROUND US': 'Biology',
+    'LANGUAGE CONVERSATION': 'Language',
     'ANCIENT CIVILIZATIONS': 'History',
   };
 
@@ -90,7 +102,7 @@ class _SkillPageState extends State<SkillPage> {
     'All': Icons.apps,
     'Literature': Icons.book,
     'Math': Icons.calculate,
-    'Biology': Icons.biotech,
+    'Language': Icons.language,
     'History': Icons.history_edu,
   };
 
@@ -166,7 +178,7 @@ class _SkillPageState extends State<SkillPage> {
                             : const SizedBox.shrink(),
                       ),
                       const SizedBox(height: 20),
-                      // --- DYNAMIC COURSE LIST AND NAVIGATION ---
+                      // --- DYNAMIC COURSE LIST AND NAVIGATION (CONNECTED) ---
                       ..._filteredCourses.map((course) => Padding(
                             padding: const EdgeInsets.only(bottom: 20.0),
                             child: GestureDetector(
@@ -174,9 +186,9 @@ class _SkillPageState extends State<SkillPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    // ➡️ PASS THE COURSE OBJECT TO THE DETAIL PAGE
+                                    // 🎯 DATA PASSED HERE:
                                     builder: (context) =>
-                                        LessonDetailsPage(course: course), 
+                                        CourseDetailScreen(course: course), 
                                   ),
                                 );
                               },
@@ -218,16 +230,16 @@ class _SkillPageState extends State<SkillPage> {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          Positioned(
-            top: -40,
-            right: -20,
-            child: SizedBox(
-              height: 180,
-              // NOTE: Image path must be configured in pubspec.yaml
-              child: Image.asset('assets/images/grad_cap.jpg',
-                  fit: BoxFit.contain), 
-            ),
-          ),
+          // Removed Image.asset as assets path is not guaranteed
+          // Positioned(
+          //   top: -40,
+          //   right: -20,
+          //   child: SizedBox(
+          //     height: 180,
+          //     child: Image.asset('assets/images/grad_cap.jpg',
+          //         fit: BoxFit.contain), 
+          //   ),
+          // ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -456,7 +468,6 @@ class CourseCard extends StatelessWidget {
 
   Widget _buildAvatarStack() {
     const double overlap = 20.0;
-    // NOTE: Replace with actual image URLs or local assets
     final urls = [
       'https://randomuser.me/api/portraits/women/79.jpg',
       'https://randomuser.me/api/portraits/men/41.jpg',

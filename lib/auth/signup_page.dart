@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// Required for FieldValue
-import 'package:grade_learn/services/user_service.dart'; // 🌟 Import the new service file
+import 'package:grade_learn/services/user_service.dart'; 
+
+// --- Global Constants for Styling ---
+const Color _primaryColor = Colors.black87;
+final Color _textColor = Colors.black.withOpacity(0.5);
+const Color _fieldBackgroundColor = Color(0xFFF8F9FA);
+const Color _screenBackgroundColor = Color(0xFFFFFFF9);
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -11,42 +16,31 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // 🌟 Controllers for form fields
+  // 1. Controllers and Services
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  // 🌟 Initialize the Service for Firestore operations
   final UserService _userService = UserService();
 
-  bool _rememberMe = false;
   bool _obscurePassword = true;
-  bool _isLoading = false; // 🌟 Loading state for the button
+  bool _isLoading = false; 
 
-  // --- COLOR PALETTE ---
-  final Color _primaryColor = Colors.black87;
-  final Color _textColor = const Color(0xFF64748B);
-
-  // 🌟 1. Sign Up Method (UPDATED)
+  // 2. Firebase Sign Up Logic (Two-Step Process)
   Future<void> _signUp() async {
     // Basic local validation
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _usernameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields.')),
-      );
+      _showSnackBar('PLEASE FILL IN ALL FIELDS.');
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    _setLoading(true);
 
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final username = _usernameController.text.trim();
 
     try {
-      // 1. Create user in Firebase Authentication
+      // Step 1: Create user in Firebase Authentication
       final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -55,56 +49,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final User? user = userCredential.user;
 
       if (user != null) {
-        // 2. Save the profile data to Firestore using the new user's UID
-        // We wrap this crucial step in its own try/catch for specific debugging.
-        try {
-          await _userService.createUserProfile(
-            uid: user.uid,
-            username: username,
-            email: email,
-          );
+        // Step 2: Save the user profile data to Firestore
+        await _userService.createUserProfile(
+          uid: user.uid,
+          username: username,
+          email: email,
+        );
 
-          // On success, show message and pop back to login screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registration Successful! Profile Stored.')),
-          );
-          Navigator.pop(context);
-        } catch (dbError) {
-          // If Firestore fails, but Auth succeeded, log the user out
-          // and inform the user that their profile creation failed.
-          await user.delete();
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile creation failed. Check Firebase Rules and console logs.')),
-          );
-          print('!!! Firestore Write Error: $dbError');
+        // Success: Navigate back to the login screen
+        if (mounted) {
+            _showSnackBar('REGISTRATION SUCCESSFUL! YOU CAN NOW SIGN IN.');
+            Navigator.pop(context); 
         }
       }
     } on FirebaseAuthException catch (e) {
-      String message;
-      if (e.code == 'weak-password') {
-        message = 'The password provided is too weak (min 6 characters).';
-      } else if (e.code == 'email-already-in-use') {
-        message = 'An account already exists for that email.';
-      } else if (e.code == 'invalid-email') {
-        message = 'The email address is not valid.';
-      } else {
-        message = e.message ?? 'An unknown registration error occurred.';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      _handleSignUpAuthError(e);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-      print('!!! General Sign Up Error: $e'); // Log general errors
+      // Catch errors during Firestore write or general unexpected errors
+      _showSnackBar('AN UNEXPECTED ERROR OCCURRED: $e');
+      // Attempt to clean up the Auth user if profile write failed
+      if (FirebaseAuth.instance.currentUser?.uid != null) {
+         FirebaseAuth.instance.currentUser?.delete();
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      _setLoading(false);
     }
+  }
+
+  // --- Utility Methods ---
+  void _setLoading(bool state) {
+    if (mounted) setState(() => _isLoading = state);
+  }
+  
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  void _handleSignUpAuthError(FirebaseAuthException e) {
+    String message;
+    if (e.code == 'WEAK_PASSWORD') {
+      message = 'THE PASSWORD PROVIDED IS TOO WEAK (MIN 6 CHARACTERS).';
+    } else if (e.code == 'EMAIL_ALREADY_IN_USE') {
+      message = 'AN ACCOUNT ALREADY EXISTS FOR THAT EMAIL.';
+    } else if (e.code == 'INVALID_EMAIL') {
+      message = 'THE EMAIL ADDRESS IS NOT VALID.';
+    } else {
+      message = e.message ?? 'AN UNKNOWN REGISTRATION ERROR OCCURRED.';
+    }
+    _showSnackBar(message);
   }
 
   @override
@@ -115,173 +109,111 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  // 3. Widget Build Method
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: true, 
+        title: const Text('SKILL WAVES', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: _screenBackgroundColor,
+        elevation: 0, 
+      ),
+      backgroundColor: _screenBackgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
+        // The main body is now a single Column wrapped in Padding.
+        // It uses a Spacer to push the action button down, but relies on 
+        // the screen size to fit the content.
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28.0), 
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, 
+            children: [
+              // --- FORM CONTENT ---
+              const SizedBox(height: 40), 
+              
+              // 1. Illustration (Placeholder)
+              const Center(child: _IllustrationArea()),
+              
+              const SizedBox(height: 30), 
+              
+              // 2. Title & Subtitle
+              Text( "REGISTER", style: const TextStyle( fontSize: 24, fontWeight: FontWeight.bold, color: _primaryColor)),
+              const SizedBox(height: 4),
+              Text( "PLEASE REGISTER TO LOGIN.", style: TextStyle( fontSize: 14, color: _textColor)),
+              
+              const SizedBox(height: 24),
+              
+              // 3. Username Field
+              _CustomTextField(
+                controller: _usernameController,
+                icon: Icons.person_outline, 
+                hintText: 'USERNAME',
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 4. Email Field
+              _CustomTextField(
+                controller: _emailController,
+                icon: Icons.email_outlined, 
+                hintText: 'EMAIL ADDRESS',
+                keyboardType: TextInputType.emailAddress,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 5. Password Field
+              _PasswordField(
+                controller: _passwordController,
+                obscurePassword: _obscurePassword,
+                onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+              ),
+              
+              // --- SPACER (Pushes content up and footer down) ---
+              const Spacer(), 
 
-                // 1. Illustration
-                const _IllustrationArea(),
+              // --- FOOTER/ACTION AREA ---
+              
+              const SizedBox(height: 10), // Add a small space before the divider
 
-                const SizedBox(height: 20),
-
-                // 2. Title
-                Text(
-                  "Register",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: _primaryColor,
+              // 6. OR Divider
+              const _OrDivider(),
+              
+              const SizedBox(height: 24),
+              
+              // 7. Social Login Buttons
+              const Center(child: _SocialLoginButtons()),
+              
+              const SizedBox(height: 30),
+              
+              // 8. Login Link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("ALREADY HAVE ACCOUNT? ", style: TextStyle(color: _textColor, fontSize: 14)),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Text("SIGN IN", style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 14)),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // 9. SIGN UP Button
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0), // Consistent bottom padding
+                  child: _ActionButton(
+                    label: 'SIGN UP',
+                    onPressed: _signUp,
+                    isLoading: _isLoading,
+                    borderRadius: 30, 
                   ),
                 ),
-
-                const SizedBox(height: 8),
-
-                // 3. Subtitle
-                Text(
-                  "Please register to login.",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _textColor,
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 4. Form Fields
-                _CustomTextField(
-                  controller: _usernameController, // 🌟 Linked
-                  icon: Icons.person_outline,
-                  hintText: 'Username',
-                  primaryColor: _primaryColor,
-                  keyboardType: TextInputType.text,
-                ),
-
-                const SizedBox(height: 16),
-
-                _CustomTextField(
-                  controller: _emailController, // 🌟 Linked for Firebase Auth
-                  icon: Icons.email_outlined, // Changed icon for email
-                  hintText: 'Email Address', // Changed hint for Firebase Auth
-                  primaryColor: _primaryColor,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-
-                const SizedBox(height: 16),
-
-                _PasswordField(
-                  controller: _passwordController, // 🌟 Linked
-                  obscurePassword: _obscurePassword,
-                  primaryColor: _primaryColor,
-                  onToggle: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 20),
-
-                // 5. Remember Me Toggle
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Reminder me next time",
-                      style: TextStyle(
-                        color: _textColor,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Switch(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value;
-                        });
-                      },
-                      activeColor: _primaryColor,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // 6. Sign Up Button
-                _ActionButton(
-                  label: 'Sign Up',
-                  primaryColor: _primaryColor,
-                  onPressed: _isLoading ? () {} : _signUp, // 🌟 Call _signUp
-                  isLoading: _isLoading, // 🌟 Pass loading state
-                ),
-
-                const SizedBox(height: 24),
-
-                // 7. OR Divider (FIXED: Replaced Expanded with flexible wrapping)
-                Row(
-                  children: [
-                    const Flexible(child: Divider(color: Colors.grey, height: 1)), // Use Flexible instead of Expanded
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        "OR",
-                        style: TextStyle(
-                          color: _textColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const Flexible(child: Divider(color: Colors.grey, height: 1)), // Use Flexible instead of Expanded
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // 8. Social Login Buttons
-                const _SocialLoginButtons(),
-
-                const SizedBox(height: 20),
-
-                // 9. Login Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Already have account? ",
-                      style: TextStyle(
-                        color: _textColor,
-                        fontSize: 14,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        "Sign In",
-                        style: TextStyle(
-                          color: _primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -289,7 +221,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-// --- ILLUSTRATION AREA (No change) ---
+// =========================================================================
+// WIDGET COMPONENTS (Unchanged)
+// =========================================================================
 
 class _IllustrationArea extends StatelessWidget {
   const _IllustrationArea();
@@ -297,41 +231,167 @@ class _IllustrationArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180
-      ,
-      child: Center(
-        child: Image.asset(
-          'assets/images/register.png',
-          height: 180,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset(
-              'assets/images/signup.png',
-              height: 180,
-              errorBuilder: (_, __, ___) {
-                return Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.person_add,
-                      size: 80,
-                      color: Colors.black87,
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+      height: 120, 
+      child: Image.asset(
+        'assets/images/login_signup.png',
+        height: 120,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class _CustomTextField extends StatelessWidget {
+  final IconData icon;
+  final String hintText;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+
+  const _CustomTextField({
+    required this.icon, required this.hintText,
+    this.controller, this.keyboardType = TextInputType.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const InputBorder inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(30)),
+      borderSide: BorderSide.none,
+    );
+    final InputBorder focusedInputBorder = OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(30)),
+      borderSide: BorderSide(color: _primaryColor, width: 1.5),
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBackgroundColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(color: _primaryColor),
+        decoration: InputDecoration(
+          hintText: hintText, 
+          hintStyle: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 15, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(icon, color: _textColor, size: 22),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15), 
+          border: inputBorder,
+          enabledBorder: inputBorder,
+          focusedBorder: focusedInputBorder,
         ),
       ),
     );
   }
 }
 
-// --- SOCIAL LOGIN BUTTONS (No change) ---
+class _PasswordField extends StatelessWidget {
+  final bool obscurePassword;
+  final VoidCallback onToggle;
+  final TextEditingController? controller;
+
+  const _PasswordField({
+    required this.obscurePassword,
+    required this.onToggle, this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const InputBorder inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(30)),
+      borderSide: BorderSide.none,
+    );
+    final InputBorder focusedInputBorder = OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(30)),
+      borderSide: BorderSide(color: _primaryColor, width: 1.5),
+    );
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBackgroundColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscurePassword,
+        style: const TextStyle(color: _primaryColor),
+        decoration: InputDecoration(
+          hintText: 'PASSWORD',
+          hintStyle: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 15, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.lock_outline, color: _textColor, size: 22),
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              color: _textColor,
+              size: 22,
+            ),
+            onPressed: onToggle,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          border: inputBorder,
+          enabledBorder: inputBorder,
+          focusedBorder: focusedInputBorder,
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final double borderRadius;
+
+  const _ActionButton({
+    required this.label, required this.onPressed,
+    this.isLoading = false, this.borderRadius = 30,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 50,
+      width: 150,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: EdgeInsets.zero, 
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20, height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+              )
+            : Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Expanded(child: Divider(color: Colors.grey, height: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text("OR", style: TextStyle(color: _textColor, fontSize: 14, fontWeight: FontWeight.w500)),
+        ),
+        const Expanded(child: Divider(color: Colors.grey, height: 1)),
+      ],
+    );
+  }
+}
 
 class _SocialLoginButtons extends StatelessWidget {
   const _SocialLoginButtons();
@@ -342,35 +402,14 @@ class _SocialLoginButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _SocialButton(
-          icon: Image.asset(
-            'assets/images/google.png',
-            height: 28,
-            width: 28,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.g_mobiledata, color: Color(0xFFDB4437), size: 28);
-            },
-          ),
-          onPressed: () {
-            // TODO: Implement Google Sign-In for sign up
-            print('Google sign up pressed');
-          },
+          icon: Image.asset('assets/images/google.png', height: 34, width: 34),
+          onPressed: () => debugPrint('Google login pressed'), 
         ),
         const SizedBox(width: 20),
         _SocialButton(
-          icon: Image.asset(
-            'assets/images/github.png',
-            height: 28,
-            width: 28,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.code, color: Colors.black87, size: 28);
-            },
-          ),
-          onPressed: () {
-            // TODO: Implement GitHub Sign-In for sign up
-            print('GitHub sign up pressed');
-          },
+          icon: Image.asset('assets/images/github.png', height: 34, width: 34),
+          onPressed: () => debugPrint('GitHub login pressed'), 
         ),
-
       ],
     );
   }
@@ -380,202 +419,21 @@ class _SocialButton extends StatelessWidget {
   final Widget icon;
   final VoidCallback onPressed;
 
-  const _SocialButton({
-    required this.icon,
-    required this.onPressed,
-  });
+  const _SocialButton({required this.icon, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 60,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300, width: 1),
+        color: Colors.black.withOpacity(0.1),
       ),
       child: IconButton(
         onPressed: onPressed,
         icon: icon,
         padding: EdgeInsets.zero,
-      ),
-    );
-  }
-}
-
-// --- CUSTOM TEXT FIELD (Updated to take controller and keyboard type) ---
-
-class _CustomTextField extends StatelessWidget {
-  final IconData icon;
-  final String hintText;
-  final Color primaryColor;
-  final TextEditingController? controller;
-  final TextInputType keyboardType;
-
-  const _CustomTextField({
-    required this.icon,
-    required this.hintText,
-    required this.primaryColor,
-    this.controller,
-    this.keyboardType = TextInputType.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: TextField(
-        controller: controller, // 🌟 Use controller
-        keyboardType: keyboardType, // 🌟 Use keyboard type
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: const TextStyle(
-            color: Color(0xFFB0B8C1),
-            fontSize: 15,
-          ),
-          prefixIcon: Icon(
-            icon,
-            color: const Color(0xFF64748B),
-            size: 22,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: primaryColor, width: 1.5),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 16,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// --- PASSWORD FIELD WITH TOGGLE (Updated to take controller) ---
-
-class _PasswordField extends StatelessWidget {
-  final bool obscurePassword;
-  final Color primaryColor;
-  final VoidCallback onToggle;
-  final TextEditingController? controller;
-
-  const _PasswordField({
-    required this.obscurePassword,
-    required this.primaryColor,
-    required this.onToggle,
-    this.controller,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: TextField(
-        controller: controller, // 🌟 Use controller
-        obscureText: obscurePassword,
-        decoration: InputDecoration(
-          hintText: '************',
-          hintStyle: const TextStyle(
-            color: Color(0xFFB0B8C1),
-            fontSize: 15,
-            letterSpacing: 2,
-          ),
-          prefixIcon: const Icon(
-            Icons.lock_outline,
-            color: Color(0xFF64748B),
-            size: 22,
-          ),
-          suffixIcon: IconButton(
-            icon: Icon(
-              obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-              color: const Color(0xFF64748B),
-              size: 22,
-            ),
-            onPressed: onToggle,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: primaryColor, width: 1.5),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 16,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// --- ACTION BUTTON (Updated to show loading state) ---
-
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final Color primaryColor;
-  final VoidCallback onPressed;
-  final bool isLoading;
-
-  const _ActionButton({
-    required this.label,
-    required this.primaryColor,
-    required this.onPressed,
-    this.isLoading = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 55,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed, // Disable button when loading
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox( // 🌟 Show spinner when loading
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
       ),
     );
   }

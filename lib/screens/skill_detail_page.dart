@@ -1,933 +1,650 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-
-// NOTE: The 'legacy.dart' import is often unnecessary in modern Riverpod setups
-// unless you are dealing with very old code or specific packages that require it.
+import 'package:grade_learn/screens/lesson_viewer.dart';
 
 // -------------------------------------------------------------------
-// 1. DATA AND HELPER STRUCTURES
+// 1. MODELS & STATE
 // -------------------------------------------------------------------
 
-/// Mock Course class (Shared Model)
-class Course {
-  final String title;
-  final String category;
-  final int userCount;
-  final IconData iconData;
-  final Color backgroundColor;
-  final Color iconColor;
-  final Color textColor;
-
-  Course({
-    required this.title,
-    required this.category,
-    required this.userCount,
-    required this.iconData,
-    required this.backgroundColor,
-    required this.iconColor,
-    this.textColor = Colors.white,
-  });
-}
-
-/// Enum for Lesson Type
 enum LessonType { video, text }
 
-/// Simple Lesson model
-class LessonModel {
-  final String? title;
-  final String? duration;
-  final bool? isCompleted;
+class Lesson {
+  final String title, duration, contentUrl;
+  final bool isCompleted;
   final LessonType type;
-  // 🎯 ADDED: URL for the remote content (video stream, PDF, etc.)
-  final String? contentUrl;
 
-  LessonModel({
-    this.title,
-    this.duration,
-    this.isCompleted,
+  Lesson({
+    required this.title,
+    required this.duration,
+    required this.contentUrl,
+    this.isCompleted = false,
     this.type = LessonType.text,
-    this.contentUrl,
   });
 
-  LessonModel copyWith({
-    String? title,
-    String? duration,
-    bool? isCompleted,
-    LessonType? type,
-    String? contentUrl,
-  }) {
-    return LessonModel(
-      title: title ?? this.title,
-      duration: duration ?? this.duration,
-      isCompleted: isCompleted ?? this.isCompleted,
-      type: type ?? this.type,
-      contentUrl: contentUrl ?? this.contentUrl,
-    );
-  }
+  Lesson copyWith({bool? isCompleted}) => Lesson(
+    title: title,
+    duration: duration,
+    contentUrl: contentUrl,
+    type: type,
+    isCompleted: isCompleted ?? this.isCompleted,
+  );
 }
 
-/// Course detail model that holds a list of lessons
-class CourseDetailModel {
-  final List<LessonModel> lessonsList;
+class CourseState {
+  final List<Lesson> lessons;
+  final int? activeIndex;
+  final bool isEnrolled;
 
-  CourseDetailModel({required this.lessonsList});
-}
-
-/// State exposed by the notifier
-class CourseDetailState {
-  final CourseDetailModel? courseDetailModel;
-  // This index now points to the lesson currently being played/viewed
-  final int? activeLessonIndex;
-  // 🎯 ADDED: Flag to conditionally show a non-video view (e.g., PDF/Text)
-  final bool isTextLessonActive;
-
-  CourseDetailState({
-    this.courseDetailModel,
-    this.activeLessonIndex,
-    this.isTextLessonActive = false,
+  CourseState({
+    this.lessons = const [],
+    this.activeIndex,
+    this.isEnrolled = false,
   });
 
-  CourseDetailState copyWith({
-    CourseDetailModel? courseDetailModel,
-    int? activeLessonIndex,
-    bool? isTextLessonActive,
-  }) {
-    return CourseDetailState(
-      courseDetailModel: courseDetailModel ?? this.courseDetailModel,
-      // For activeLessonIndex, null must be explicitly passed to clear it
-      activeLessonIndex: activeLessonIndex,
-      isTextLessonActive: isTextLessonActive ?? this.isTextLessonActive,
-    );
-  }
+  CourseState copyWith({
+    List<Lesson>? lessons,
+    int? activeIndex,
+    bool? isEnrolled,
+    bool clearActive = false,
+  }) => CourseState(
+    lessons: lessons ?? this.lessons,
+    isEnrolled: isEnrolled ?? this.isEnrolled,
+    activeIndex: clearActive ? null : (activeIndex ?? this.activeIndex),
+  );
 }
 
-/// Notifier to manage course detail state
-class CourseDetailNotifier extends StateNotifier<CourseDetailState> {
-  CourseDetailNotifier() : super(CourseDetailState());
+class CourseNotifier extends StateNotifier<CourseState> {
+  CourseNotifier() : super(CourseState());
 
-  // Initialize with mock lessons, including video and content URLs
-  void initializeCourse() {
-    final lessons = List.generate(
-      6,
-      (index) {
-        final isVideo = index % 4 == 0;
-        final type = isVideo ? LessonType.video : LessonType.text;
-        return LessonModel(
-          title: isVideo
-              ? 'Video Introduction (5:30)'
-              : 'Lesson ${index + 1}: Core Concepts',
-          duration: isVideo ? '5:30' : '${5 + index * 2} mins',
-          isCompleted: index % 3 == 0 ? true : false,
-          type: type,
-          // 🎯 Mocking Content URLs for demonstration
-          contentUrl: isVideo
-              ? 'https://www.youtube.com/watch?v=m7WbH6mY7YM'
-              : 'https://drive.google.com/file/d/1HdumwDHyH_QtwkdbP3ICyBIzQkYfoy51/view?usp=sharing',
-        );
-      },
+  void init() {
+    if (state.lessons.isNotEmpty) return;
+    state = CourseState(
+      lessons: [
+        Lesson(
+          title: '01. INTRODUCTION TO JAVA',
+          duration: '05:30',
+          contentUrl:
+              'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+          type: LessonType.video,
+        ),
+        Lesson(
+          title: '02. SETTING UP JDK',
+          duration: '12:15',
+          contentUrl:
+              'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+          type: LessonType.video,
+        ),
+        Lesson(
+          title: '03. HELLO WORLD PROGRAM',
+          duration: '10:00',
+          contentUrl: 'doc_1',
+          type: LessonType.text,
+        ),
+        Lesson(
+          title: '04. VARIABLES & DATA TYPES',
+          duration: '15:45',
+          contentUrl: 'vid_3',
+          type: LessonType.video,
+        ),
+      ],
     );
-    state = state.copyWith(
-      courseDetailModel: CourseDetailModel(lessonsList: lessons),
-      activeLessonIndex: null,
-      isTextLessonActive: false,
-    );
   }
 
-  // Toggle lesson completion status
-  void toggleLessonCompletion(int index) {
-    final current = state.courseDetailModel;
-    if (current == null) return;
-    final list = List<LessonModel>.from(current.lessonsList);
-    if (index < 0 || index >= list.length) return;
-    final item = list[index];
-    list[index] = item.copyWith(isCompleted: !(item.isCompleted ?? false));
-    state = state.copyWith(courseDetailModel: CourseDetailModel(lessonsList: list));
+  void enrollUser() => state = state.copyWith(isEnrolled: true);
+  void toggleComplete(int i) {
+    final newList = [...state.lessons];
+    newList[i] = newList[i].copyWith(isCompleted: !newList[i].isCompleted);
+    state = state.copyWith(lessons: newList);
   }
 
-  // Sets the currently active lesson to be played/viewed
-  void setActiveLesson(int index) {
-    final list = state.courseDetailModel?.lessonsList;
-    if (list == null || index < 0 || index >= list.length) {
-      clearActiveLesson();
-      return;
-    }
-
-    // Clear any existing active view
-    clearActiveLesson();
-
-    if (list[index].type == LessonType.video) {
-      // Set video lesson as active
-      state = state.copyWith(activeLessonIndex: index, isTextLessonActive: false);
-    } else {
-      // Set non-video lesson (text/PDF) as active
-      state = state.copyWith(activeLessonIndex: index, isTextLessonActive: true);
-    }
-  }
-
-  // Clear the active lesson (e.g., when the user closes the video/pdf)
-  void clearActiveLesson() {
-    state = state.copyWith(activeLessonIndex: null, isTextLessonActive: false);
-  }
+  void setActive(int? i) => state = i == null
+      ? state.copyWith(clearActive: true)
+      : state.copyWith(activeIndex: i);
 }
 
-/// Riverpod provider used by the screen
-final courseDetailNotifier =
-    StateNotifierProvider<CourseDetailNotifier, CourseDetailState>(
-  (ref) => CourseDetailNotifier(),
+final courseProv = StateNotifierProvider<CourseNotifier, CourseState>(
+  (ref) => CourseNotifier(),
 );
 
 // -------------------------------------------------------------------
-// 2. MAIN SCREEN WIDGET (CourseDetailScreen - CONNECTED)
+// 2. MAIN DETAIL SCREEN
 // -------------------------------------------------------------------
 
-class CourseDetailScreen extends ConsumerStatefulWidget {
-  final Course course;
-
-  CourseDetailScreen({required this.course, Key? key}) : super(key: key);
-
-  @override
-  CourseDetailScreenState createState() => CourseDetailScreenState();
-}
-
-class CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
-  Color get headerColor => widget.course.backgroundColor.withOpacity(0.2);
-  Color get primaryColor => widget.course.iconColor;
+class CourseDetailScreen extends ConsumerWidget {
+  final dynamic course;
+  const CourseDetailScreen({required this.course, super.key});
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(courseDetailNotifier.notifier).initializeCourse();
-    });
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(courseProv);
+    final notifier = ref.read(courseProv.notifier);
 
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(courseDetailNotifier);
-    final notifier = ref.read(courseDetailNotifier.notifier);
-
-    final lessonsList = state.courseDetailModel?.lessonsList ?? [];
-    final completedLessons =
-        lessonsList.where((lesson) => lesson.isCompleted ?? false).length;
-    final totalLessons = lessonsList.length;
-    final progress = totalLessons > 0 ? completedLessons / totalLessons : 0.0;
-
-    final isActiveLesson = state.activeLessonIndex != null && lessonsList.isNotEmpty;
-
-    // CONDITIONAL UI RENDERING: Video Player / Text View vs. Course Details
-    if (isActiveLesson) {
-      final activeLesson = lessonsList[state.activeLessonIndex!];
-
-      if (state.isTextLessonActive) {
-        // Show Text/PDF Viewer for non-video lessons
-        return TextLessonView(
-          lesson: activeLesson,
-          primaryColor: primaryColor,
-          onClose: notifier.clearActiveLesson,
-          onComplete: () {
-            notifier.toggleLessonCompletion(state.activeLessonIndex!);
-            notifier.clearActiveLesson();
-          },
-        );
-      } else {
-        // Show Video Player for video lessons
-        return VideoPlayerWidget(
-          lessonTitle: activeLesson.title ?? 'Untitled Video Lesson',
-          // Pass the content URL to the player
-          contentUrl: activeLesson.contentUrl ?? 'No URL',
-          primaryColor: primaryColor,
-          onClose: notifier.clearActiveLesson,
-          onComplete: () {
-            notifier.toggleLessonCompletion(state.activeLessonIndex!);
-            notifier.clearActiveLesson();
-          },
-        );
-      }
+    if (state.lessons.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifier.init());
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Default Course Detail Screen
-    return Container(
-      color: headerColor,
-      child: SafeArea(
-        top: true,
-        bottom: false,
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          bottomNavigationBar: _buildBottomBar(context, notifier, lessonsList),
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context, progress, completedLessons, totalLessons),
-                const SizedBox(height: 24),
-                _buildStatsSection(totalLessons),
-                const SizedBox(height: 24),
-                _buildDescription(),
-                const SizedBox(height: 24),
-                _buildLessonsList(state, notifier),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+    if (state.activeIndex != null) {
+      return LessonViewer(
+        lesson: state.lessons[state.activeIndex!],
+        onClose: () => notifier.setActive(null),
+        onComplete: () {
+          notifier.toggleComplete(state.activeIndex!);
+          notifier.setActive(null);
+        },
+      );
+    }
 
-  // --- WIDGET IMPLEMENTATIONS (Same as original, except for _buildLessonsList and _buildBottomBar logic) ---
-
-  Widget _buildHeader(
-      BuildContext context, double progress, int completed, int total) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: headerColor,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildAppBar(context),
-          const SizedBox(height: 20),
-          _buildCourseIcon(),
-          const SizedBox(height: 16),
-          _buildBeginnerChip(),
-          const SizedBox(height: 8),
-          _buildCourseTitle(),
-          const SizedBox(height: 16),
-          _buildProgressIndicator(progress, completed, total),
-          const SizedBox(height: 30),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressIndicator(double progress, int completed, int total) {
-    final Color progressColor = primaryColor;
-    final percentage = (progress * 100).round();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFFFF9),
+      appBar: AppBar(
+        backgroundColor: Color(0xFFFFFFF9),
+        elevation: 0,
+        leadingWidth: 120,
+        leading: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: const Row(
             children: [
-              const Text(
-                'Progress',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54,
-                ),
-              ),
+              SizedBox(width: 16),
+              Icon(Icons.arrow_back, color: Colors.black, size: 28),
+              SizedBox(width: 8),
               Text(
-                '$percentage% ($completed of $total lessons)',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                "BACK",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.5),
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLessonsList(
-      CourseDetailState state, CourseDetailNotifier notifier) {
-    final lessonsList = state.courseDetailModel?.lessonsList ?? [];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Lessons',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...lessonsList.asMap().entries.map((entry) {
-            final lessonModel = entry.value;
-            final index = entry.key;
-
-            return GestureDetector(
-              onTap: () {
-                // Now, tapping any lesson sets it as active,
-                // and the main build method decides which view to show.
-                notifier.setActiveLesson(index);
-              },
-              child: LessonTile(
-                title: lessonModel.title ?? 'Untitled Lesson',
-                duration: lessonModel.duration ?? '0 mins',
-                isCompleted: lessonModel.isCompleted ?? false,
-                type: lessonModel.type,
-                primaryColor: primaryColor,
-              ),
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.white.withOpacity(0.3),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          const Text(
-            'Lesson Details',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          CircleAvatar(
-            backgroundColor: Colors.white.withOpacity(0.3),
-            child: IconButton(
-              icon: const Icon(Icons.share_outlined, color: Colors.black87),
-              onPressed: () {},
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCourseIcon() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: Icon(
-        widget.course.iconData, // 🎯 USED PASSED DATA
-        color: primaryColor,
-        size: 40,
-      ),
-    );
-  }
-
-  Widget _buildBeginnerChip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: primaryColor,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Text(
-        widget.course.category.split(' ').first, // 🎯 USED PASSED DATA
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
-
-  Widget _buildCourseTitle() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text(
-        widget.course.title, // 🎯 USED PASSED DATA
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          height: 1.3,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsSection(int totalLessons) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          StatCard(
-            icon: Icons.book_outlined,
-            value: totalLessons.toString(),
-            label: 'Lessons',
-            color: const Color(0xFFD3E5FD),
-            iconColor: const Color(0xFF00468D),
-          ),
-          const SizedBox(width: 16),
-          const StatCard(
-            icon: Icons.quiz_outlined,
-            value: '12',
-            label: 'Quizzes',
-            color: Color(0xFFFFE8D6),
-            iconColor: Color(0xFFC26A00),
-          ),
-          const SizedBox(width: 16),
-          StatCard(
-            icon: Icons.group,
-            value: '${widget.course.userCount}+', // 🎯 USED PASSED DATA
-            label: 'Students',
-            color: const Color(0xFFF3E5F5),
-            iconColor: const Color(0xFF6A1B9A),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDescription() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Text(
-        'Enhance your skills in **${widget.course.category}** with this course, **${widget.course.title}**. Master common concepts and improve your practical application today.', // 🎯 USED PASSED DATA
-        style: const TextStyle(
-          fontSize: 15,
-          color: Colors.black54,
-          height: 1.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar(BuildContext context, CourseDetailNotifier notifier,
-      List<LessonModel> lessonsList) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -1),
-            ),
-          ],
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(36),
-            topRight: Radius.circular(36),
-          )),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: const Icon(Icons.bookmark_border,
-                size: 28, color: Colors.black54),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                // Find the first uncompleted lesson
-                final firstUncompleted = lessonsList
-                    .indexWhere((l) => !(l.isCompleted ?? false));
-
-                if (firstUncompleted != -1) {
-                  // If found, activate it (video or text)
-                  notifier.setActiveLesson(firstUncompleted);
-                } else {
-                  // All lessons completed
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("All lessons are completed!"),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black87,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              child: const Text('Start Next Lesson'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// -------------------------------------------------------------------
-// 3. AUXILIARY WIDGETS
-// -------------------------------------------------------------------
-
-/// Mock Video Player Widget - Now receives contentUrl
-class VideoPlayerWidget extends StatelessWidget {
-  final String lessonTitle;
-  final String contentUrl; // 🎯 New: Content URL
-  final Color primaryColor;
-  final VoidCallback onClose;
-  final VoidCallback onComplete;
-
-  const VideoPlayerWidget({
-    super.key,
-    required this.lessonTitle,
-    required this.contentUrl,
-    required this.primaryColor,
-    required this.onClose,
-    required this.onComplete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // In a real application, you would initialize a video player (e.g., video_player)
-    // using the 'contentUrl' here.
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: onClose,
-        ),
-        title: Text(
-          lessonTitle,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.check_circle_outline, color: primaryColor),
-            onPressed: onComplete,
-            tooltip: 'Mark as Completed',
-          )
-        ],
-      ),
-      body: Center(
+      bottomNavigationBar: state.isEnrolled
+          ? _buildDarkBottomBar(state, notifier)
+          : null,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: Colors.grey.shade900,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            _CustomCard(
+              padding: EdgeInsets.zero,
+              color: const Color(0xFFFDE798),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Colors.black,
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundColor: const Color(0xFFB5C0FF),
+                      child: Icon(
+                        course.iconData ?? Icons.code,
+                        size: 40,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    course.title.toString().toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const Text(
+                    "BY TIM BUCHALKA",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const Icon(
-                        Icons.movie,
-                        color: Colors.white54,
-                        size: 80,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Streaming from:\n$contentUrl', // 🎯 Display the URL
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white54, fontSize: 10),
-                      ),
+                      _headerStat(Icons.star, "4.7"),
+                      _headerStat(Icons.person, "18K"),
+                      _headerStat(Icons.access_time, "3.8HR"),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: LinearProgressIndicator(
-                value: 0.6,
-                backgroundColor: Colors.white24,
-                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                minHeight: 4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+            const SizedBox(height: 20),
 
-/// Mock Text/PDF View Widget
-class TextLessonView extends StatelessWidget {
-  final LessonModel lesson;
-  final Color primaryColor;
-  final VoidCallback onClose;
-  final VoidCallback onComplete;
-
-  const TextLessonView({
-    super.key,
-    required this.lesson,
-    required this.primaryColor,
-    required this.onClose,
-    required this.onComplete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // In a real application, if lesson.type == LessonType.text,
-    // you would use a package like 'flutter_pdfview' to load lesson.contentUrl.
-    final contentType = lesson.contentUrl!.endsWith('.pdf') ? 'PDF' : 'Text Article';
-    final icon = lesson.contentUrl!.endsWith('.pdf') ? Icons.picture_as_pdf : Icons.article;
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: onClose,
-        ),
-        title: Text(
-          lesson.title ?? 'Untitled Lesson',
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all, color: Colors.white),
-            onPressed: onComplete,
-            tooltip: 'Mark as Completed',
-          )
-        ],
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 80, color: primaryColor),
-              const SizedBox(height: 16),
-              Text(
-                '$contentType Viewer Placeholder',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Lesson URL:\n${lesson.contentUrl}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'This screen simulates loading and displaying a non-video asset (like a PDF or rich text). The lesson is marked complete upon closing.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black87),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Reusable widget for statistics cards
-class StatCard extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-  final Color iconColor;
-
-  const StatCard({
-    super.key,
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Reusable widget for a single lesson tile
-class LessonTile extends StatelessWidget {
-  final String title;
-  final String duration;
-  final bool isCompleted;
-  final LessonType type;
-  final Color primaryColor;
-
-  const LessonTile({
-    super.key,
-    required this.title,
-    required this.duration,
-    this.isCompleted = false,
-    this.type = LessonType.text,
-    this.primaryColor = const Color(0xFF6750A4),
-  });
-
-  IconData get _iconData {
-    switch (type) {
-      case LessonType.video:
-        return Icons.play_circle_outline;
-      case LessonType.text:
-        return Icons.article_outlined;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-            )
-          ]),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: Icon(_iconData, color: primaryColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isCompleted ? Colors.grey : Colors.black87,
-                    decoration: isCompleted ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
+            // --- UPDATED INFO GRID SECTION ---
+            _CustomCard(
+              color: Colors.white,
+              padding: const EdgeInsets.all(22),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 10, 0),
+                child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min, // Shrinks the card to fit content
                   children: [
-                    Icon(
-                      type == LessonType.video
-                          ? Icons.ondemand_video
-                          : Icons.menu_book,
-                      size: 14,
-                      color: Colors.black45,
+                    // ROW 1: Level and Lessons
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _infoField("LEVEL", "BEGINNER", isBadge: true),
+                        ),
+                        Expanded(
+                          child: _infoField(
+                            "LESSONS",
+                            "148 LESSONS",
+                            icon: Icons.book,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      duration,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
+                    const SizedBox(height: 20), // Explicit spacing between rows
+                    // ROW 2: Categories and Durations
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _infoField("CATEGORIES", "JAVA")),
+                        Expanded(
+                          child: _infoField(
+                            "DURATIONS",
+                            "42 HOURS",
+                            icon: Icons.schedule,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          if (isCompleted)
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: primaryColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 16,
               ),
             ),
-          if (!isCompleted && type == LessonType.video)
-            Icon(
-              Icons.play_arrow_rounded,
-              size: 30,
-              color: primaryColor,
+
+            // ---------------------------------
+            const SizedBox(height: 20),
+
+            _CustomCard(
+              color: Colors.white,
+              padding: EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SectionHeader(title: "ABOUT COURSE"),
+                  const Text(
+                    "LEARN JAVA FROM THE GROUND UP. THIS COURSE COVERS CORE JAVA CONCEPTS, OOP PRINCIPLES, AND PREPARES YOU FOR ADVANCED TOPICS AND CERTIFICATIONS.",
+                    style: TextStyle(fontSize: 15, height: 1.5),
+                  ),
+                ],
+              ),
             ),
-          if (!isCompleted && type == LessonType.text)
-            Icon(
-              Icons.chevron_right,
-              size: 30,
-              color: primaryColor,
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+              child: const _SectionHeader(title: 'SKILL YOU WILL GAIN'),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  "JAVA CORE",
+                  "OOP",
+                  "DEBUGGING",
+                ].map((skill) => _skillBadge(skill)).toList(),
+              ),
+            ),
+            SizedBox(height: 20),
+            //---THIS COURSE INCLUDES SECTION---
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+              child: const _SectionHeader(title: "THE COURSE INCLUDES"),
+            ),
+            _CustomCard(
+              color: const Color(0xFFB5C0FF),
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _includeRow(Icons.videocam, "42 HOURS OF VIDEO LECTURES"),
+                  _includeRow(Icons.article, "12 ARTICLES & RESOURCES"),
+                  _includeRow(Icons.all_inclusive, "FULL LIFETIME ACCESS"),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+            // --- WHAT YOU WILL LEARN ---
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+              child: const _SectionHeader(title: "WHAT YOU WILL LEARN"),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+              child: Column(
+                children: [
+                  ...["BUILD COMPLEX OOP PROJECTS", "MASTER JAVA COLLECTIONS", "PREPARE FOR CERTIFICATIONS"].map((text) => 
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle, size: 20),
+                          const SizedBox(width: 10),
+                          Text(text),
+                        ],
+                      ),
+                    ),
+                  ).toList(),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // --- INSTRUCTOR ---
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+              child: const _SectionHeader(title: "YOUR INSTRUCTOR"),
+            ),
+            _CustomCard(
+              color: Colors.white,
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  Row(children: [
+                    const CircleAvatar(radius: 25, backgroundColor: Colors.black, child: Icon(Icons.person, color: Colors.white)),
+                    const SizedBox(width: 15),
+                    const Text("TIM BUCHALKA", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                  ]),
+                  const SizedBox(height: 10),
+                  const Text("TIM HAD BEEN A PROFESSIONAL SOFTWARE DEVELOPER FOR OVER 35 YEARS AND HAS TAUGHT OVER 1M STUDENTS WORLDWIDE.", style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            if (!state.isEnrolled)
+              _buildEnrollButton(notifier)
+            else ...[
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 0, 0),
+                  child: Text(
+                    "COURSE CONTENT",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...state.lessons.asMap().entries.map(
+                (e) => _LessonTile(
+                  lesson: e.value,
+                  isLocked: false,
+                  onTap: () => notifier.setActive(e.key),
+                ),
+              ),
+            ],
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDarkBottomBar(CourseState state, CourseNotifier notifier) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            const Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "CONTINUE",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    "NEXT LECTURE...",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFDE798),
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              onPressed: () {
+                int next = state.lessons.indexWhere((l) => !l.isCompleted);
+                notifier.setActive(next != -1 ? next : 0);
+              },
+              child: const Text(
+                "RESUME",
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _headerStat(IconData i, String v) => Row(
+    children: [
+      Icon(i, size: 18),
+      const SizedBox(width: 4),
+      Text(v, style: const TextStyle(fontWeight: FontWeight.w900)),
+    ],
+  );
+
+  Widget _skillBadge(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: const [
+          BoxShadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0),
         ],
       ),
+      child: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _infoField(
+    String label,
+    String value, {
+    bool isBadge = false,
+    IconData? icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment
+          .center, // Centers content vertically in the grid cell
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w700,
+            fontSize: 14, // Increased size
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 6), // More space between label and value
+        if (isBadge)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4FFD4), // Light green
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: Colors.black, width: 2),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 16, // Bigger badge text
+              ),
+            ),
+          )
+        else
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 20, color: Colors.black),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18, // Bigger value text
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildEnrollButton(CourseNotifier notifier) => InkWell(
+    onTap: () => notifier.enrollUser(),
+    child: _CustomCard(
+      color: Colors.black,
+      padding: EdgeInsets.zero,
+      child: const Center(
+        child: Text(
+          "ENROLL NOW",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+Widget _includeRow(IconData icon, String text) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(children: [Icon(icon, size: 20), const SizedBox(width: 12), Text(text, style: const TextStyle(fontWeight: FontWeight.bold))]),
+  );
+
+// -------------------------------------------------------------------
+// 4. UI COMPONENTS
+// -------------------------------------------------------------------
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 0, bottom: 12),
+    child: Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+    ),
+  );
+}
+
+class _CustomCard extends StatelessWidget {
+  final Widget child;
+  final Color color;
+  const _CustomCard({
+    required this.child,
+    required this.color,
+    required EdgeInsets padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: const [
+          BoxShadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0),
+        ],
+      ),
+      child: child,
     );
   }
 }
 
-// -------------------------------------------------------------------
-// 4. APPLICATION ENTRY POINT
-// -------------------------------------------------------------------
+class _LessonTile extends StatelessWidget {
+  final Lesson lesson;
+  final bool isLocked;
+  final VoidCallback onTap;
+  const _LessonTile({
+    required this.lesson,
+    required this.isLocked,
+    required this.onTap,
+  });
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 15),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0)],
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: Colors.black, width: 2),
+
+    ),
+    child: ListTile(
+      onTap: isLocked ? null : onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      leading: Icon(
+        lesson.type == LessonType.video ? Icons.play_circle : Icons.description,
+        color: Colors.black,
+      ),
+      title: Text(
+        lesson.title,
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+      ),
+      subtitle: Text(
+        lesson.duration,
+        style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 16),
+      ),
+      trailing: Icon(
+        lesson.isCompleted
+            ? Icons.check_circle
+            : (isLocked ? Icons.lock : Icons.chevron_right),
+        color: Colors.black,
+      ),
+    ),
+  );
+}

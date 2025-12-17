@@ -1,37 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:grade_learn/models/course.dart';
 import 'package:grade_learn/screens/skill_detail_page.dart';
 
-// -------------------------------------------------------------------
-// 2. Mocking the Entry Point and Course Detail Screen for a runnable demo
-// -------------------------------------------------------------------
-
-// This replaces your main() from the first file, so the app runs with Riverpod scope
-void main() {
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Course Skill Demo',
-      debugShowCheckedModeBanner: false,
-      home: SkillPage(), // Start with the SkillPage
-    );
-  }
-}
-
-// -------------------------------------------------------------------
-// 3. Main Page Widget (SkillPage - CONNECTED)
-// -------------------------------------------------------------------
 
 class SkillPage extends StatefulWidget {
   const SkillPage({super.key});
@@ -41,32 +11,35 @@ class SkillPage extends StatefulWidget {
 }
 
 class _SkillPageState extends State<SkillPage> {
-  // --- State Variables ---
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
   List<Course> _filteredCourses = [];
   bool _showCategories = false;
 
-  // --- Master list of all available courses ---
   final List<Course> _allCourses = [
     Course(
       backgroundColor: const Color(0xFF2C2C2C),
       iconData: Icons.all_out,
       category: 'GEOMETRY IN ACTION',
       title: 'Creative approaches to\nplane shapes',
-      userCount: 43,
-      iconColor: Colors.white,
-      textColor: Colors.white,
+      userCount: 43000,
+      iconColor: Colors.black,
+      textColor: Colors.black,
+      difficulty: 'INTERMEDIATE',
+      timeDuration: '38 HR',
+      lessonsNo: '49',
     ),
     Course(
-      // NOTE: This course mimics the appearance of the mock data used in CourseDetailScreen
-      backgroundColor: const Color(0xFFD3E5FD), // Light blue from stat card 1
+      backgroundColor: const Color(0xFFD3E5FD),
       iconData: Icons.language,
-      iconColor: const Color(0xFF00468D), // Dark blue from stat card 1
+      iconColor: const Color(0xFF00468D),
       textColor: const Color(0xFF00468D),
-      category: 'LANGUAGE CONVERSATION', // Changed to match the category used in detail screen
-      title: 'Spanish Conversation Mastery',
-      userCount: 1540,
+      category: 'LANGUAGE CONVERSATION',
+      title: 'Spanish Conversation\nMastery',
+      userCount: 1540000,
+      difficulty: 'ADVANCED',
+      timeDuration: '45 HR',
+      lessonsNo: '128',
     ),
     Course(
       backgroundColor: const Color(0xFFF9BE84),
@@ -75,35 +48,27 @@ class _SkillPageState extends State<SkillPage> {
       textColor: const Color(0xFF86542A),
       category: 'ANCIENT CIVILIZATIONS',
       title: 'A journey through\nancient Rome',
-      userCount: 28,
-    ),
-    Course(
-      backgroundColor: const Color(0xFFD4EFFF),
-      iconData: Icons.edit,
-      iconColor: const Color(0xFF3B6D8F),
-      textColor: const Color(0xFF3B6D8F),
-      category: 'LITERARY ANALYSIS',
-      title: 'Deconstructing the\nclassics',
-      userCount: 51,
+      userCount: 28000,
+      difficulty: 'BEGINNER',
+      timeDuration: '132 HR',
+      lessonsNo: '92',
     ),
   ];
 
-  // Map backend category names to display names for chips
   final Map<String, String> _categoryMap = {
-    'All': 'All',
-    'LITERARY ANALYSIS': 'Literature',
-    'GEOMETRY IN ACTION': 'Math',
-    'LANGUAGE CONVERSATION': 'Language',
-    'ANCIENT CIVILIZATIONS': 'History',
+    'All': 'ALL',
+    'LITERARY ANALYSIS': 'LITERATURE',
+    'GEOMETRY IN ACTION': 'MATH',
+    'LANGUAGE CONVERSATION': 'LANGUAGE',
+    'ANCIENT CIVILIZATIONS': 'HISTORY',
   };
 
-  // Map display names to icons
   final Map<String, IconData> _iconMap = {
-    'All': Icons.apps,
-    'Literature': Icons.book,
-    'Math': Icons.calculate,
-    'Language': Icons.language,
-    'History': Icons.history_edu,
+    'ALL': Icons.apps,
+    'LITERATURE': Icons.book,
+    'MATH': Icons.calculate,
+    'LANGUAGE': Icons.language,
+    'HISTORY': Icons.history_edu,
   };
 
   @override
@@ -115,19 +80,18 @@ class _SkillPageState extends State<SkillPage> {
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterCourses);
     _searchController.dispose();
     super.dispose();
   }
 
-  // --- Filtering Logic ---
   void _filterCourses() {
     final searchQuery = _searchController.text.toLowerCase();
     setState(() {
       _filteredCourses = _allCourses.where((course) {
         final categoryMatches =
             _selectedCategory == 'All' || course.category == _selectedCategory;
-        final searchMatches = searchQuery.isEmpty ||
+        final searchMatches =
+            searchQuery.isEmpty ||
             course.title.toLowerCase().contains(searchQuery) ||
             course.category.toLowerCase().contains(searchQuery);
         return categoryMatches && searchMatches;
@@ -138,84 +102,66 @@ class _SkillPageState extends State<SkillPage> {
   void _onCategorySelected(String categoryKey) {
     setState(() {
       _selectedCategory = categoryKey;
+      _showCategories = false;
     });
     _filterCourses();
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, 
-      statusBarIconBrightness: Brightness.dark,
-    ));
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFFB67A),
+      backgroundColor: const Color(0xFFFFFFF9),
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(46),
-                    topRight: Radius.circular(46),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      _buildSearchBar(),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: _showCategories
-                            ? _buildCategorySelector()
-                            : const SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 20),
-                      // --- DYNAMIC COURSE LIST AND NAVIGATION (CONNECTED) ---
-                      ..._filteredCourses.map((course) => Padding(
-                            padding: const EdgeInsets.only(bottom: 20.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    // 🎯 DATA PASSED HERE:
-                                    builder: (context) =>
-                                        CourseDetailScreen(course: course), 
-                                  ),
-                                );
-                              },
-                              child: CourseCard(
-                                backgroundColor: course.backgroundColor,
-                                iconData: course.iconData,
-                                category: course.category,
-                                title: course.title,
-                                userCount: course.userCount,
-                                iconColor: course.iconColor,
-                                textColor: course.textColor,
+              _buildSearchBar(),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: _showCategories
+                          ? _buildCategorySelector()
+                          : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 20),
+                    ..._filteredCourses.map(
+                      (course) => Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CourseDetailScreen(course: course),
                               ),
-                            ),
-                          )),
-                      if (_filteredCourses.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 50),
-                          child: Text(
-                            'No courses found.',
-                            style:
-                                TextStyle(color: Colors.grey, fontSize: 16),
+                            );
+                          },
+                          child: CourseCard(
+                            backgroundColor: course.backgroundColor,
+                            iconData: course.iconData,
+                            category: course.category,
+                            title: course.title,
+                            userCount: course.userCount,
+                            iconColor: course.iconColor,
+                            textColor: course.textColor,
+                            difficulty: course.difficulty,
+                            timeDuration: course.timeDuration,
+                            lessonsNo: course.lessonsNo,
                           ),
-                        )
-                    ],
-                  ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -224,160 +170,103 @@ class _SkillPageState extends State<SkillPage> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Removed Image.asset as assets path is not guaranteed
-          // Positioned(
-          //   top: -40,
-          //   right: -20,
-          //   child: SizedBox(
-          //     height: 180,
-          //     child: Image.asset('assets/images/grad_cap.jpg',
-          //         fit: BoxFit.contain), 
-          //   ),
-          // ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back_ios_new,
-                    color: Colors.black, size: 28),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'My\ncourses',
-                style: TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  _buildStatPill('12 Subjects', const Color(0xFF2C2C2C)),
-                  const SizedBox(width: 10),
-                  _buildStatPill(
-                      '43 Lessons', Colors.white.withOpacity(0.2)),
-                ],
-              ),
-            ],
+          Text('WELCOME TO', style: TextStyle(fontSize: 16)),
+          Text(
+            'COURSES📚',
+            style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStatPill(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-            fontSize: 18, color: Colors.white, fontWeight: FontWeight.w800),
-      ),
-    );
-  }
-
-  Widget _buildCategorySelector() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(top: 20.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _categoryMap.entries.map((entry) {
-            final categoryKey = entry.key;
-            final categoryName = entry.value;
-            final bool isActive = _selectedCategory == categoryKey;
-
-            return GestureDetector(
-              onTap: () => _onCategorySelected(categoryKey),
-              child: _buildCategoryChip(
-                categoryName,
-                _iconMap[categoryName] ?? Icons.error,
-                isActive,
-              ),
-            );
-          }).toList(),
-        ),
       ),
     );
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(28.0),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          const Icon(Icons.search, color: Colors.grey, size: 24),
-          const SizedBox(width: 12),
           Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Search for courses...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
-                border: InputBorder.none,
+            child: Container(
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'EG " WORKSHOP "',
+                        border: InputBorder.none,
+                        
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.tune, color: Colors.black87, size: 24),
-            onPressed: () {
-              setState(() {
-                _showCategories = !_showCategories;
-              });
-            },
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () => setState(() => _showCategories = !_showCategories),
+            child: Container(
+              height: 56,
+              width: 56,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: Icon(_showCategories ? Icons.close : Icons.tune),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryChip(String title, IconData icon, bool isActive) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 10.0),
-      child: Chip(
-        avatar: Icon(
-          icon,
-          color: isActive ? Colors.white : Colors.grey[600],
-          size: 18,
-        ),
-        label: Text(
-          title,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor:
-            isActive ? const Color(0xFF2C2C2C) : const Color(0xFFF3F3F3),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+  Widget _buildCategorySelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _categoryMap.entries.map((entry) {
+          final isActive = _selectedCategory == entry.key;
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: ActionChip(
+              side: const BorderSide(),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              avatar: Icon(
+                _iconMap[entry.value],
+                color: isActive ? Colors.white : Colors.black,
+              ),
+              label: Text(entry.value),
+              onPressed: () => _onCategorySelected(entry.key),
+              backgroundColor: isActive ? Colors.black : Colors.white,
+              labelStyle: TextStyle(
+                color: isActive ? Colors.white : Colors.black,
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 }
 
-// --- Reusable Course Card Widget ---
 class CourseCard extends StatelessWidget {
   final Color backgroundColor;
   final IconData iconData;
@@ -386,6 +275,9 @@ class CourseCard extends StatelessWidget {
   final String category;
   final String title;
   final int userCount;
+  final String difficulty;
+  final String timeDuration;
+  final String lessonsNo;
 
   const CourseCard({
     super.key,
@@ -394,70 +286,146 @@ class CourseCard extends StatelessWidget {
     required this.category,
     required this.title,
     required this.userCount,
-    this.iconColor = Colors.white,
-    this.textColor = Colors.white,
+    required this.difficulty,
+    required this.timeDuration,
+    required this.lessonsNo,
+    this.iconColor = Colors.black,
+    this.textColor = Colors.black,
   });
+
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toUpperCase()) {
+      case 'BEGINNER':
+        return const Color(0xFFE2FFDD);
+      case 'INTERMEDIATE':
+        return const Color(0xFFF9E79F);
+      case 'ADVANCED':
+        return const Color(0xFFFFD4D4);
+      default:
+        return const Color(0xFFE2FFDD);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      height: 220,
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(30),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black,
+            offset: const Offset(2, 2),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(iconData, color: iconColor),
-              ),
-              Icon(Icons.open_in_new, color: iconColor),
-            ],
-          ),
-          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                category,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: textColor.withOpacity(0.7),
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black.withOpacity(0.1),
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/google.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.business),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const Text(
+                            'GOOGLE',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black),
                 ),
+                child: const Icon(Icons.receipt_long, size: 20),
               ),
             ],
           ),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _buildAvatarStack(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow(Icons.access_time, timeDuration),
+                  _infoRow(Icons.menu_book, '$lessonsNo LESSONS'),
+                  _infoRow(
+                    Icons.people,
+                    '${(userCount / 1000).toStringAsFixed(0)}K USERS',
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getDifficultyColor(difficulty),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.black),
+                    ),
+                    child: Text(
+                      difficulty.toUpperCase(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
-                child: const Icon(Icons.arrow_forward, color: Colors.black),
+                child: const Icon(Icons.arrow_forward, size: 30),
               ),
             ],
           ),
@@ -466,51 +434,18 @@ class CourseCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatarStack() {
-    const double overlap = 20.0;
-    final urls = [
-      'https://randomuser.me/api/portraits/women/79.jpg',
-      'https://randomuser.me/api/portraits/men/41.jpg',
-      'https://randomuser.me/api/portraits/women/44.jpg',
-    ];
-
-    List<Widget> stackChildren = List.generate(urls.length, (index) {
-      return Positioned(
-        left: index * overlap,
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: Colors.white,
-          child: CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage(urls[index]),
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
-        ),
-      );
-    });
-
-    stackChildren.add(
-      Positioned(
-        left: urls.length * overlap,
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: const Color(0xFFF39B64),
-          child: Text(
-            '+$userCount',
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    return SizedBox(
-      width: (urls.length + 1) * overlap + 36,
-      height: 36,
-      child: Stack(
-        children: stackChildren,
+        ],
       ),
     );
   }

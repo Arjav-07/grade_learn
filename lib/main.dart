@@ -27,7 +27,8 @@ Future<void> main() async {
   // The application is now wrapped in ProviderScope to allow
   // Riverpod widgets (like the CourseDetailScreen) to function.
   runApp(
-    ProviderScope( // <<<--- 2. RIVERPOD SCOPE ADDED HERE
+    ProviderScope(
+      // <<<--- 2. RIVERPOD SCOPE ADDED HERE
       child: ChangeNotifierProvider<ChatbotProvider>(
         create: (context) => ChatbotProvider(),
         child: const MyApp(),
@@ -45,15 +46,17 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Grade Learn',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        fontFamily: 'MyHandDrawn',
+        textTheme: const TextTheme(bodyMedium: TextStyle(letterSpacing: 0.6)),
       ),
-      home: const OnboardingPage(),
+
+      home: const MainNavigationScreen(),
       routes: {
         '/home': (context) => const HomePage(),
         app_routes.MyRoutes.OnboardingPageRoute: (context) =>
             const OnboardingPage(),
-        app_routes.MyRoutes.SignUpScreenRoute: (context) => const SignUpScreen(),
+        app_routes.MyRoutes.SignUpScreenRoute: (context) =>
+            const SignUpScreen(),
         app_routes.MyRoutes.LoginScreenRoute: (context) => const LoginScreen(),
         app_routes.MyRoutes.ForgotPasswordScreenRoute: (context) =>
             const ForgotPasswordScreen(),

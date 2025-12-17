@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class NavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
@@ -10,20 +11,19 @@ class NavBar extends StatelessWidget {
   });
 
   final List<IconData> _navBarItems = const [
-    Icons.home_filled, // Home
-    Icons.dashboard_customize_outlined, // Dashboard/Progress
-    Icons.star_border, // Favorites/Saved
-    Icons.menu_book_outlined, // Courses/Content
-    Icons.settings_outlined, // Settings
+    FontAwesomeIcons.solidHouse, // Home
+    FontAwesomeIcons.magnifyingGlass, // Dashboard/Progress
+    FontAwesomeIcons.briefcase, // Favorites/Saved
+    FontAwesomeIcons.bookBookmark, // Courses/Content
+    FontAwesomeIcons.gear, // Settings
   ];
 
-  final Color _barColor = const Color(0xFF282C35); 
-  final Color _selectedIndicatorColor = const Color(0xFF5A5AD7); 
+  final Color _barColor =  Colors.black;
   final Color _unselectedIconColor = const Color(0xFFC0C0C0); 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 85,
+      height: 72,
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       margin: const EdgeInsets.only(
           bottom: 20, left: 20, right: 20),
@@ -53,7 +53,7 @@ class NavBar extends StatelessWidget {
                   : EdgeInsets.zero,
               decoration: BoxDecoration(
                 color:
-                    isSelected ? _selectedIndicatorColor : Colors.transparent,
+                    isSelected ? Colors.transparent : Colors.transparent,
                 shape: BoxShape.circle,
               ),
               child: Icon(

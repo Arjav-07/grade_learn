@@ -46,7 +46,7 @@ class _InternshipPageState extends State<InternshipPage> {
   /// Hardcoded list of internships. In a real app, this would come from an API.
   final List<Internship> _allInternships = [
     Internship(
-      role: 'UI/UX Design Intern',
+      role: 'UI/UX DESIGN INTERNSHIP',
       company: 'GOOGLE',
       location: 'INDIA',
       stipend: '\$3,500/Mo',

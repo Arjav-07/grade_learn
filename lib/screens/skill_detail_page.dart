@@ -359,7 +359,7 @@ class CourseDetailScreen extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             if (!state.isEnrolled)
               _buildEnrollButton(notifier)

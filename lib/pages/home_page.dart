@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grade_learn/pages/workshop_page.dart';
 import 'package:grade_learn/services/user_service.dart';
 
 const Color kBackgroundColor = Color(0xFFFFFFF9);
@@ -287,11 +288,12 @@ class _HomePageState extends State<HomePage> {
     required IconData icon,
     required Color backgroundColor,
     required SizedBox spacer,
+    VoidCallback? onTap,
   }) {
     final Color textColor = kDarkTextColor;
 
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: onTap ?? () {},
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.all(20.0),
         backgroundColor: backgroundColor,
@@ -342,6 +344,14 @@ class _HomePageState extends State<HomePage> {
                 spacer: SizedBox(width: 8),
                 title: 'WORKSHOP',
                 backgroundColor: Color(0xFFFFE499),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (context) =>  WorkshopPage(),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 20),
@@ -379,13 +389,11 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: Colors.black, width: 2),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
             ],
           ),
         ),
       ],
     );
   }
-} 
+}

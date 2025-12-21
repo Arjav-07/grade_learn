@@ -3,8 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grade_learn/models/Intenship.dart';
 
 class InternshipDetailsPage extends StatelessWidget {
-  final LessonCardData lessonData;
-  const InternshipDetailsPage({super.key, required this.lessonData});
+  final Internship internship; // Direct link to the model
+  const InternshipDetailsPage({super.key, required this.internship});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class InternshipDetailsPage extends StatelessWidget {
           children: [
             // ---------- HEADER CARD ----------
             _CustomCard(
-              color: lessonData.cardColor,
+              color: internship.cardColor,
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -51,7 +51,7 @@ class InternshipDetailsPage extends StatelessWidget {
                       radius: 40,
                       backgroundColor: Colors.white,
                       child: Icon(
-                        lessonData.tagIcon ?? Icons.business,
+                        internship.iconData,
                         size: 40,
                         color: Colors.black,
                       ),
@@ -59,7 +59,7 @@ class InternshipDetailsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 15),
                   Text(
-                    lessonData.lessonTitle.toUpperCase(),
+                    internship.role.toUpperCase(),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 26,
@@ -67,7 +67,7 @@ class InternshipDetailsPage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    lessonData.instructor.toUpperCase(),
+                    internship.company.toUpperCase(),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -82,11 +82,11 @@ class InternshipDetailsPage extends StatelessWidget {
             // ---------- STATS ----------
             Row(
               children: [
-                _buildStatItem(Icons.payments, lessonData.price, 'STIPEND'),
+                _buildStatItem(Icons.payments, internship.stipend, 'STIPEND'),
                 const SizedBox(width: 12),
-                _buildStatItem(Icons.timer, lessonData.totalDuration, 'MONTHS'),
+                _buildStatItem(Icons.timer, internship.duration, 'MONTHS'),
                 const SizedBox(width: 12),
-                _buildStatItem(FontAwesomeIcons.briefcase, lessonData.level, 'LEVEL'),
+                _buildStatItem(FontAwesomeIcons.briefcase, internship.type, 'LEVEL'),
               ],
             ),
 
@@ -101,8 +101,8 @@ class InternshipDetailsPage extends StatelessWidget {
                 children: [
                   _SectionHeader(title: "ROLE DESCRIPTION"),
                   Text(
-                    "JOIN THE TEAM AT ${lessonData.instructor} AS A  ${lessonData.lessonTitle}. "
-                    "THIS ${lessonData.level} POSITION IS FOR ${lessonData.totalDuration}.",
+                    "JOIN THE TEAM AT ${internship.company} AS A  ${internship.role}. "
+                    "THIS ${internship.type} POSITION IS FOR ${internship.duration}.",
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                 ],

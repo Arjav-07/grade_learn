@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 
-// --- 1. Data Model for Type Safety ---
-// Renamed to reflect its use in the watchlist.
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
+const Color kDarkTextColor = Color(0xFF282C35);
+
+// --- 1. Data Model ---
 class WatchlistItem {
   final IconData icon;
   final Color color;
@@ -20,7 +26,7 @@ class WatchlistItem {
   });
 }
 
-// --- Main Page Widget (Renamed) ---
+// --- Main Page Widget ---
 class WatchlistPage extends StatefulWidget {
   const WatchlistPage({super.key});
 
@@ -29,33 +35,31 @@ class WatchlistPage extends StatefulWidget {
 }
 
 class _WatchlistPageState extends State<WatchlistPage> {
-  // State to toggle between courses and internships
   bool _showCourses = true;
 
-  // --- 2. Data lists renamed for clarity ---
   final List<WatchlistItem> _watchlistedCourses = [
     const WatchlistItem(
       icon: Icons.design_services,
       color: Color(0xFF6F6AE8),
-      title: 'UI/UX Fundamentals',
+      title: 'UI/UX FUNDAMENTALS',
       subtitle: 'by John Doe',
-      status: 'Viewed',
+      status: 'VIEWED',
       statusColor: Colors.green,
     ),
     const WatchlistItem(
       icon: Icons.code,
       color: Color(0xFFE5883C),
-      title: 'Flutter for Beginners',
+      title: 'FLUTTER FOR BEGINNERS',
       subtitle: 'by Jane Smith',
-      status: 'Applied',
+      status: 'APPLIED',
       statusColor: Colors.blue,
     ),
     const WatchlistItem(
       icon: Icons.cloud,
       color: Colors.cyan,
-      title: 'Intro to Cloud Computing',
+      title: 'INTRO TO CLOUD COMPUTING',
       subtitle: 'by AWS Academy',
-      status: 'Viewed',
+      status: 'VIEWED',
       statusColor: Colors.green,
     ),
   ];
@@ -64,131 +68,133 @@ class _WatchlistPageState extends State<WatchlistPage> {
     const WatchlistItem(
       icon: Icons.business_center,
       color: Colors.indigo,
-      title: 'Flutter Developer Intern',
+      title: 'FLUTTER DEVELOPER INTERN',
       subtitle: 'at Google',
-      status: 'Applied',
+      status: 'APPLIED',
       statusColor: Colors.blue,
     ),
     const WatchlistItem(
       icon: Icons.business,
       color: Colors.teal,
-      title: 'Product Manager Intern',
+      title: 'PRODUCT MANAGER INTERN',
       subtitle: 'at Microsoft',
-      status: 'Viewed',
+      status: 'VIEWED',
       statusColor: Colors.green,
     ),
     const WatchlistItem(
       icon: Icons.computer,
       color: Colors.orange,
-      title: 'Software Engineer Intern',
+      title: 'SOFTWARE ENGINEER INTERN',
       subtitle: 'at Amazon',
-      status: 'Applied',
+      status: 'APPLIED',
       statusColor: Colors.blue,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    // --- UI Constants ---
-    const Color primaryBackgroundColor = Color(0xFFFFD9C0);
-    const Color cardBackgroundColor = Colors.white;
-    const BorderRadius topBorderRadius = BorderRadius.only(
-      topLeft: Radius.circular(32),
-      topRight: Radius.circular(32),
-    );
-
-    // Determine which list is currently active
-    final activeList =
-        _showCourses ? _watchlistedCourses : _watchlistedInternships;
+    final activeList = _showCourses ? _watchlistedCourses : _watchlistedInternships;
 
     return Scaffold(
-      backgroundColor: primaryBackgroundColor,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-            // --- UI TEXT UPDATED ---
-            child: Text(
-              'Watchlisted',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                height: 1.2,
+      backgroundColor: kBrutalistBg,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            
+            // --- BACK BUTTON ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "BACK",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _CategoryToggleButton(
-                    text: '${_watchlistedCourses.length} Courses',
-                    isActive: _showCourses,
-                    onTap: () => setState(() => _showCourses = true),
-                  ),
+
+            const SizedBox(height: 20),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'WATCHLISTED 🔖',
+                style: TextStyle(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                  height: 1.1,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _CategoryToggleButton(
-                    text: '${_watchlistedInternships.length} Internships',
-                    isActive: !_showCourses,
-                    onTap: () => setState(() => _showCourses = false),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: cardBackgroundColor,
-                borderRadius: topBorderRadius,
               ),
-              // --- Method Renamed ---
+            ),
+
+            const SizedBox(height: 24),
+
+            // --- TOGGLE BUTTONS ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _CategoryToggleButton(
+                      text: '${_watchlistedCourses.length} COURSES',
+                      isActive: _showCourses,
+                      onTap: () => setState(() => _showCourses = true),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _CategoryToggleButton(
+                      text: '${_watchlistedInternships.length} INTERNS',
+                      isActive: !_showCourses,
+                      onTap: () => setState(() => _showCourses = false),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            Expanded(
               child: _buildWatchlist(activeList),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Builds the list view for the watchlisted items.
   Widget _buildWatchlist(List<WatchlistItem> items) {
     if (items.isEmpty) {
-      // --- UI TEXT UPDATED ---
       return const Center(
-        child:
-            Text('Nothing watchlisted yet', style: TextStyle(color: Colors.grey)),
+        child: Text('NOTHING WATCHLISTED YET', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey)),
       );
     }
     return ListView.separated(
-      physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
       itemCount: items.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        // --- Card Widget Renamed ---
-        return _WatchlistItemCard(item: item);
-      },
+      separatorBuilder: (context, index) => const SizedBox(height: 20),
+      itemBuilder: (context, index) => _WatchlistItemCard(item: items[index]),
     );
   }
 }
 
-// --- Extracted Toggle Button Widget ---
+// --- Neo-Brutalist Toggle Button ---
 class _CategoryToggleButton extends StatelessWidget {
   final String text;
   final bool isActive;
@@ -204,20 +210,21 @@ class _CategoryToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF2D2D2D) : const Color(0xFFFFE5D6),
-          borderRadius: BorderRadius.circular(28),
+          color: isActive ? Colors.black : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black, width: 2.5),
+          boxShadow: isActive ? null : const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
         ),
         child: Center(
           child: Text(
             text,
             style: TextStyle(
-              color: isActive ? Colors.white : Colors.black.withOpacity(0.6),
-              fontWeight: FontWeight.w800,
-              fontSize: 15,
+              color: isActive ? Colors.white : Colors.black,
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
             ),
           ),
         ),
@@ -226,10 +233,9 @@ class _CategoryToggleButton extends StatelessWidget {
   }
 }
 
-// --- Extracted Watchlist Item Card Widget (Renamed) ---
+// --- Neo-Brutalist Item Card ---
 class _WatchlistItemCard extends StatelessWidget {
   final WatchlistItem item;
-
   const _WatchlistItemCard({required this.item});
 
   @override
@@ -237,8 +243,10 @@ class _WatchlistItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,30 +256,31 @@ class _WatchlistItemCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: item.color.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 1.5),
                 ),
-                child: Icon(item.icon, color: Colors.white, size: 24),
+                child: Icon(item.icon, color: item.color, size: 24),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
+                  color: kBrutalistBlue,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 1.5),
                 ),
-                child: const Icon(Icons.open_in_new,
-                    color: Colors.white, size: 18),
+                child: const Icon(Icons.open_in_new, color: Colors.black, size: 18),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             item.subtitle.toUpperCase(),
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 11,
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+              fontWeight: FontWeight.w900,
               letterSpacing: 1,
             ),
           ),
@@ -280,24 +289,25 @@ class _WatchlistItemCard extends StatelessWidget {
             item.title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: item.statusColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.black, width: 1.5),
                 ),
                 child: Text(
                   item.status,
                   style: TextStyle(
                     color: item.statusColor,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w900,
                     fontSize: 12,
                   ),
                 ),
@@ -305,9 +315,10 @@ class _WatchlistItemCard extends StatelessWidget {
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.black,
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 1),
                 ),
                 child: const Icon(
                   Icons.arrow_forward,

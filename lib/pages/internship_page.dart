@@ -1,33 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:grade_learn/models/Intenship.dart';
 import 'package:grade_learn/screens/internship_detail_page.dart';
-
-/// [COMPONENT: DATA MODEL]
-/// Defines the structure for an Internship object.
-class Internship {
-  final String role;
-  final String company;
-  final String location;
-  final String stipend;
-  final String duration;
-  final String category;
-  final Color cardColor;
-  final Color textColor;
-  final IconData iconData;
-  final String type;
-
-  Internship({
-    required this.role,
-    required this.company,
-    required this.location,
-    required this.stipend,
-    required this.duration,
-    required this.category,
-    required this.cardColor,
-    required this.textColor,
-    required this.iconData, required this.type,
-  });
-}
 
 class InternshipPage extends StatefulWidget {
   const InternshipPage({super.key});
@@ -37,60 +12,18 @@ class InternshipPage extends StatefulWidget {
 }
 
 class _InternshipPageState extends State<InternshipPage> {
-  // Controllers and State variables
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
   bool _showCategories = false;
-
-  /// [COMPONENT: DATA SOURCE]
-  /// Hardcoded list of internships. In a real app, this would come from an API.
-  final List<Internship> _allInternships = [
-    Internship(
-      role: 'UI/UX DESIGN INTERNSHIP',
-      company: 'GOOGLE',
-      location: 'INDIA',
-      stipend: '\$3,500/Mo',
-      duration: '6 MONTHS',
-      category: 'DESIGN',
-      cardColor: const Color(0xFFD3E5FD),
-      textColor: const Color(0xFF00468D),
-      iconData: Icons.brush, type: 'REMOTE',
-    ),
-    Internship(
-      role: 'Backend Developer',
-      company: 'AMAZON',
-      location: 'SEATTLE, WA',
-      stipend: '\$4,200/Mo',
-      duration: '3 MONTHS',
-      category: 'DEV',
-      cardColor: const Color(0xFFF9BE84),
-      textColor: const Color(0xFF86542A),
-      iconData: Icons.code,
-      type: 'ON-SITE',
-    ),
-    Internship(
-      role: 'Data Scientist',
-      company: 'META',
-      location: 'HYBRID',
-      stipend: '\$5,000/Mo',
-      duration: '4 MONTHS',
-      category: 'DATA',
-      cardColor: const Color(0xFF2C2C2C),
-      textColor: Colors.white,
-      iconData: Icons.analytics,
-      type: 'HYBRID',
-    ),
-  ];
-
+  
+  List<Internship> _allInternships = [];
   List<Internship> _filteredInternships = [];
 
-  // Mapping for the filter chips UI
   final Map<String, String> _categoryMap = {
     'All': 'ALL',
     'DESIGN': 'DESIGN',
     'DEV': 'DEV',
     'DATA': 'DATA',
-    'HYBRID': 'HYBRID',
     'REMOTE': 'REMOTE',
     'ON-SITE': 'ON-SITE',
   };
@@ -98,84 +31,99 @@ class _InternshipPageState extends State<InternshipPage> {
   @override
   void initState() {
     super.initState();
-    _filteredInternships = _allInternships; // Initialize with all data
-    _searchController.addListener(_filter); // Listen to search bar changes
+    _loadInternshipData();
+    _searchController.addListener(_filter);
   }
 
-  /// [COMPONENT: FILTER LOGIC]
-  /// Combines text search and category selection to update the UI.
-  void _filter() {
-  final query = _searchController.text.toLowerCase();
-  setState(() {
-    _filteredInternships = _allInternships.where((item) {
-      final categoryMatches =
-          _selectedCategory == 'All' ||
-          item.category == _selectedCategory || // DESIGN, DEV, DATA
-          item.type == _selectedCategory;        // REMOTE, ON-SITE, HYBRID
+  // REPLACE YOUR OLD METHOD WITH THIS ONE
+  Future<void> _loadInternshipData() async {
+    try {
+      debugPrint("DEBUG: Starting to load JSON...");
+      
+      // 1. Try to load the file
+      final String response = await rootBundle.loadString('assets/data/internships.json');
+      debugPrint("DEBUG: JSON String loaded successfully");
 
-      final searchMatches =
-          item.role.toLowerCase().contains(query) ||
-          item.company.toLowerCase().contains(query);
+      // 2. Try to decode it
+      final data = await json.decode(response);
+      debugPrint("DEBUG: JSON Decoded. Found ${data['internships'].length} items");
 
-      return categoryMatches && searchMatches;
-    }).toList();
-  });
-}
+      // 3. Try to map to objects
+      final List<Internship> loadedList = (data['internships'] as List)
+          .map((i) => Internship.fromJson(i))
+          .toList();
 
-Color _gettypeColor(String difficulty) {
-    switch (difficulty.toUpperCase()) {
-      case 'REMOTE':
-        return const Color(0xFFE2FFDD);
-      case 'ON-SITE':
-        return const Color(0xFFF9E79F);
-      case 'HYBRID':
-        return const Color(0xFFFFD4D4);
-      default:
-        return const Color(0xFFE2FFDD);
+      setState(() {
+        _allInternships = loadedList;
+        _filteredInternships = _allInternships;
+      });
+      
+      debugPrint("DEBUG: State updated successfully!");
+    } catch (e) {
+      // THIS WILL PRINT THE EXACT ERROR TO YOUR CONSOLE
+      debugPrint("CRITICAL ERROR: $e");
+      
+      // This shows the error directly on your phone screen
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
+
+  void _filter() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredInternships = _allInternships.where((item) {
+        final categoryMatches = _selectedCategory == 'All' ||
+            item.category == _selectedCategory ||
+            item.type == _selectedCategory;
+        final searchMatches = item.role.toLowerCase().contains(query) ||
+            item.company.toLowerCase().contains(query);
+        return categoryMatches && searchMatches;
+      }).toList();
+    });
+  }
+
+  Color _gettypeColor(String type) {
+    switch (type.toUpperCase()) {
+      case 'REMOTE': return const Color(0xFFE2FFDD);
+      case 'ON-SITE': return const Color(0xFFF9E79F);
+      case 'HYBRID': return const Color(0xFFFFD4D4);
+      default: return const Color(0xFFE2FFDD);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFF9),
       body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              _buildSearchBar(),
+      child: _allInternships.isEmpty 
+        ? const Center(child: CircularProgressIndicator()) // Shows a spinner if JSON isn't loaded
+        : SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    // Expands/Collapses the category list
                     AnimatedSize(
                       duration: const Duration(milliseconds: 300),
                       child: _showCategories ? _buildCategorySelector() : const SizedBox.shrink(),
                     ),
                     const SizedBox(height: 20),
-                    // Maps the filtered list into individual Internship Cards
                     ..._filteredInternships.map((data) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => InternshipDetailsPage(
-                              lessonData: LessonCardData(
-                                lessonTitle: data.role,
-                                instructor: data.company,
-                                level: data.category,
-                                price: data.stipend,
-                                totalDuration: data.duration,
-                                cardColor: data.cardColor,
-                                textColor: data.textColor,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => InternshipDetailsPage(internship: data)),
+                      ),
                       child: _buildInternshipCard(data),
                     )),
                   ],
@@ -188,8 +136,6 @@ Color _gettypeColor(String difficulty) {
     );
   }
 
-  /// [COMPONENT: HEADER]
-  /// Large bold typography for branding.
   Widget _buildHeader() {
     return const Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -203,8 +149,6 @@ Color _gettypeColor(String difficulty) {
     );
   }
 
-  /// [COMPONENT: SEARCH BAR]
-  /// Custom styled container with a text field and filter toggle button.
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -226,10 +170,7 @@ Color _gettypeColor(String difficulty) {
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'SEARCH ROLES...',
-                        border: InputBorder.none,
-                      ),
+                      decoration: const InputDecoration(hintText: 'SEARCH ROLES...', border: InputBorder.none),
                     ),
                   ),
                 ],
@@ -254,8 +195,6 @@ Color _gettypeColor(String difficulty) {
     );
   }
 
-  /// [COMPONENT: CATEGORY SELECTOR]
-  /// Row of chips that filter the list by industry/type.
   Widget _buildCategorySelector() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -273,10 +212,7 @@ Color _gettypeColor(String difficulty) {
                 _filter();
               },
               backgroundColor: isActive ? Colors.black : Colors.white,
-              labelStyle: TextStyle(
-                color: isActive ? Colors.white : Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
+              labelStyle: TextStyle(color: isActive ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
             ),
           );
         }).toList(),
@@ -284,8 +220,6 @@ Color _gettypeColor(String difficulty) {
     );
   }
 
-  /// [COMPONENT: INTERNSHIP CARD]
-  /// The main visual element. Uses BoxShadow offset to create a 3D effect.
   Widget _buildInternshipCard(Internship data) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -301,14 +235,9 @@ Color _gettypeColor(String difficulty) {
         children: [
           Row(
             children: [
-              // Company Icon Container
               Container(
                 width: 50, height: 50,
-                decoration: BoxDecoration(
-                  color: data.cardColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black),
-                ),
+                decoration: BoxDecoration(color: data.cardColor, shape: BoxShape.circle, border: Border.all(color: Colors.black)),
                 child: Icon(data.iconData, color: data.textColor),
               ),
               const SizedBox(width: 12),
@@ -328,56 +257,30 @@ Color _gettypeColor(String difficulty) {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _infoRow(Icons.location_on_outlined, data.location),
                       _infoRow(Icons.payments_outlined, data.stipend),
                       _infoRow(Icons.timer_outlined, data.duration),
-                        
                     ],
                   ),
-                  SizedBox(width: 20,),
-
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Container(
-                                              padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                                              ),
-                                              decoration: BoxDecoration(
-                          color: _gettypeColor(data.type),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.black),
-                                              ),
-                                              child: Text(
-                          data.type.toUpperCase(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                                              ),
-                                            ),
-                        ],
-                      ),
-                      
+                  const SizedBox(width: 20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _gettypeColor(data.type),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.black),
+                    ),
+                    child: Text(data.type.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  ),
                 ],
               ),
-              // Forward Arrow CTA
               Container(
                 width: 52, height: 52,
-                decoration: BoxDecoration(
-                  color: data.cardColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
+                decoration: BoxDecoration(color: data.cardColor, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2)),
                 child: Icon(Icons.arrow_forward, color: data.textColor),
               ),
             ],
@@ -387,8 +290,6 @@ Color _gettypeColor(String difficulty) {
     );
   }
 
-  /// [HELPER: INFO ROW]
-  /// Small reusable row for displaying icon + text pairs.
   Widget _infoRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -402,3 +303,7 @@ Color _gettypeColor(String difficulty) {
     );
   }
 }
+
+
+
+

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:grade_learn/screens/skill_detail_page.dart'; // Ensure this contains your Lesson model
+import 'package:grade_learn/screens/course_detail_page.dart'; // Ensure this contains your Lesson model
 import 'package:video_player/video_player.dart';
 
 class LessonViewer extends StatefulWidget {

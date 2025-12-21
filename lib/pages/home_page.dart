@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grade_learn/pages/chatwelcome_page.dart';
 import 'package:grade_learn/pages/workshop_page.dart';
 import 'package:grade_learn/services/user_service.dart';
 
@@ -166,6 +167,12 @@ class _HomePageState extends State<HomePage> {
             color: Colors.white,
             shape: BoxShape.circle,
             border: Border.all(color: Colors.black, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(2, 2),
+              ),
+            ],
           ),
           child: const Icon(Icons.search, color: Colors.black, size: 28),
         ),
@@ -179,7 +186,7 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         height: 220, // 🔥 FIX: gives Stack a boundary
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(0xFFFFFFF9),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Stack(
@@ -283,84 +290,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildThemedStatCard({
-    required String title,
-    required IconData icon,
-    required Color backgroundColor,
-    required SizedBox spacer,
-    VoidCallback? onTap,
-  }) {
-    final Color textColor = kDarkTextColor;
-
-    return ElevatedButton(
-      onPressed: onTap ?? () {},
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(20.0),
-        backgroundColor: backgroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.black, width: 2),
-        ),
-        elevation: 5,
-        shadowColor: Colors.grey.withOpacity(0.1),
-      ),
-
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 28, color: textColor),
-          spacer,
-          Text(
-            title,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // --- 3. RECOMMENDED BUTTONS WITH SHADOW ---
   Widget _buildStatsRow() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'RECOMMENDED',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: kDarkTextColor,
-          ),
-        ),
-        SizedBox(height: 20),
+        const Text('RECOMMENDED', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: kDarkTextColor)),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: _buildThemedStatCard(
-                icon: Icons.design_services,
-                spacer: SizedBox(width: 8),
                 title: 'WORKSHOP',
-                backgroundColor: Color(0xFFFFE499),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (context) =>  WorkshopPage(),
-                    ),
-                  );
-                },
+                icon: Icons.design_services,
+                backgroundColor: const Color(0xFFFFE499),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkshopPage())),
               ),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 15),
             Expanded(
               child: _buildThemedStatCard(
                 title: 'CHATBOT',
                 icon: FontAwesomeIcons.robot,
-                spacer: SizedBox(width: 16),
-                backgroundColor: Color(0xFFB6B8FF),
+                backgroundColor: const Color(0xFFB6B8FF),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatWelcome())),
               ),
             ),
           ],
@@ -369,28 +322,47 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildThemedStatCard({required String title, required IconData icon, required Color backgroundColor, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black, width: 2.5),
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 4))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 24, color: kDarkTextColor),
+            const SizedBox(width: 10),
+            Text(title, style: const TextStyle(color: kDarkTextColor, fontSize: 16, fontWeight: FontWeight.w900)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- 4. RECENT COURSES WITH SHADOW ---
   Widget _buildProgressPerformanceCard() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'RECENT ENROLLED COURSES',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: kDarkTextColor,
-          ),
-        ),
-        SizedBox(height: 20),
+        const Text('RECENT ENROLLED', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: kDarkTextColor)),
+        const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
+          width: double.infinity,
+          height: 100,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
           ),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            ],
+          child: const Center(
+            child: Text("NO RECENT COURSES", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
           ),
         ),
       ],

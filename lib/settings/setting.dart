@@ -6,9 +6,12 @@ import 'package:grade_learn/settings/help_center.dart';
 import 'package:grade_learn/settings/privacy_policy.dart';
 import 'package:grade_learn/settings/terms_and_conditions.dart';
 
-// --- Constants for consistent design ---
-const Color kPrimaryColor = Color(0xFF7A64D8);
-const Color kIconColor = Color(0xFF424242);
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
+const Color kDarkTextColor = Color(0xFF282C35);
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,199 +21,182 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  // State variables for the notification toggles
   bool _pushNotifications = true;
   bool _emailNotifications = false;
 
   @override
   Widget build(BuildContext context) {
-    // --- UI Constants for consistent theming ---
-    const Color cardBackgroundColor = Colors.white;
-    const BorderRadius topBorderRadius = BorderRadius.only(
-      topLeft: Radius.circular(32),
-      topRight: Radius.circular(32),
-    );
-
     return Scaffold(
-      backgroundColor: const Color(0xFF9093E1).withOpacity(0.9),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                height: 1.2,
+      backgroundColor: kBrutalistBg,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            
+            // --- BACK BUTTON ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "BACK",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: cardBackgroundColor,
-                borderRadius: topBorderRadius,
+
+            const SizedBox(height: 20),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'SETTINGS ⚙️',
+                style: TextStyle(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                  height: 1.1,
+                ),
               ),
+            ),
+
+            const SizedBox(height: 24),
+
+            Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 40),
                 children: [
-                  // --- Account Card ---
+                  // --- ACCOUNT SECTION ---
                   _SettingsGroupCard(
-                    title: 'Account',
+                    title: 'ACCOUNT',
                     children: [
-                      _SettingsTile(icon: Icons.person_outline, title: 'Edit Profile', onTap: () {
-    // Example: Navigate to EditProfilePage with dummy initial data
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const EditProfilePage(
-        ),
-      ),
-    );
-  },
+                      _SettingsTile(
+                        icon: Icons.person_outline, 
+                        title: 'EDIT PROFILE', 
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage())),
                       ),
-                      _SettingsTile(icon: Icons.lock_outline, title: 'Change Password', onTap: () {
-    // Example: Navigate to EditProfilePage with dummy initial data
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ChangePasswordPage(
-        ),
-      ),
-    );
-  },),
-                      _SettingsTile(icon: Icons.credit_card_outlined, title: 'Payment Methods', onTap: () {},),
+                      _SettingsTile(
+                        icon: Icons.lock_outline, 
+                        title: 'CHANGE PASSWORD', 
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordPage())),
+                      ),
+                      _SettingsTile(icon: Icons.credit_card_outlined, title: 'PAYMENT METHODS', onTap: () {}),
                     ],
                   ),
 
-                  // --- Notifications Card ---
+                  // --- NOTIFICATIONS SECTION ---
                   _SettingsGroupCard(
-                    title: 'Notifications',
+                    title: 'NOTIFICATIONS',
                     children: [
                       _SettingsSwitchTile(
                         icon: Icons.notifications_active_outlined,
-                        title: 'Push Notifications',
+                        title: 'PUSH NOTIFICATIONS',
                         value: _pushNotifications,
                         onChanged: (value) => setState(() => _pushNotifications = value),
                       ),
                       _SettingsSwitchTile(
                         icon: Icons.email_outlined,
-                        title: 'Email Notifications',
+                        title: 'EMAIL NOTIFICATIONS',
                         value: _emailNotifications,
                         onChanged: (value) => setState(() => _emailNotifications = value),
                       ),
                     ],
                   ),
 
-                  // --- Support & About Card ---
+                  // --- SUPPORT SECTION ---
                   _SettingsGroupCard(
-                    title: 'Support & About',
+                    title: 'SUPPORT & ABOUT',
                     children: [
-                      _SettingsTile(icon: Icons.help_outline, title: 'Help Center', onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HelpCenterPage(),),);
-                          }),
-                      _SettingsTile(icon: Icons.privacy_tip_outlined, title: 'Privacy Policy', onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PrivacyPolicyPage(),),);
-                          }),
-                      _SettingsTile(icon: Icons.description_outlined, title: 'Terms of Service', onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const TermsAndConditionsPage(),),);
-                          }),
+                      _SettingsTile(
+                        icon: Icons.help_outline, 
+                        title: 'HELP CENTER', 
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpCenterPage())),
+                      ),
+                      _SettingsTile(
+                        icon: Icons.privacy_tip_outlined, 
+                        title: 'PRIVACY POLICY', 
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyPage())),
+                      ),
+                      _SettingsTile(
+                        icon: Icons.description_outlined, 
+                        title: 'TERMS OF SERVICE', 
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsAndConditionsPage())),
+                      ),
                     ],
                   ),
 
-                  // --- Logout Button Card ---
-                  const SizedBox(height: 16),
-                  _LogoutButtonCard(onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const OnboardingPage(),),);
-                          }),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+
+                  // --- LOGOUT BUTTON ---
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _LogoutButton(onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context, 
+                        MaterialPageRoute(builder: (_) => const OnboardingPage()),
+                        (route) => false
+                      );
+                    }),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// --- Reusable Helper Widgets for Clean Code ---
+// --- BRUTALIST HELPERS ---
 
-/// A card that groups related settings.
 class _SettingsGroupCard extends StatelessWidget {
-  const _SettingsGroupCard({
-    required this.title,
-    required this.children,
-  });
-
+  const _SettingsGroupCard({required this.title, required this.children});
   final String title;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 24.0, bottom: 8.0),
-            child: Text(
-              title.toUpperCase(),
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                letterSpacing: 0.5,
-              ),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(28, 16, 24, 12),
+          child: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black54),
           ),
-          ...children,
-        ],
-      ),
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          ),
+          child: Column(children: children),
+        ),
+      ],
     );
   }
 }
 
-/// A standard tappable tile for navigation.
 class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
+  const _SettingsTile({required this.icon, required this.title, required this.onTap});
   final IconData icon;
   final String title;
   final VoidCallback onTap;
@@ -218,24 +204,24 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24.0),
       onTap: onTap,
-      leading: Icon(icon, color: kIconColor),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: kBrutalistBlue,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black, width: 1.5),
+        ),
+        child: Icon(icon, color: Colors.black, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black),
     );
   }
 }
 
-/// A tile with a toggle switch.
 class _SettingsSwitchTile extends StatelessWidget {
-  const _SettingsSwitchTile({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.onChanged,
-  });
-
+  const _SettingsSwitchTile({required this.icon, required this.title, required this.value, required this.onChanged});
   final IconData icon;
   final String title;
   final bool value;
@@ -244,54 +230,52 @@ class _SettingsSwitchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24.0),
-      leading: Icon(icon, color: kIconColor),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: kBrutalistYellow,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black, width: 1.5),
+        ),
+        child: Icon(icon, color: Colors.black, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: kPrimaryColor,
+        activeColor: Colors.black,
+        activeTrackColor: kBrutalistPurple.withOpacity(0.5),
       ),
-      onTap: () => onChanged(!value),
     );
   }
 }
 
-// A dedicated, styled logout button in card form.
-class _LogoutButtonCard extends StatelessWidget {
-  const _LogoutButtonCard({required this.onTap});
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton({required this.onTap});
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-      child: Material(
-        color: Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: const Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.logout, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 65,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [BoxShadow(color: kBrutalistPurple, offset: Offset(4, 4))],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.logout, color: Colors.white),
+            SizedBox(width: 12),
+            Text(
+              "LOGOUT ACCOUNT",
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
             ),
-          ),
+          ],
         ),
       ),
     );

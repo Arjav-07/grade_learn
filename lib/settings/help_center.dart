@@ -1,13 +1,11 @@
-// help_center.dart
-
 import 'package:flutter/material.dart';
 
-// --- UI Constants for consistent theming ---
-const Color kBackgroundColor = Color(0xFFF7F7F9);
-const Color kPrimaryColor = Color(0xFF7A64D8);
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
 const Color kDarkTextColor = Color(0xFF282C35);
-const Color kSecondaryTextColor = Colors.grey;
-const Color kCardBackgroundColor = Colors.white;
 
 class HelpCenterPage extends StatefulWidget {
   const HelpCenterPage({super.key});
@@ -17,162 +15,159 @@ class HelpCenterPage extends StatefulWidget {
 }
 
 class _HelpCenterPageState extends State<HelpCenterPage> {
-  // Controller to manage the text in the search field
   final _searchController = TextEditingController();
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is removed from the tree
     _searchController.dispose();
     super.dispose();
   }
   
-  // --- Dummy data for the FAQ section ---
   final Map<String, String> _accountFaqs = {
-    'How do I change my username or profile picture?': 
-      'You can update your personal information by navigating to the Settings page and selecting "Edit Profile". From there, you can enter a new username and choose a new avatar.',
-    'How do I reset my password?':
-      'To reset your password, you must first log out. On the login screen, tap the "Forgot Password?" link. You will receive an email with instructions to set a new password.',
-    'How do I delete my account?':
-      'Account deletion is permanent. If you wish to proceed, please contact our support team through the "Contact Support" button on this page, and they will assist you with the process.'
+    'HOW DO I CHANGE MY USERNAME?': 
+      'YOU CAN UPDATE YOUR PERSONAL INFORMATION BY NAVIGATING TO THE SETTINGS PAGE AND SELECTING "EDIT PROFILE".',
+    'HOW DO I RESET MY PASSWORD?':
+      'ON THE LOGIN SCREEN, TAP THE "FORGOT PASSWORD?" LINK TO RECEIVE EMAIL INSTRUCTIONS.',
+    'HOW DO I DELETE MY ACCOUNT?':
+      'PLEASE CONTACT OUR SUPPORT TEAM THROUGH THE BUTTON ON THIS PAGE FOR PERMANENT DELETION.'
   };
 
   final Map<String, String> _billingFaqs = {
-    'What payment methods do you accept?':
-      'We accept all major credit and debit cards, including Visa, MasterCard, and American Express. We also support payments through PayPal.',
-    'How do I cancel my subscription?':
-      'You can manage your subscription by going to Settings > Payment Methods. There you will find an option to cancel your active subscription. Your premium access will continue until the end of the current billing period.',
-    'Can I get a refund?':
-      'We offer a 30-day money-back guarantee for all new subscriptions. If you are not satisfied, please contact our support team within 30 days of your purchase to request a refund.'
+    'WHAT PAYMENT METHODS DO YOU ACCEPT?':
+      'WE ACCEPT ALL MAJOR CREDIT AND DEBIT CARDS, INCLUDING VISA, MASTERCARD, AND AMERICAN EXPRESS.',
+    'HOW DO I CANCEL MY SUBSCRIPTION?':
+      'MANAGE YOUR PLAN BY GOING TO SETTINGS > PAYMENT METHODS TO FIND THE CANCELLATION OPTION.',
+    'CAN I GET A REFUND?':
+      'WE OFFER A 30-DAY MONEY-BACK GUARANTEE. CONTACT SUPPORT WITHIN 30 DAYS OF PURCHASE.'
   };
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: kBackgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kDarkTextColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Help Center',
-          style: TextStyle(color: kDarkTextColor, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-        children: [
-          // --- Header Section ---
-          const Text(
-            'How can we help you?',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: kDarkTextColor,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // --- Search Field ---
-          _buildSearchField(),
-          const SizedBox(height: 30),
-
-          // --- FAQ Sections ---
-          _buildFaqCategory(title: 'Account & Profile', faqs: _accountFaqs),
-          const SizedBox(height: 20),
-          _buildFaqCategory(title: 'Billing & Subscriptions', faqs: _billingFaqs),
-          const SizedBox(height: 30),
-
-          // --- Contact Support Card ---
-          _ContactSupportCard(onTap: () {
-            // Add logic to navigate to a contact form, open an email client, or a chat window
-          }),
-        ],
-      ),
-    );
-  }
-
-  /// Builds the styled search text field.
-  Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        hintText: 'Search for articles...',
-        hintStyle: const TextStyle(color: kSecondaryTextColor),
-        prefixIcon: const Icon(Icons.search, color: kSecondaryTextColor),
-        filled: true,
-        fillColor: kCardBackgroundColor,
-        contentPadding: const EdgeInsets.symmetric(vertical: 15),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  /// Builds a card containing a category of FAQs.
-  Widget _buildFaqCategory({required String title, required Map<String, String> faqs}) {
-    return Card(
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: kBrutalistBg,
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: kDarkTextColor,
+            const SizedBox(height: 10),
+            
+            // --- BACK BUTTON ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "BACK",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 10),
-            // Create an expandable tile for each FAQ in the map
-            ...faqs.entries.map((entry) {
-              return _FaqItem(question: entry.key, answer: entry.value);
-            }).toList(),
+
+            const SizedBox(height: 20),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'HELP CENTER 🆘',
+                style: TextStyle(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                  height: 1.1,
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                children: [
+                  const Text(
+                    'HOW CAN WE HELP YOU?',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- SEARCH FIELD ---
+                  _buildBrutalistSearchField(),
+                  const SizedBox(height: 30),
+
+                  // --- FAQ SECTIONS ---
+                  _buildFaqCategory(title: 'ACCOUNT & PROFILE', faqs: _accountFaqs, color: kBrutalistBlue),
+                  const SizedBox(height: 20),
+                  _buildFaqCategory(title: 'BILLING & SUBSCRIPTIONS', faqs: _billingFaqs, color: kBrutalistYellow),
+                  const SizedBox(height: 30),
+
+                  // --- CONTACT SUPPORT CARD ---
+                  _ContactSupportCard(onTap: () {}),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-}
 
-/// A custom widget for a single, expandable FAQ item.
-class _FaqItem extends StatelessWidget {
-  const _FaqItem({
-    required this.question,
-    required this.answer,
-  });
-
-  final String question;
-  final String answer;
-
-  @override
-  Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: Text(
-        question,
-        style: const TextStyle(fontWeight: FontWeight.w500, color: kDarkTextColor),
+  Widget _buildBrutalistSearchField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
       ),
-      iconColor: kPrimaryColor,
-      collapsedIconColor: kSecondaryTextColor,
+      child: TextField(
+        controller: _searchController,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+        decoration: const InputDecoration(
+          hintText: 'SEARCH FOR ARTICLES...',
+          hintStyle: TextStyle(color: Colors.black38, fontWeight: FontWeight.bold),
+          prefixIcon: Icon(Icons.search, color: Colors.black),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 15),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFaqCategory({required String title, required Map<String, String> faqs, required Color color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Text(
-            answer,
-            style: const TextStyle(color: kSecondaryTextColor, height: 1.5),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          ),
+          child: Column(
+            children: faqs.entries.map((entry) {
+              return _FaqItem(question: entry.key, answer: entry.value, accentColor: color);
+            }).toList(),
           ),
         ),
       ],
@@ -180,49 +175,92 @@ class _FaqItem extends StatelessWidget {
   }
 }
 
-/// A card that prompts the user to contact support.
+class _FaqItem extends StatelessWidget {
+  const _FaqItem({required this.question, required this.answer, required this.accentColor});
+  final String question;
+  final String answer;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        title: Text(
+          question,
+          style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black, fontSize: 14),
+        ),
+        iconColor: Colors.black,
+        collapsedIconColor: Colors.black,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Text(
+              answer,
+              style: const TextStyle(color: Colors.black87, height: 1.4, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ContactSupportCard extends StatelessWidget {
   const _ContactSupportCard({required this.onTap});
-
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            const Icon(Icons.support_agent, color: kPrimaryColor, size: 40),
-            const SizedBox(height: 10),
-            const Text(
-              'Still need help?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kDarkTextColor),
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: kBrutalistBlue,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 1.5),
             ),
-            const SizedBox(height: 5),
-            const Text(
-              'Our support team is here to assist you.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: kSecondaryTextColor),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: onTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kPrimaryColor,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            child: const Icon(Icons.support_agent, color: Colors.black, size: 40),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'STILL NEED HELP?',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'OUR SUPPORT TEAM IS HERE TO ASSIST YOU.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: const [BoxShadow(color: kBrutalistPurple, offset: Offset(4, 4))],
               ),
+              alignment: Alignment.center,
               child: const Text(
-                'Contact Support',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                'CONTACT SUPPORT',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.1),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

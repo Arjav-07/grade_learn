@@ -8,6 +8,13 @@ import 'package:grade_learn/screens/dashboard.dart';
 import 'package:grade_learn/screens/recent.dart';
 import 'package:grade_learn/services/user_service.dart';
 
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
+const Color kDarkTextColor = Color(0xFF282C35);
+
 class ProfileApp extends StatefulWidget {
   const ProfileApp({super.key});
 
@@ -16,7 +23,6 @@ class ProfileApp extends StatefulWidget {
 }
 
 class _ProfileAppState extends State<ProfileApp> {
-  // User-related state
   final UserService _userService = UserService();
   String _username = 'User';
   bool _isLoadingUsername = true;
@@ -29,152 +35,26 @@ class _ProfileAppState extends State<ProfileApp> {
 
   Future<void> _loadUsername() async {
     final currentUser = FirebaseAuth.instance.currentUser;
-
     if (currentUser != null) {
       try {
         final userData = await _userService.fetchUserByUid(currentUser.uid);
-        if (userData != null && userData['username'] != null) {
-          setState(() {
-            _username = userData['username'];
-            _isLoadingUsername = false;
-          });
-        } else {
-          setState(() {
-            _username = 'User';
-            _isLoadingUsername = false;
-          });
-        }
+        setState(() {
+          _username = (userData != null && userData['username'] != null)
+              ? userData['username']
+              : 'User';
+          _isLoadingUsername = false;
+        });
       } catch (e) {
-        debugPrint('Error loading username: $e');
         setState(() {
           _username = 'User';
           _isLoadingUsername = false;
         });
       }
-    } else {
-      setState(() {
-        _username = 'Guest';
-        _isLoadingUsername = false;
-      });
     }
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required Color color,
-    required String unit,
-  }) {
-    return Expanded(
-      child: Container(
-        height: 92,
-        margin: const EdgeInsets.symmetric(horizontal: 4.0),
-        padding: const EdgeInsets.all(14.0),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: color.withOpacity(0.8),
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$value $unit',
-              style: TextStyle(
-                color: color,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color iconColor,
-    VoidCallback? onTap,
-  }) {
-    const Color kCardColor = Colors.white;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: kCardColor,
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(18),
-            child: ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(40),
-                ),
-                child: Icon(icon, color: iconColor, size: 26),
-              ),
-              title: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 16,
-                ),
-              ),
-              subtitle: Text(
-                subtitle,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 13,
-                ),
-              ),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Sign out helper
   Future<void> _signOutAndNavigate(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-    } catch (e) {
-      debugPrint('Error signing out: $e');
-    }
-
+    await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const OnboardingPage()),
       (route) => false,
@@ -183,213 +63,255 @@ class _ProfileAppState extends State<ProfileApp> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Colors.black;
-    const Color cardBlue = Color(0xFF7A64D8);
-    const Color cardOrange = Color(0xFFFF9900);
-    const Color iconDark = Color(0xFF424242);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: kBrutalistBg,
       body: SafeArea(
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 0),
-          children: [
-            const SizedBox(height: 20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
 
-            // --- 1. User Info Section ---
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0),
-              child: Row(
+              // --- TOP NAVIGATION ROW ---
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.grey.shade200,
-                        child: const CircleAvatar(
-                          radius: 38,
-                          backgroundImage:
-                              AssetImage('assets/images/profile.png'),
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _isLoadingUsername
-                              ? const SizedBox(
-                                  width: 140,
-                                  child: LinearProgressIndicator(
-                                    color: cardBlue,
-                                    backgroundColor: Colors.transparent,
-                                  ),
-                                )
-                              : Text(
-                                  'Hello, $_username',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                          Row(
-                            children: [
-                              Icon(Icons.flash_on,
-                                  size: 20, color: cardOrange),
-                              const SizedBox(width: 5),
-                              const Text(
-                                'Progress: 72%',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: primaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                  const Text(
+                    "MY PROFILE",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                    ),
                   ),
-                  // --- MODIFIED: Wrapped settings icon to make it tappable ---
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SettingsPage()),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(30),
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                        context, MaterialPageRoute(builder: (_) => const SettingsPage())),
                     child: Container(
-                      width: 60,
-                      height: 60,
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                            color: Colors.grey.shade300, width: 1.5),
+                        border: Border.all(color: Colors.black, width: 2),
                       ),
-                      child: const Icon(
-                        Icons.settings,
-                        color: primaryColor,
-                        size: 28,
-                      ),
+                      child: const Icon(Icons.settings, color: Colors.black, size: 24),
                     ),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // --- 2. Stat Cards Section ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  _buildStatCard(
-                    title: 'Lesson Completed',
-                    value: '78',
-                    unit: '',
-                    color: cardOrange,
-                  ),
-                  _buildStatCard(
-                    title: 'Hours Completed',
-                    value: '43',
-                    unit: '',
-                    color: cardBlue,
-                  ),
-                ],
-              ),
-            ),
+              // --- SCROLLABLE CONTENT ---
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. HERO PROFILE CARD (Matching Chatbot Hero Card)
+                      _buildProfileHeroCard(),
 
-            const SizedBox(height: 20),
+                      const SizedBox(height: 30),
 
-            // --- 3. Scrollable Menu List ---
-            _buildDetailTile(
-              icon: Icons.access_time,
-              title: 'Recents',
-              subtitle: 'Past Enrolls',
-              iconColor: iconDark,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const WatchlistPage()),
-                );
-              },
-            ),
-            _buildDetailTile(
-              icon: Icons.leaderboard_outlined,
-              title: 'My Dashboard',
-              subtitle: 'Get your Statistics',
-              iconColor: iconDark,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const DashboardPage()),
-                );
-              },
-            ),
-            _buildDetailTile(
-              icon: Icons.route_outlined,
-              title: 'Applied',
-              subtitle: '7',
-              iconColor: iconDark,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AppliedPage()),
-                );
-              },
-            ),
-            _buildDetailTile(
-              icon: Icons.emoji_events_outlined,
-              title: 'Completed',
-              subtitle: 'Show all',
-              iconColor: iconDark,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const CompletedPage()),
-                );
-              },
-            ),
+                      // 2. SECTION TITLE
+                      const Text(
+                        "ACCOUNT & ACTIVITY",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
+                      // 3. MENU TILES (Matching Chatbot Feature Tiles)
+                      _buildMenuTile(
+                        icon: Icons.access_time,
+                        title: "RECENT ACTIVITY",
+                        desc: "VIEW YOUR PAST ENROLLMENTS AND WATCHLIST HISTORY.",
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const WatchlistPage())),
+                      ),
+                      _buildMenuTile(
+                        icon: Icons.leaderboard_outlined,
+                        title: "STATISTICS DASHBOARD",
+                        desc: "DETAILED INSIGHTS INTO YOUR LEARNING PROGRESS AND HOURS.",
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const DashboardPage())),
+                      ),
+                      _buildMenuTile(
+                        icon: Icons.route_outlined,
+                        title: "APPLIED PROGRAMS",
+                        desc: "TRACK THE STATUS OF YOUR 7 ACTIVE APPLICATIONS.",
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => AppliedPage())),
+                      ),
+                      _buildMenuTile(
+                        icon: Icons.emoji_events_outlined,
+                        title: "COMPLETED COURSES",
+                        desc: "ACCESS ALL YOUR FINISHED LESSONS AND ACHIEVEMENTS.",
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const CompletedPage())),
+                      ),
 
-            // --- 4. Centered Logout Button ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120.0),
-              child: SizedBox(
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: () => _signOutAndNavigate(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(0xFF7A64D8).withOpacity(0.7),
-                    foregroundColor: Colors.white, // White text/icon
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  icon: const Icon(Icons.logout, size: 24),
-                  label: const Text(
-                    'Logout',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                      const SizedBox(height: 30),
+
+                      // 4. LOGOUT BUTTON
+                      _buildLogoutButton(context),
+
+                      const SizedBox(height: 80), // Bottom Padding
+                    ],
                   ),
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            const SizedBox(height: 20),
+  // ---------------- PROFILE HERO CARD (Chatbot Style) ----------------
+  Widget _buildProfileHeroCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      decoration: BoxDecoration(
+        color: kBrutalistBlue,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+      ),
+      child: Column(
+        children: [
+          // Profile Image with Bold Border
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 2.5),
+            ),
+            child: const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.white,
+              backgroundImage: AssetImage('assets/images/profile.png'),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _isLoadingUsername
+              ? const SizedBox(width: 120, child: LinearProgressIndicator(color: kBrutalistPurple))
+              : Text(
+                  _username.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+                ),
+          const Text(
+            "LEARNER SINCE 2024",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Badge Tag (Chatbot Style)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: kBrutalistYellow,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black, width: 2),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.verified_user, size: 16, color: Colors.black),
+                SizedBox(width: 8),
+                Text(
+                  "VERIFIED LEARNER",
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  // ---------------- MENU TILE (Chatbot Style) ----------------
+  Widget _buildMenuTile(
+      {required IconData icon, required String title, required String desc, VoidCallback? onTap}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.all(20),
+        leading: Icon(icon, size: 32, color: Colors.black),
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            desc,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black54,
+              fontWeight: FontWeight.bold,
+              height: 1.3,
+            ),
+          ),
+        ),
+        trailing: const Icon(Icons.arrow_forward, color: Colors.black),
+      ),
+    );
+  }
+
+  // ---------------- LOGOUT BUTTON ----------------
+  Widget _buildLogoutButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _signOutAndNavigate(context),
+      child: Container(
+        width: double.infinity,
+        height: 65,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: kBrutalistPurple,
+              offset: Offset(4, 4),
+            )
+          ],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "LOGOUT ACCOUNT",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+            SizedBox(width: 12),
+            Icon(Icons.logout, color: Colors.white, size: 24),
           ],
         ),
       ),

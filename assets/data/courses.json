@@ -1,0 +1,85 @@
+[
+  {
+    "course_id": "google_geometry_001",
+    "providerName": "GOOGLE",
+    "title": "Creative approaches to plane shapes",
+    "category": "HISTORY",
+    "difficulty": "BEGINNER",
+    "duration": "38 HR",
+    "lessonsCount": "49",
+    "userCount": 54000,
+    "ratingsCount": 4.8,
+    "instructor": "ARJAV BHISARA",
+    "instructorName": "ARJAV BHISARA",
+    "instructorBio": "ARJAV IS A DEDICATED EDUCATOR WITH A PASSION FOR MAKING COMPLEX TOPICS ACCESSIBLE AND ENGAGING FOR ALL LEARNERS.",
+    "instructorimg": "assets/images/github.png",
+    "about": "LEARN GEOMETRY CONCEPTS FROM THE GROUND UP. THIS COURSE COVERS CORE SHAPES, PLANE GEOMETRY, AND PRACTICAL APPLICATIONS.",
+    "whatyoulearn": [
+      "UNDERSTAND BASIC GEOMETRIC SHAPES AND THEIR PROPERTIES.",
+      "APPLY GEOMETRIC PRINCIPLES TO SOLVE REAL-WORLD PROBLEMS.",
+      "DEVELOP SPATIAL REASONING AND VISUALIZATION SKILLS."
+    ],
+    "skills": ["GEOMETRY", "VISUALIZATION", "SPATIAL REASONING"],
+    "lessons": [
+      {
+        "title": "01. INTRODUCTION TO SHAPES",
+        "type": "video",
+        "duration": "05:30",
+        "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
+      },
+      {
+        "title": "02. SETTING UP TOOLS",
+        "type": "video",
+        "duration": "12:15",
+        "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
+      }
+    ]
+  },
+  {
+    "course_id": "stanford_spanish_002",
+    "providerName": "STANFORD UNIVERSITY",
+    "title": "Spanish Conversation Mastery",
+    "category": "LANGUAGE CONVERSATION",
+    "difficulty": "INTERMEDIATE",
+    "duration": "95 HR",
+    "lessonsCount": "128",
+    "userCount": 54000,
+    "ratingsCount": 4.6,
+    "instructor": "TIM BUCHALKA",
+    "about": "MASTER SPANISH FLUENCY THROUGH IMMERSIVE CONVERSATION TECHNIQUES AND ADVANCED GRAMMAR STRUCTURES.",
+    "skills": ["SPANISH", "FLUENCY", "PRONUNCIATION"],
+    "lessons": [
+      {
+        "title": "01. CONVERSATION BASICS",
+        "type": "video",
+        "duration": "08:20",
+        "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
+      }
+    ]
+  },
+
+  {
+    "course_id": "java_003",
+    "providerName": "STANFORD UNIVERSITY",
+    "title": "JAVA MASTERY",
+    "category": "LANGUAGE CONVERSATION",
+    "difficulty": "ADVANCED",
+    "duration": "45 HR",
+    "lessonsCount": "128",
+    "userCount": 54000,
+    "ratingsCount": 4.8,
+    "lessonsNo":"128",
+    "instructor": "TIM BUCHALKA",
+    "about": "MASTER SPANISH FLUENCY THROUGH IMMERSIVE CONVERSATION TECHNIQUES AND ADVANCED GRAMMAR STRUCTURES.",
+    "skills": ["SPANISH", "FLUENCY", "PRONUNCIATION"],
+    "lessons": [
+      {
+        
+        "title": "01. CONVERSATION BASICS",
+        "type": "video",
+        "duration": "08:20",
+        "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
+      }
+    ]
+  }
+]

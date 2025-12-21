@@ -1,35 +1,55 @@
-// lib/models/chatbot.dart (Super Simplified UI – flat & minimal)
-
 import 'package:flutter/material.dart';
 import 'package:grade_learn/chat/chatbot_models.dart';
 import 'package:grade_learn/chat/chatbot_provider.dart';
 import 'package:provider/provider.dart';
 
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
+const Color kDarkTextColor = Color(0xFF282C35);
+
 class ChatBotPage extends StatelessWidget {
   const ChatBotPage({Key? key}) : super(key: key);
 
-  static const double _radius = 20.0;
-  static final Color _primaryColor = Color(0xFF7A64D8); 
-
-  // Simple input field
-  Widget _buildInputField({
+  // Brutalist input field
+  Widget _buildBrutalistInput({
     required IconData icon,
     required String label,
     required String hint,
     required Function(String) onChanged,
   }) {
-    return TextField(
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: _primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radius),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-      ),
-      onChanged: onChanged,
-      style: const TextStyle(fontFamily: null),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          ),
+          child: TextField(
+            onChanged: onChanged,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              hintText: hint.toUpperCase(),
+              hintStyle: const TextStyle(color: Colors.black26, fontSize: 12),
+              prefixIcon: Icon(icon, color: Colors.black),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(18),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -39,118 +59,127 @@ class ChatBotPage extends StatelessWidget {
     final profile = provider.userProfile;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Career Guidance AI',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
-        ),
-      ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: kBrutalistBg,
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 10),
+            // --- BACK BUTTON ---
+            Row( 
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                        SizedBox(width: 8),
+                        Text("BACK", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: _primaryColor,
-                borderRadius: BorderRadius.circular(_radius),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.psychology_rounded, color: Colors.white, size: 40),
-                  SizedBox(height: 12),
-                  Text(
-                    "Tell us about yourself",
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    "Our AI will generate personalized guidance based on your interests.",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Brutalist Hero Card
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: kBrutalistPurple,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: Colors.black, width: 2.5),
+                        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.psychology_rounded, color: Colors.white, size: 50),
+                          SizedBox(height: 16),
+                          Text(
+                            "CAREER AI",
+                            style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "TELL US ABOUT YOURSELF TO GENERATE PERSONALIZED GUIDANCE.",
+                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
 
-            const SizedBox(height: 30),
+                    const SizedBox(height: 30),
 
-            // Inputs
-            _buildInputField(
-              icon: Icons.school,
-              label: "Academic Stream",
-              hint: "Science, Arts, Commerce",
-              onChanged: (v) => profile.stream = v,
-            ),
-            const SizedBox(height: 16),
+                    _buildBrutalistInput(
+                      icon: Icons.school,
+                      label: "Academic Stream",
+                      hint: "e.g., Science, Arts, Commerce",
+                      onChanged: (v) => profile.stream = v,
+                    ),
+                    const SizedBox(height: 20),
 
-            _buildInputField(
-              icon: Icons.book,
-              label: "Main Subjects",
-              hint: "Physics, Maths, History",
-              onChanged: (v) => profile.subjects = v,
-            ),
-            const SizedBox(height: 16),
+                    _buildBrutalistInput(
+                      icon: Icons.book,
+                      label: "Main Subjects",
+                      hint: "e.g., Physics, Maths, History",
+                      onChanged: (v) => profile.subjects = v,
+                    ),
+                    const SizedBox(height: 20),
 
-            _buildInputField(
-              icon: Icons.favorite,
-              label: "Hobbies & Interests",
-              hint: "Coding, Drawing, Gaming",
-              onChanged: (v) => profile.hobbies = v,
-            ),
+                    _buildBrutalistInput(
+                      icon: Icons.favorite,
+                      label: "Hobbies & Interests",
+                      hint: "e.g., Coding, Drawing, Gaming",
+                      onChanged: (v) => profile.hobbies = v,
+                    ),
 
-            const SizedBox(height: 28),
+                    const SizedBox(height: 32),
 
-            // Button
-            ElevatedButton(
-              onPressed: provider.isLoading
-                  ? null
-                  : () => context.read<ChatbotProvider>().getCareerGuidance(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 28),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                    // Brutalist Action Button
+                    GestureDetector(
+                      onTap: provider.isLoading
+                          ? null
+                          : () => context.read<ChatbotProvider>().getCareerGuidance(),
+                      child: Container(
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: const [BoxShadow(color: kBrutalistPurple, offset: Offset(4, 4))],
+                        ),
+                        child: Center(
+                          child: provider.isLoading
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text(
+                                  "GET MY GUIDANCE",
+                                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                                ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Results Logic
+                    if (provider.isLoading)
+                      const Center(child: CircularProgressIndicator(color: Colors.black))
+                    else if (provider.guidance != null)
+                      ResultsWidget(guidance: provider.guidance!),
+                  ],
                 ),
               ),
-              child: provider.isLoading
-                  ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "Get My Guidance",
-                      style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w500),
-                    ),
             ),
-
-            const SizedBox(height: 30),
-
-            // Results
-            if (provider.isLoading)
-              Column(
-                children: [
-                  CircularProgressIndicator(color: _primaryColor),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Generating guidance...",
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                ],
-              )
-            else if (provider.guidance != null)
-              ResultsWidget(guidance: provider.guidance!, primaryColor: _primaryColor),
           ],
         ),
       ),
@@ -158,137 +187,74 @@ class ChatBotPage extends StatelessWidget {
   }
 }
 
-
-/// ==========================
-/// RESULTS WIDGET (Simplified)
-/// ==========================
-
 class ResultsWidget extends StatelessWidget {
   final CareerGuidance guidance;
-  final Color primaryColor;
-  const ResultsWidget({super.key, required this.guidance, required this.primaryColor});
-
-  static const double _radius = 6.0;
+  const ResultsWidget({super.key, required this.guidance});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        
-        // Header
+        // Summary Card
+        const Text("YOUR GUIDANCE", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
+        const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.green,
-            borderRadius: BorderRadius.circular(_radius),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                "Your Guidance",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 18),
-
-        // Summary (flat)
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(_radius),
-            border: Border.all(color: Colors.grey.shade300),
+            color: kBrutalistYellow,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
           ),
           child: Text(
-            guidance.personalizedSummary,
-            style: const TextStyle(fontSize: 15, height: 1.5),
+            guidance.personalizedSummary.toUpperCase(),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, height: 1.4),
           ),
         ),
 
-        const SizedBox(height: 28),
+        const SizedBox(height: 32),
 
-        // Career Paths
-        Row(
-          children: [
-            Icon(Icons.rocket_launch, color: primaryColor),
-            const SizedBox(width: 8),
-            const Text(
-              "Suggested Career Paths",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
+        const Text("SUGGESTED PATHS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
+        const SizedBox(height: 16),
+        ...guidance.suggestedCareers.map((career) => _buildResultTile(career.careerTitle, career.description, kBrutalistBlue, Icons.rocket_launch)),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 32),
 
-        ...guidance.suggestedCareers.map(
-          (career) => Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(_radius),
-              color: Colors.white,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  career.careerTitle,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 6),
-                Text(career.description),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 28),
-
-        // Skills
-        Row(
-          children: [
-            Icon(Icons.star, color: Colors.orange),
-            const SizedBox(width: 8),
-            const Text(
-              "Skills to Develop",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        ...guidance.recommendedSkills.map(
-          (skill) => Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(_radius),
-              color: Colors.white,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  skill.skillName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 6),
-                Text(skill.reasoning),
-              ],
-            ),
-          ),
-        ),
+        const Text("SKILLS TO DEVELOP", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
+        const SizedBox(height: 16),
+        ...guidance.recommendedSkills.map((skill) => _buildResultTile(skill.skillName, skill.reasoning, Colors.white, Icons.star)),
       ],
+    );
+  }
+
+  Widget _buildResultTile(String title, String desc, Color color, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.black, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                const SizedBox(height: 6),
+                Text(desc, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

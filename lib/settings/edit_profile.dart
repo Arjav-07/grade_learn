@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-// Theme constants from your app
-const Color kScaffoldBackground = Color(0xFFF8F9FA);
-const Color kPrimaryTextColor = Color(0xFF343A40);
-const Color kSecondaryTextColor = Color(0xFF6C757D);
-const Color kAccentColor = Colors.black;
-const Color kBotBubbleColor = Color(0xFFE9ECEF);
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
+const Color kDarkTextColor = Color(0xFF282C35);
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({Key? key}) : super(key: key);
+  const EditProfilePage({super.key});
 
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -20,16 +20,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _skillsController;
   late final TextEditingController _goalsController;
 
-  // ✨ NEW: State variable to hold the currently selected avatar icon.
   IconData _selectedAvatar = Icons.person_outline;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: 'Alex Doe');
-    _headlineController = TextEditingController(text: 'Aspiring Flutter Developer');
-    _skillsController = TextEditingController(text: 'Flutter, Dart, Firebase, UI/UX Design');
-    _goalsController = TextEditingController(text: 'To build beautiful and impactful mobile applications.');
+    _nameController = TextEditingController(text: 'ALEX DOE');
+    _headlineController = TextEditingController(text: 'ASPIRING FLUTTER DEVELOPER');
+    _skillsController = TextEditingController(text: 'FLUTTER, DART, FIREBASE, UI/UX');
+    _goalsController = TextEditingController(text: 'TO BUILD IMPACTFUL APPLICATIONS');
   }
 
   @override
@@ -40,20 +39,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _goalsController.dispose();
     super.dispose();
   }
-  
-  void _saveProfile() {
-    print('Saving Profile...');
-    print('Selected Avatar: ${_selectedAvatar.codePoint}'); // Save the chosen avatar
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile Updated Successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
 
-  // ✨ NEW: Function to show the avatar selection popup.
   void _showAvatarSelectionDialog() {
     final List<IconData> avatars = [
       Icons.person, Icons.face, Icons.account_circle, Icons.emoji_emotions,
@@ -65,7 +51,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Choose a Profile Picture'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Colors.black, width: 2.5),
+          ),
+          backgroundColor: kBrutalistBg,
+          title: const Text('CHOOSE AVATAR', style: TextStyle(fontWeight: FontWeight.w900)),
           content: SizedBox(
             width: double.maxFinite,
             child: GridView.builder(
@@ -73,37 +64,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
               itemCount: avatars.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
               ),
               itemBuilder: (context, index) {
                 final avatar = avatars[index];
                 return GestureDetector(
                   onTap: () {
-                    setState(() {
-                      _selectedAvatar = avatar;
-                    });
-                    Navigator.of(context).pop(); // Close the dialog on selection
+                    setState(() => _selectedAvatar = avatar);
+                    Navigator.of(context).pop();
                   },
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: _selectedAvatar == avatar ? kAccentColor : kBotBubbleColor,
-                    child: Icon(
-                      avatar,
-                      size: 30,
-                      color: _selectedAvatar == avatar ? Colors.white : kSecondaryTextColor,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: _selectedAvatar == avatar ? kBrutalistYellow : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black, width: 2),
                     ),
+                    child: Icon(avatar, color: Colors.black),
                   ),
                 );
               },
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel', style: TextStyle(color: kAccentColor)),
-            ),
-          ],
         );
       },
     );
@@ -112,144 +94,150 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kScaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: kScaffoldBackground,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kPrimaryTextColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-        children: [
-          // ✨ MODIFIED: Pass the selected avatar and the tap handler to the widget.
-          _ProfileAvatar(
-            selectedAvatar: _selectedAvatar,
-            onTap: _showAvatarSelectionDialog,
-          ),
-          const SizedBox(height: 30),
-          _buildTextField(
-            controller: _nameController,
-            labelText: 'Full Name',
-            icon: Icons.person_outline,
-          ),
-          const SizedBox(height: 20),
-          _buildTextField(
-            controller: _headlineController,
-            labelText: 'Headline',
-            icon: Icons.lightbulb_outline,
-          ),
-          const SizedBox(height: 20),
-          _buildTextField(
-            controller: _skillsController,
-            labelText: 'Your Skills',
-            icon: Icons.code,
-            maxLines: 3,
-          ),
-          const SizedBox(height: 20),
-          _buildTextField(
-            controller: _goalsController,
-            labelText: 'Career Goals',
-            icon: Icons.flag_outlined,
-            maxLines: 3,
-          ),
-          const SizedBox(height: 40),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _saveProfile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kAccentColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      backgroundColor: kBrutalistBg,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            // --- BACK BUTTON ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    SizedBox(width: 8),
+                    Text("BACK", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  ],
                 ),
               ),
-              child: const Text(
-                'Save Changes',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text('EDIT PROFILE ✏️', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, height: 1.1)),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(24.0),
+                children: [
+                  _ProfileAvatar(
+                    selectedAvatar: _selectedAvatar,
+                    onTap: _showAvatarSelectionDialog,
+                  ),
+                  const SizedBox(height: 40),
+                  _buildBrutalistField(_nameController, 'FULL NAME', Icons.person_outline),
+                  const SizedBox(height: 20),
+                  _buildBrutalistField(_headlineController, 'HEADLINE', Icons.lightbulb_outline),
+                  const SizedBox(height: 20),
+                  _buildBrutalistField(_skillsController, 'YOUR SKILLS', Icons.code, maxLines: 2),
+                  const SizedBox(height: 20),
+                  _buildBrutalistField(_goalsController, 'CAREER GOALS', Icons.flag_outlined, maxLines: 2),
+                  const SizedBox(height: 40),
+                  _buildSaveButton(),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String labelText,
-    required IconData icon,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: labelText,
-        labelStyle: const TextStyle(color: kSecondaryTextColor),
-        prefixIcon: Icon(icon, color: kSecondaryTextColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(color: kBotBubbleColor),
+  Widget _buildBrutalistField(TextEditingController controller, String label, IconData icon, {int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(color: kBotBubbleColor),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: Colors.black),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(color: kAccentColor, width: 2.0),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('PROFILE UPDATED!', style: TextStyle(fontWeight: FontWeight.w900)), backgroundColor: Colors.black),
+        );
+      },
+      child: Container(
+        height: 65,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [BoxShadow(color: kBrutalistPurple, offset: Offset(4, 4))],
         ),
-        filled: true,
-        fillColor: Colors.white,
+        child: const Center(
+          child: Text(
+            "SAVE CHANGES",
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+          ),
+        ),
       ),
     );
   }
 }
 
-// ✨ MODIFIED: This widget is now more dynamic.
 class _ProfileAvatar extends StatelessWidget {
   final IconData selectedAvatar;
   final VoidCallback onTap;
 
-  const _ProfileAvatar({
-    Key? key,
-    required this.selectedAvatar,
-    required this.onTap,
-  }) : super(key: key);
+  const _ProfileAvatar({required this.selectedAvatar, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: GestureDetector( // ✨ Wrap the entire avatar to make it tappable.
+      child: GestureDetector(
         onTap: onTap,
         child: Stack(
           children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundColor: kBotBubbleColor,
-              // ✨ Display the icon passed from the parent widget.
-              child: Icon(selectedAvatar, size: 60, color: kSecondaryTextColor),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 3),
+                boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+              ),
+              child: CircleAvatar(
+                radius: 60,
+                backgroundColor: kBrutalistBlue,
+                child: Icon(selectedAvatar, size: 60, color: Colors.black),
+              ),
             ),
             Positioned(
-              bottom: 0,
-              right: 0,
+              bottom: 5,
+              right: 5,
               child: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: kAccentColor,
+                decoration: BoxDecoration(
+                  color: kBrutalistYellow,
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
-                // This icon is now just a visual cue.
-                child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                child: const Icon(Icons.edit, color: Colors.black, size: 20),
               ),
             ),
           ],

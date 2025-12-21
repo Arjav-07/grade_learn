@@ -80,10 +80,13 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
+
     - assets/images/onboarding1.png
     - assets/images/onboarding2.png
     - assets/images/onboarding3.png
     - assets/images/
+    - assets/data/courses.json
+    - assets/data/internships.json
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

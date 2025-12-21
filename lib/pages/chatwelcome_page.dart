@@ -1,208 +1,289 @@
 import 'package:flutter/material.dart';
 import 'package:grade_learn/models/chatbot.dart';
 
-// --- Color Constants (Moved to top-level for accessibility) ---
-const Color kPrimaryGreen = Color(0xFF7A64D8); 
-const Color kPrimaryPurple = Color(0xFF5A2A8F); // New color for logo and nav icons
-const Color kBackgroundColor = Color(0xFFF7F7F9); // Slight off-white or light background
-const Color kDarkTextColor = Color(0xFF282C35); 
-const Color kLightTextColor = Color(0xFF6C757D); 
-
+// --- Brutalist Design Constants ---
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
 
 class ChatWelcome extends StatelessWidget {
   const ChatWelcome({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Determine screen height for proportional spacing
-    final double screenHeight = MediaQuery.of(context).size.height;
-    
     return Scaffold(
-      
-      backgroundColor: kBackgroundColor,
-      // REMOVED: bottomNavigationBar: _buildBottomNavBar(),
+      backgroundColor: kBrutalistBg,
       body: SafeArea(
-        child: Column(
-          children: [
-            // 1. Header (Logo and Title)
-            _buildHeader(),
-            
-            // Add spacing to push content down (Increased spacing since no bottom bar)
-            SizedBox(height: screenHeight * 0.15), 
-            
-            // 2. Main Content (Centered)
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+
+              // --- BACK BUTTON ---
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    SizedBox(width: 8),
+                    Text(
+                      "BACK",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Expanded area for scrollable content
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   child: Column(
-                    // mainAxisAlignment.center is necessary for vertical alignment inside Center
-                    // Changed to mainAxisAlignment.start to place content higher since the Spacer is removed
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Large Squircle Logo 
-                      _buildLargeLogo(),
-                      const SizedBox(height: 50),
-                      
-                      // Welcome Text
-                      _buildWelcomeText(),
-                      const SizedBox(height: 10),
+                      // --- HEADER ---
+                      const Text(
+                        "WELCOME TO",
+                        style: TextStyle(
+                          fontSize: 16, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Row(
+                        children: [
+                          Text(
+                            "CHATBOT",
+                            style: TextStyle(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text("🤖", style: TextStyle(fontSize: 32)),
+                        ],
+                      ),
 
-                      // Subtitle
-                      _buildSubtitle(),
-                      
-                      // --- EDITED: Removed large SizedBox and replaced with small gap ---
-                      const SizedBox(height: 40), 
+                      const SizedBox(height: 24),
 
-                      // 3. Bottom Button (Moved here, inside the Expanded/Center block)
-                      _buildStartChatButton(context),
+                      // --- 1. MAIN HERO CARD ---
+                      _buildHeroCard(),
+
+                      const SizedBox(height: 30),
+
+                      // --- SECTION TITLE ---
+                      const Text(
+                        "GUIDELINES & FEATURES",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // --- 2. FEATURE TILES ---
+                      _buildFeatureTile(
+                        icon: Icons.smart_toy_outlined,
+                        title: "AI-POWERED LEARNING ASSISTANCE",
+                        desc: "GET INSTANT HELP WITH PROGRAMMING CONCEPTS, COURSE RECOMMENDATIONS, AND CAREER GUIDANCE.",
+                      ),
+                      _buildFeatureTile(
+                        icon: Icons.security,
+                        title: "RESPECTFUL INTERACTIONS",
+                        desc: "PLEASE KEEP CONVERSATIONS PROFESSIONAL AND EDUCATIONAL. INAPPROPRIATE CONTENT WILL BE FLAGGED.",
+                      ),
+                      _buildFeatureTile(
+                        icon: Icons.access_time_filled,
+                        title: "24/7 AVAILABILITY",
+                        desc: "ASK QUESTIONS ANYTIME! THE CHATBOT IS AVAILABLE ROUND THE CLOCK TO SUPPORT YOUR LEARNING JOURNEY.",
+                      ),
+                      _buildFeatureTile(
+                        icon: Icons.error_outline,
+                        title: "ACCURACY & LIMITATIONS",
+                        desc: "WHILE OUR AI IS TRAINED ON EXTENSIVE DATA, ALWAYS VERIFY CRITICAL INFORMATION FROM OFFICIAL SOURCES.",
+                      ),
                       
-                      // REMOVED: Use a Spacer to push the content block up, away from the bottom navigation bar
+                      const SizedBox(height: 30),
+
+                      // --- 3. SCROLLABLE START BUTTON ---
+                      _buildStartButton(context),
+
+                      // --- BOTTOM PADDING ---
+                      const SizedBox(height: 80), 
                     ],
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------- HERO CARD ----------------
+  Widget _buildHeroCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      decoration: BoxDecoration(
+        color: kBrutalistBlue,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 2.5),
             ),
-            
-            // Removed the old button call here, as it's now inside the Expanded widget
-            // The bottom nav bar handles the rest of the padding
-            const SizedBox(height: 10), 
+            child: const Text("🤖", style: TextStyle(fontSize: 50)),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "CODE LEARN AI ASSISTANCE",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          ),
+          const Text(
+            "YOUR PERSONAL GUIDANCE COMPANION",
+            style: TextStyle(
+              fontSize: 13, 
+              fontWeight: FontWeight.bold, 
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // Tag Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: kBrutalistYellow,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black, width: 2),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.greenAccent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  "AI CHAT BOT", 
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  // ---------------- FEATURE TILE ----------------
+  Widget _buildFeatureTile({required IconData icon, required String title, required String desc}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 32, color: Colors.black),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    fontSize: 13, 
+                    color: Colors.black54, 
+                    fontWeight: FontWeight.bold,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- START BUTTON ----------------
+  Widget _buildStartButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ChatBotPage()),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        height: 65,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: kBrutalistPurple,
+              offset: Offset(4, 4),
+            )
+          ],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "START CHATTING",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+            SizedBox(width: 12),
+            Icon(Icons.arrow_forward, color: Colors.white, size: 24),
           ],
         ),
       ),
     );
   }
-
-  // --- Widget Builders ---
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Small Logo Icon (Left) - Using the purple theme from the new image
-          const Spacer(),
-          // App Title (Center)
-          const Text(
-            'Skill Waves',
-            
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: kDarkTextColor,
-            ),
-          ),
-          
-          const Spacer(),
-          // Spacer for alignment (Right)
-          const SizedBox(width: 28), 
-        ],
-        
-      ),
-    );
-  }
-
-  Widget _buildLargeLogo() {
-    // This widget is completely redesigned to match the second image's squircle logo.
-    return Container(
-      width: 150,
-      height: 150,
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: kPrimaryGreen.withOpacity(0.1), 
-        borderRadius: BorderRadius.circular(35), // Rounded corners for the light container
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25), // More rounded corners for the inner container
-          
-        ),
-        child: Center(
-          // Using a suitable icon to represent the logo design
-          child: Icon(
-            Icons.science, // Placeholder for the atom swirl logo
-            size: 60,
-            color: kPrimaryGreen, // Use the primary green for the icon color
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildWelcomeText() {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: const TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w800,
-          color: kDarkTextColor,
-          height: 1.2,
-        ),
-        children: [
-          const TextSpan(text: 'Welcome to\n'),
-          TextSpan(
-            text: 'Skill Waves',
-            style: TextStyle(
-              color: kPrimaryGreen,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.0),
-      child: Text(
-        'Get instant answers to your questions, personalized learning support, and more.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 16,
-          color: kLightTextColor,
-          height: 1.4,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStartChatButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: SizedBox(
-        width: double.infinity,
-        height: 60,
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ChatBotPage()),
-            );
-            // Action for starting the chat
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kPrimaryGreen,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // Fully rounded edges
-            ),
-            elevation: 8,
-            shadowColor: kPrimaryGreen.withOpacity(0.5),
-          ),
-          child: const Text(
-            'Start Chat',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
-  // REMOVED: _buildBottomNavBar() and _buildNavItem() are no longer needed.
 }

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-// --- 1. Data Model for Type Safety ---
-// Replaces Map<String, dynamic> for safer and cleaner code.
+// --- Brutalist Design Constants ---
+const Color kBrutalistBg = Color(0xFFFFFFF9);
+const Color kBrutalistYellow = Color(0xFFFDE798);
+const Color kBrutalistBlue = Color(0xFFB5D8FF);
+const Color kBrutalistPurple = Color(0xFF7A64D8);
+const Color kDarkTextColor = Color(0xFF282C35);
+
+// --- 1. Data Model ---
 class AppliedItem {
   final IconData icon;
   final Color color;
@@ -21,18 +27,17 @@ class AppliedItem {
 class AppliedPage extends StatelessWidget {
   AppliedPage({super.key});
 
-  // --- 2. Using the Type-Safe Model ---
   final List<AppliedItem> _appliedCourses = [
     const AppliedItem(
       icon: Icons.code,
       color: Color(0xFFE5883C),
-      title: 'Flutter for Beginners',
+      title: 'FLUTTER FOR BEGINNERS',
       subtitle: 'by Jane Smith',
     ),
     const AppliedItem(
       icon: Icons.data_usage,
       color: Colors.redAccent,
-      title: 'Advanced Data Science',
+      title: 'ADVANCED DATA SCIENCE',
       subtitle: 'by Stanford University',
     ),
   ];
@@ -41,80 +46,89 @@ class AppliedPage extends StatelessWidget {
     const AppliedItem(
       icon: Icons.business_center,
       color: Colors.indigo,
-      title: 'Flutter Developer Intern',
+      title: 'FLUTTER DEVELOPER INTERN',
       subtitle: 'at Google',
     ),
     const AppliedItem(
       icon: Icons.computer,
       color: Colors.orange,
-      title: 'Software Engineer Intern',
+      title: 'SOFTWARE ENGINEER INTERN',
       subtitle: 'at Amazon',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    // --- UI Constants for consistent theming ---
-    const Color cardBackgroundColor = Colors.white;
-    const BorderRadius topBorderRadius = BorderRadius.only(
-      topLeft: Radius.circular(32),
-      topRight: Radius.circular(32),
-    );
     const Duration animationDuration = Duration(milliseconds: 350);
 
-    // Combine both lists to build a single scrollable view
     final List<dynamic> allAppliedItems = [
-      'Courses', // Use strings as section headers
+      'COURSES',
       ..._appliedCourses,
-      'Internships',
+      'INTERNSHIPS',
       ..._appliedInternships,
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF9093E1).withOpacity(0.9),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Text(
-              'Applied',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                height: 1.2,
+      backgroundColor: kBrutalistBg,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            
+            // --- BACK BUTTON ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "BACK",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: cardBackgroundColor,
-                borderRadius: topBorderRadius,
+
+            const SizedBox(height: 20),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'APPLIED 📝',
+                style: TextStyle(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                  height: 1.1,
+                ),
               ),
+            ),
+
+            const SizedBox(height: 24),
+
+            Expanded(
               child: AnimationLimiter(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(24.0),
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   itemCount: allAppliedItems.length,
                   itemBuilder: (context, index) {
                     final item = allAppliedItems[index];
 
-                    // Render the section header
                     if (item is String) {
                       return _SectionHeader(title: item);
                     }
                     
-                    // Render the list item tile
-                    // Note: The item is cast to AppliedItem here
                     return AnimationConfiguration.staggeredList(
                       position: index,
                       duration: animationDuration,
@@ -129,8 +143,8 @@ class AppliedPage extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -143,22 +157,22 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Adjusted padding for the new layout
     return Padding(
       padding: const EdgeInsets.only(top: 16.0, bottom: 20.0),
       child: Text(
         title,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF555555),
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
+          letterSpacing: 1.2,
         ),
       ),
     );
   }
 }
 
-// --- 3. Re-themed Applied Item Tile Widget ---
+// --- Brutalist Applied Item Tile ---
 class _AppliedItemTile extends StatelessWidget {
   const _AppliedItemTile({required this.item});
   final AppliedItem item;
@@ -166,22 +180,29 @@ class _AppliedItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
+      margin: const EdgeInsets.only(bottom: 20.0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05), // Dark card theme
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+          )
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              // Use the item's specific color with some opacity
-              color: item.color.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(16),
+              color: item.color.withOpacity(0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 1.5),
             ),
-            child: Icon(item.icon, color: Colors.white, size: 28),
+            child: Icon(item.icon, color: item.color, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -191,32 +212,34 @@ class _AppliedItemTile extends StatelessWidget {
                 Text(
                   item.title,
                   style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
                     color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   item.subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black.withOpacity(0.7),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(
-              color: Colors.black12,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: kBrutalistYellow,
               shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 2),
             ),
             child: const Icon(
               Icons.arrow_forward,
               color: Colors.black,
-              size: 18,
+              size: 20,
             ),
           ),
         ],

@@ -1,0 +1,32 @@
+{
+  "internships": [
+    {
+      "role": "UI/UX DESIGN INTERNSHIP",
+      "company": "GOOGLE",
+      "location": "INDIA",
+      "stipend": "$3,500/Mo",
+      "duration": "6 MONTHS",
+      "category": "DESIGN",
+      "type": "REMOTE",
+      "cardColor": "#D3E5FD", 
+      "textColor": "#00468D",
+      "iconName": "brush",
+      "skills": ["FIGMA", "SKETCH"],
+      "responsibilities": ["DESIGNING UI", "USER FLOWS"]
+    },
+    {
+      "role": "BACKEND DEVELOPER",
+      "company": "AMAZON",
+      "location": "SEATTLE, WA",
+      "stipend": "$4,200/Mo",
+      "duration": "3 MONTHS",
+      "category": "DEV",
+      "type": "ON-SITE",
+      "cardColor": "#F9BE84",
+      "textColor": "#86542A",
+      "iconName": "code",
+      "skills": ["NODE.JS", "AWS"],
+      "responsibilities": ["SERVER LOGIC", "DB MGMT"]
+    }
+  ]
+}

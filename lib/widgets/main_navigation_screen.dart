@@ -3,7 +3,7 @@ import 'package:grade_learn/pages/chatwelcome_page.dart';
 import 'package:grade_learn/pages/home_page.dart'; 
 import 'package:grade_learn/pages/internship_page.dart';
 import 'package:grade_learn/pages/profile.dart';
-import 'package:grade_learn/pages/skill_page.dart';
+import 'package:grade_learn/pages/course_page.dart.dart';
 import 'package:grade_learn/widgets/navbar.dart';
 
 class PlaceholderPage extends StatelessWidget {

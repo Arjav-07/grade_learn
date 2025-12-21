@@ -1,0 +1,42 @@
+{
+  "workshops": [
+    {
+      "title": "BUILD FULL STACK APP WITH MERN STACK",
+      "instructor": "SARAH MITCHELL",
+      "instructorBio": "EXPERT JAVA DEVELOPER WITH 10 YEARS OF EXPERIENCE.",
+      "duration": "3HR",
+      "seatsLeft": 10,
+      "totalSeats": 60,
+      "date": "12-01-2026",
+      "brandColor": "#F44336",
+      "type": "FULL",
+      "description": "JOIN US FOR AN INTENSIVE HANDS-ON WORKSHOP WHERE YOU'LL BUILD A COMPLETE FULL-STACK APPLICATION USING MONGODB, EXPRESS, REACT, AND NODE.JS.",
+      "topics": [
+        "SETTING UP MERN ENVIRONMENT",
+        "BUILDING RESTFUL APIS WITH EXPRESS",
+        "REACT FRONTEND DEVELOPMENT",
+        "MONGODB DATABASE INTEGRATION",
+        "AUTHENTICATION WITH JWT",
+        "DEPLOYMENT STRATEGIES"
+      ]
+    },
+    {
+      "title": "PYTHON DATA SCIENCE BOOTCAMP",
+      "instructor": "DR. JAMES CHEN",
+      "instructorBio": "DATA SCIENTIST WITH A PH.D. IN MACHINE LEARNING.",
+      "duration": "4.5HR",
+      "seatsLeft": 12,
+      "totalSeats": 60,
+      "date": "12-01-2026",
+      "brandColor": "#2196F3",
+      "type": "LIVE",
+      "description": "MASTER THE ESSENTIALS OF DATA SCIENCE USING PYTHON, PANDAS, AND SCIKIT-LEARN.",
+      "topics": [
+        "PYTHON FOR DATA ANALYSIS",
+        "DATA CLEANING WITH PANDAS",
+        "VISUALIZATION WITH MATPLOTLIB",
+        "INTRODUCTION TO MACHINE LEARNING"
+      ]
+    }
+  ]
+}

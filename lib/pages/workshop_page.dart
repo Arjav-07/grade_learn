@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:grade_learn/models/workshop_model.dart';
 import 'package:grade_learn/screens/work_detail_page.dart';
 
@@ -14,28 +17,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
   String _selectedCategory = 'All';
   bool _showCategories = false;
 
-  final List<WorkshopData> _allWorkshops = [
-    WorkshopData(
-      title: "BUILD FULL STACK APP WITH MERN STACK",
-      instructor: "SARAH MITCHELL",
-      duration: "3HR",
-      seatsLeft: 0, // Testing "FULL" state
-      totalSeats: 60,
-      date: "12-01-2026",
-      brandColor: Colors.red,
-      type: "FULL",
-    ),
-    WorkshopData(
-      title: "PYTHON DATA SCIENCE BOOTCAMP",
-      instructor: "DR. JAMES CHEN",
-      duration: "4.5HR",
-      seatsLeft: 12,
-      totalSeats: 60,
-      date: "12-01-2026",
-      brandColor: Colors.blue,
-      type: "LIVE",
-    ),
-  ];
+  final List<WorkshopData> _allWorkshops = [];
 
   List<WorkshopData> _filteredWorkshops = [];
 
@@ -47,11 +29,43 @@ class _WorkshopPageState extends State<WorkshopPage> {
   };
 
   @override
-  void initState() {
-    super.initState();
-    _filteredWorkshops = _allWorkshops;
-    _searchController.addListener(_filter);
+void initState() {
+  super.initState();
+  // We don't set _filteredWorkshops = _allWorkshops here because _allWorkshops is empty
+  _loadWorkshopData(); 
+  _searchController.addListener(_filter);
+}
+
+Future<void> _loadWorkshopData() async {
+  try {
+    // 1. Load the string from assets
+    final String response = await rootBundle.loadString('assets/data/workshops.json');
+    
+    // 2. Decode the JSON
+    final Map<String, dynamic> data = json.decode(response);
+    
+    // 3. Convert to List and UPDATE STATE
+    setState(() {
+      _allWorkshops.clear();
+      _allWorkshops.addAll(
+        (data['workshops'] as List)
+            .map((item) => WorkshopData.fromJson(item))
+            .toList(),
+      );
+      // CRITICAL: You must populate the filtered list here, or the UI stays empty!
+      _filteredWorkshops = _allWorkshops; 
+    });
+    debugPrint("DEBUG: Loaded ${_allWorkshops.length} workshops");
+  } catch (e) {
+    // This will print the exact error (like File Not Found) to your console
+    debugPrint("CRITICAL ERROR: $e");
+    
+    // Fallback: Stop the spinner even if it fails
+    setState(() {
+      _filteredWorkshops = []; 
+    });
   }
+}
 
   void _filter() {
     final query = _searchController.text.toLowerCase();
@@ -72,8 +86,11 @@ class _WorkshopPageState extends State<WorkshopPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFF9),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+
+        child: _allWorkshops.isEmpty 
+          ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -154,6 +171,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
             ),
             child: Row(
               children: [
@@ -182,6 +200,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
               color: _showCategories ? Colors.black : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
             ),
             child: Icon(
               _showCategories ? Icons.close : Icons.tune,
@@ -221,7 +240,6 @@ class _WorkshopPageState extends State<WorkshopPage> {
     );
   }
 
-  // ---------------- WORKSHOP CARD ----------------
   // ---------------- WORKSHOP CARD ----------------
   Widget _buildWorkshopCard(BuildContext context, WorkshopData data) {
     // Determine if we should show "0" seats based on your rules
@@ -352,6 +370,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
                     shape: BoxShape.circle,
                     color: Colors.white,
                     border: Border.all(color: Colors.black, width: 2),
+                    boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
                   ),
                   child: const Icon(Icons.arrow_forward, color: Colors.black),
                 ),

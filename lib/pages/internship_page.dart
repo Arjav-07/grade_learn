@@ -102,39 +102,43 @@ class _InternshipPageState extends State<InternshipPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFF9),
+      // Setting top to false allows the background to hit the very top of the screen
       body: SafeArea(
-      child: _allInternships.isEmpty 
-        ? const Center(child: CircularProgressIndicator()) // Shows a spinner if JSON isn't loaded
-        : SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildHeader(),
-                _buildSearchBar(),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 300),
-                      child: _showCategories ? _buildCategorySelector() : const SizedBox.shrink(),
+        child: _allInternships.isEmpty 
+          ? const Center(child: CircularProgressIndicator()) 
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align header to left
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  _buildSearchBar(),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 300),
+                          child: _showCategories ? _buildCategorySelector() : const SizedBox.shrink(),
+                        ),
+                        const SizedBox(height: 20),
+                        ..._filteredInternships.map((data) => GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => InternshipDetailsPage(internship: data)),
+                          ),
+                          child: _buildInternshipCard(data),
+                        )),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    ..._filteredInternships.map((data) => GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => InternshipDetailsPage(internship: data)),
-                      ),
-                      child: _buildInternshipCard(data),
-                    )),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
       ),
     );
   }
+
 
   Widget _buildHeader() {
     return const Padding(
@@ -162,6 +166,7 @@ class _InternshipPageState extends State<InternshipPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.black, width: 2),
+                boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
               ),
               child: Row(
                 children: [
@@ -186,6 +191,7 @@ class _InternshipPageState extends State<InternshipPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.black, width: 2),
+                boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
               ),
               child: Icon(_showCategories ? Icons.close : Icons.tune),
             ),
@@ -204,7 +210,7 @@ class _InternshipPageState extends State<InternshipPage> {
           return Padding(
             padding: const EdgeInsets.only(right: 10),
             child: ActionChip(
-              side: const BorderSide(width: 1.5),
+              side: const BorderSide(width: 2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               label: Text(entry.value),
               onPressed: () {
@@ -280,7 +286,7 @@ class _InternshipPageState extends State<InternshipPage> {
               ),
               Container(
                 width: 52, height: 52,
-                decoration: BoxDecoration(color: data.cardColor, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2)),
+                decoration: BoxDecoration(color: data.cardColor, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2),boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],),
                 child: Icon(Icons.arrow_forward, color: data.textColor),
               ),
             ],

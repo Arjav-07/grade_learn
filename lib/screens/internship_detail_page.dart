@@ -86,7 +86,11 @@ class InternshipDetailsPage extends StatelessWidget {
                 const SizedBox(width: 12),
                 _buildStatItem(Icons.timer, internship.duration, 'MONTHS'),
                 const SizedBox(width: 12),
-                _buildStatItem(FontAwesomeIcons.briefcase, internship.type, 'LEVEL'),
+                _buildStatItem(
+                  FontAwesomeIcons.briefcase,
+                  internship.type,
+                  'LEVEL',
+                ),
               ],
             ),
 
@@ -101,8 +105,7 @@ class InternshipDetailsPage extends StatelessWidget {
                 children: [
                   _SectionHeader(title: "ROLE DESCRIPTION"),
                   Text(
-                    "JOIN THE TEAM AT ${internship.company} AS A  ${internship.role}. "
-                    "THIS ${internship.type} POSITION IS FOR ${internship.duration}.",
+                    internship.roledescription,
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                 ],
@@ -122,9 +125,7 @@ class InternshipDetailsPage extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  "REACT",
-                  "NODE JS",
-                  "AZURE",
+                  ...internship.skills,
                 ].map((skill) => _skillBadge(skill)).toList(),
               ),
             ),
@@ -143,27 +144,27 @@ class InternshipDetailsPage extends StatelessWidget {
                 children: [
                   _includeRow(
                     FontAwesomeIcons.briefcase,
-                    "DEVELOP FULL-STACK WEB APPLICATIONS",
+                    internship.keyresponsibilities[0],
                   ),
                   _includeRow(
                     FontAwesomeIcons.briefcase,
-                    "BUILD RESTFUL APIS USING NODE.JS",
+                    internship.keyresponsibilities[1],
                   ),
                   _includeRow(
                     FontAwesomeIcons.briefcase,
-                    "CREATE RESPONSIVE UIS WITH REACT",
+                    internship.keyresponsibilities[2],
                   ),
                   _includeRow(
                     FontAwesomeIcons.briefcase,
-                    "DEPLOY APPLICATIONS TO AZURE",
+                    internship.keyresponsibilities[3],
                   ),
                   _includeRow(
                     FontAwesomeIcons.briefcase,
-                    "WRITE UNIT AND INTEGRATION TESTS",
+                    internship.keyresponsibilities[4],
                   ),
                   _includeRow(
                     FontAwesomeIcons.briefcase,
-                    "PARTICIPATE IN AGILE DEVELOPMENT",
+                    internship.keyresponsibilities[5],
                   ),
                 ],
               ),
@@ -183,24 +184,27 @@ class InternshipDetailsPage extends StatelessWidget {
                 children: [
                   _includeRow(
                     Icons.mark_email_read,
-                    "PURSUING DEGREE IN COMPUTER SCIENCE OR RELATED FIELD",
+                    internship.qualifications[0],
                   ),
                   _includeRow(
                     Icons.mark_email_read,
-                    "EXPERIENCE WITH REACT AND NODE.JS",
-                  ),
-                  _includeRow(Icons.mark_email_read, "KNOWLEDGE OF REST APIS"),
-                  _includeRow(
-                    Icons.mark_email_read,
-                    "FAMILIARITY WITH CLOUD PLATFORMS",
+                    internship.qualifications[1],
                   ),
                   _includeRow(
                     Icons.mark_email_read,
-                    "GIT VERSION CONTROL EXPERIENCE",
+                    internship.qualifications[2],
                   ),
                   _includeRow(
                     Icons.mark_email_read,
-                    "TEAM PLAYER WITH GOOD COMMUNICATION",
+                    internship.qualifications[3],
+                  ),
+                  _includeRow(
+                    Icons.mark_email_read,
+                    internship.qualifications[4],
+                  ),
+                  _includeRow(
+                    Icons.mark_email_read,
+                    internship.qualifications[5],
                   ),
                 ],
               ),
@@ -208,37 +212,39 @@ class InternshipDetailsPage extends StatelessWidget {
             SizedBox(height: 20),
 
             // ---------- BENIFITS OR PERKS ----------
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: const _SectionHeader(title: "BENEFITS & PERKS"),
-            ),
-            const SizedBox(height: 12),
-            ...[
-              'HYBRID WORK ENVIRONMENT',
-              'PERSONAL DEVELOPMENT BUDGET',
-              'HEALTH & WELLNESS PROGRAMS',
-              'EMPLOY DISCOUNT PROGRAMS',
-              'COLABORATIVE WORK EVIRONMENT',
-              'CAREER GROWTH OPPORTUNITIES',
-            ].map(
-              (req) => Padding(
-                padding: const EdgeInsets.only(bottom: 12, left: 20),
-                child: Row(
-                  children: [
-                    const Icon(Icons.badge_outlined, size: 24),
-                    const SizedBox(width: 12),
-                    Text(
-                      req,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
+            if (internship.benifitsperks.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                child: const _SectionHeader(title: "BENEFITS & PERKS"),
+              ),
+              const SizedBox(height: 12),
+              ...internship.benifitsperks.map(
+                (benefit) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12, left: 20),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.badge_outlined,
+                        size: 24,
+                        color: Colors.black,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        // Added Expanded to prevent text overflow
+                        child: Text(
+                          benefit.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
+            ],
 
             // --- ABOUT COMPANY ---
             Padding(
@@ -263,15 +269,15 @@ class InternshipDetailsPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "MICROSOFT",
-                            style: TextStyle(
+                          Text(
+                            internship.companytitle,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 18,
                             ),
                           ),
                           Text(
-                            "BY BILL GATES",
+                            internship.companysubtitle,
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 12,
@@ -284,9 +290,8 @@ class InternshipDetailsPage extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 10),
-                  const Text(
-                    "MICROSOFT HAS BEEN A LEADER IN TECHNOLOGY FOR DECADES, INNOVATING AND EMPOWERING PEOPLE WORLDWIDE.",
-                    style: TextStyle(fontSize: 14),
+                  Text(internship.companyinfo,
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ],
               ),
@@ -295,36 +300,20 @@ class InternshipDetailsPage extends StatelessWidget {
             const SizedBox(height: 20),
             // ---------- REQUIREMENTS ----------
             Padding(
-              padding: const EdgeInsets.only(left:10),
-              child: const _SectionHeader(title: 'APPLICATION PROCESS & REQUIREMENTS')),
+              padding: const EdgeInsets.only(left: 10),
+              child: const _SectionHeader(
+                title: 'APPLICATION PROCESS & REQUIREMENTS',
+              ),
+            ),
             const SizedBox(height: 20),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _numItem(
-                  1,
-                  'APPLICATION REVIEW',
-                  '1-2 WEEK.',
-                ),
-                _numItem(
-                  2,
-                  'ONLINE ASSESSMENT',
-                  '3-5 DAYS',
-                ),
-                _numItem(
-                  3,
-                  'TECHNICAL INTERVIEW',
-                  '1 WEEK',
-                ),
-                _numItem(
-                  4,
-                  'FINAL INTERVIEW',
-                  '1 WEEK',
-                ),
-                  _numItem(
-                  5,
-                  'OFFER EXTENSION',
-                  '1-2 WEEK.'),
+                _numItem(1, 'APPLICATION REVIEW', internship.applicationreview),
+                _numItem(2, 'ONLINE ASSESSMENT', internship.onlineassessment),
+                _numItem(3, 'TECHNICAL INTERVIEW', internship.technicalinterview),
+                _numItem(4, 'FINAL INTERVIEW', internship.finalinterview),
+                _numItem(5, 'OFFER EXTENSION', internship.offerextension),
               ],
             ),
             const SizedBox(height: 20),
@@ -339,15 +328,9 @@ class InternshipDetailsPage extends StatelessWidget {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  _includeRow(
-                    Icons.mail_outline,
-                    "donotreply@microsoft.com",
-                  ),
-                  _includeRow(
-                    Icons.web,
-                    "www.microsoft.com",
-                  ),
-                  _includeRow(FontAwesomeIcons.linkedin, "Microsoft "),
+                  _includeRow(Icons.mail_outline, internship.mail),
+                  _includeRow(Icons.web, internship.website),
+                  _includeRow(FontAwesomeIcons.linkedin, internship.linkedin),
                 ],
               ),
             ),
@@ -523,13 +506,17 @@ Widget _numItem(int n, String title, String desc) => Padding(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(
-        padding: const EdgeInsets.only(left:10),
+        padding: const EdgeInsets.only(left: 10),
         child: CircleAvatar(
           radius: 18,
           backgroundColor: Colors.black.withOpacity(0.1),
           child: Text(
             '$n.',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.black),
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
         ),
       ),

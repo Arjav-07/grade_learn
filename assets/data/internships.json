@@ -12,7 +12,43 @@
       "textColor": "#00468D",
       "iconName": "brush",
       "skills": ["FIGMA", "SKETCH"],
-      "responsibilities": ["DESIGNING UI", "USER FLOWS"]
+      "responsibilities": ["DESIGNING UI", "USER FLOWS"],
+      "roledescription": "AS A UI/UX DESIGN INTERN AT GOOGLE, YOU WILL WORK REMOTELY FOR 6 MONTHS.",
+      "keyresponsibilities": [
+        "CREATE USER INTERFACES USING FIGMA AND SKETCH.",
+        "COLLABORATE WITH DEVELOPERS TO IMPLEMENT DESIGNS.",
+        "CONDUCT USER RESEARCH AND TESTING.",
+        " PROVIDE DESIGN SOLUTIONS THAT ALIGN WITH GOOGLE'S BRANDING GUIDELINES.",
+        "WORK CLOSELY WITH PRODUCT MANAGERS TO UNDERSTAND USER NEEDS.",
+        "ITERATE ON DESIGNS BASED ON FEEDBACK FROM STAKEHOLDERS."
+      ],
+      "qualifications": [
+        "PROFICIENCY IN DESIGN TOOLS SUCH AS FIGMA AND SKETCH.",
+        "STRONG PORTFOLIO SHOWCASING UI/UX DESIGN PROJECTS.",
+        "EXCELLENT COMMUNICATION AND COLLABORATION SKILLS.",
+        "ABILITY TO WORK IN A FAST-PACED ENVIRONMENT.",
+        "KNOWLEDGE OF USER-CENTERED DESIGN PRINCIPLES.",
+        "BACHELOR'S DEGREE IN DESIGN, HUMAN-COMPUTER INTERACTION, OR A RELATED FIELD."
+      ],
+      "benefitsperks": [
+        "STIPEND OF $3,500 PER MONTH.",
+        "OPPORTUNITY TO WORK WITH A LEADING TECH COMPANY.",
+        "REMOTE WORK FLEXIBILITY.",
+        "MENTORSHIP FROM EXPERIENCED DESIGNERS.",
+        "POTENTIAL FOR FULL-TIME EMPLOYMENT POST INTERNSHIP.",
+        "ACCESS TO GOOGLE'S RESOURCES AND TOOLS."
+      ],
+      "companytitle": "GOOGLE LLC",
+      "companyinfo": "GOOGLE LLC IS A MULTINATIONAL TECHNOLOGY COMPANY SPECIALIZING IN INTERNET-RELATED SERVICES AND PRODUCTS, INCLUDING ONLINE ADVERTISING TECHNOLOGIES, A SEARCH ENGINE, CLOUD COMPUTING, SOFTWARE, AND HARDWARE.",
+      "companysubtitle": "INTERNET SERVICES GIANT",
+      "applicationreviewdate": "1-2 WEEKS",
+      "onlineassessmentdate": "3-5 DAYS",
+      "technicalinterviewdate": "1 WEEK",
+      "finalinterviewdate": "1 WEEK",
+      "offerextensiondate": "1-9 WEEKS",
+      "companymail": "contact@google.com",
+      "companywebsite": "https://www.google.com",
+      "companylinkedin": "https://www.linkedin.com/company/google/"
     },
     {
       "role": "BACKEND DEVELOPER",
@@ -26,7 +62,44 @@
       "textColor": "#86542A",
       "iconName": "code",
       "skills": ["NODE.JS", "AWS"],
-      "responsibilities": ["SERVER LOGIC", "DB MGMT"]
+      "responsibilities": ["SERVER LOGIC", "DB MGMT"],
+
+      "roledescription": "AS A UI/UX DESIGN INTERN AT GOOGLE, YOU WILL WORK REMOTELY FOR 6 MONTHS.",
+      "keyresponsibilities": [
+        "CREATE USER INTERFACES USING FIGMA AND SKETCH.",
+        "COLLABORATE WITH DEVELOPERS TO IMPLEMENT DESIGNS.",
+        "CONDUCT USER RESEARCH AND TESTING.",
+        " PROVIDE DESIGN SOLUTIONS THAT ALIGN WITH GOOGLE'S BRANDING GUIDELINES.",
+        "WORK CLOSELY WITH PRODUCT MANAGERS TO UNDERSTAND USER NEEDS.",
+        "ITERATE ON DESIGNS BASED ON FEEDBACK FROM STAKEHOLDERS."
+      ],
+      "qualifications": [
+        "PROFICIENCY IN DESIGN TOOLS SUCH AS FIGMA AND SKETCH.",
+        "STRONG PORTFOLIO SHOWCASING UI/UX DESIGN PROJECTS.",
+        "EXCELLENT COMMUNICATION AND COLLABORATION SKILLS.",
+        "ABILITY TO WORK IN A FAST-PACED ENVIRONMENT.",
+        "KNOWLEDGE OF USER-CENTERED DESIGN PRINCIPLES.",
+        "BACHELOR'S DEGREE IN DESIGN, HUMAN-COMPUTER INTERACTION, OR A RELATED FIELD."
+      ],
+      "benefitsperks": [
+        "STIPEND OF $3,500 PER MONTH.",
+        "OPPORTUNITY TO WORK WITH A LEADING TECH COMPANY.",
+        "REMOTE WORK FLEXIBILITY.",
+        "MENTORSHIP FROM EXPERIENCED DESIGNERS.",
+        "POTENTIAL FOR FULL-TIME EMPLOYMENT POST INTERNSHIP.",
+        "ACCESS TO GOOGLE'S RESOURCES AND TOOLS."
+      ],
+      "companytitle": "GOOGLE LLC",
+      "companyinfo": "GOOGLE LLC IS A MULTINATIONAL TECHNOLOGY COMPANY SPECIALIZING IN INTERNET-RELATED SERVICES AND PRODUCTS, INCLUDING ONLINE ADVERTISING TECHNOLOGIES, A SEARCH ENGINE, CLOUD COMPUTING, SOFTWARE, AND HARDWARE.",
+      "companysubtitle": "INTERNET SERVICES GIANT",
+      "applicationreviewdate": "1-2 WEEKS",
+      "onlineassessmentdate": "3-5 DAYS",
+      "technicalinterviewdate": "1 WEEK",
+      "finalinterviewdate": "1 WEEK",
+      "offerextensiondate": "1-9 WEEKS",
+      "companymail": "contact@google.com",
+      "companywebsite": "https://www.google.com",
+      "companylinkedin": "https://www.linkedin.com/company/google/"
     }
   ]
 }

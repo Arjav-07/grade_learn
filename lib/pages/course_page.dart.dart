@@ -172,6 +172,7 @@ class _SkillPageState extends State<SkillPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.black, width: 2.5),
+                boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
               ),
               child: Row(
                 children: [
@@ -186,6 +187,7 @@ class _SkillPageState extends State<SkillPage> {
                       ),
                     ),
                   ),
+                  
                 ],
               ),
             ),

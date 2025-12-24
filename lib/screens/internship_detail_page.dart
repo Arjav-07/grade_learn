@@ -6,6 +6,7 @@ import 'package:grade_learn/models/Intenship.dart';
 // Ensure this path matches your actual file structure
 import 'package:grade_learn/screens/application_from.dart'; 
 
+
 class InternshipDetailsPage extends StatelessWidget {
   final Internship internship;
   const InternshipDetailsPage({super.key, required this.internship});

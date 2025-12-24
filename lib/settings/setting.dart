@@ -106,31 +106,37 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
 
                   // --- ADMIN SECTION (Dynamically shown based on Firestore role) ---
-                  StreamBuilder<DocumentSnapshot>(
-                    stream: _adminCheckStream(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data!.exists) {
-                        var userData = snapshot.data!.data() as Map<String, dynamic>;
-                        // Only show if the field 'role' is exactly 'admin'
-                        if (userData['role'] == 'admin') {
-                          return _SettingsGroupCard(
-                            title: 'ADMINISTRATION',
-                            children: [
-                              _SettingsTile(
-                                icon: Icons.admin_panel_settings, 
-                                title: 'OPEN ADMIN PANEL', 
-                                onTap: () => Navigator.push(
-                                  context, 
-                                  MaterialPageRoute(builder: (_) => const AdminPanel())
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      }
-                      return const SizedBox.shrink(); // Hide completely for non-admins
-                    },
-                  ),
+                  // --- ADMIN SECTION (Dynamically shown based on Firestore role) ---
+StreamBuilder<DocumentSnapshot>(
+  stream: _adminCheckStream(),
+  builder: (context, snapshot) {
+    if (snapshot.hasData && snapshot.data!.exists) {
+      var userData = snapshot.data!.data() as Map<String, dynamic>;
+      
+      // Verification: Check if the role field matches 'admin' exactly
+      if (userData['role'] == 'admin') {
+        return _SettingsGroupCard(
+          title: 'ADMINISTRATION',
+          children: [
+            _SettingsTile(
+              icon: Icons.admin_panel_settings, 
+              title: 'OPEN ADMIN PANEL', 
+              onTap: () {
+                // Secure Navigation to your fixed AdminPanel
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(builder: (_) => const AdminPanel())
+                );
+              },
+            ),
+          ],
+        );
+      }
+    }
+    // Return empty space for students to keep the console hidden
+    return const SizedBox.shrink(); 
+  },
+),
 
                   // --- SUPPORT SECTION ---
                   _SettingsGroupCard(
@@ -270,3 +276,4 @@ class _LogoutButton extends StatelessWidget {
     );
   }
 }
+

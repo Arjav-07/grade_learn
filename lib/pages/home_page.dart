@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -346,26 +347,125 @@ class _HomePageState extends State<HomePage> {
   }
 
   // --- 4. RECENT COURSES WITH SHADOW ---
+  // --- 4. RECENT COURSES / ACTIVITY DYNAMIC LIST ---
   Widget _buildProgressPerformanceCard() {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('RECENT ENROLLED', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: kDarkTextColor)),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          height: 100,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: Colors.black, width: 2.5),
-            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
-          ),
-          child: const Center(
-            child: Text("NO RECENT COURSES", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+        const Text(
+          'RECENT ENROLLED',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: kDarkTextColor,
           ),
         ),
+        const SizedBox(height: 16),
+        StreamBuilder<QuerySnapshot>(
+          // Fetching only the 3 most recent enrollments for the current user
+          stream: FirebaseFirestore.instance
+              .collection('applications')
+              .where('userId', isEqualTo: user?.uid)
+              .orderBy('appliedAt', descending: true)
+              .limit(3)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Colors.black));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return _buildEmptyActivityCard();
+            }
+
+            return Column(
+              children: snapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return _buildRecentItemTile(data);
+              }).toList(),
+            );
+          },
+        ),
       ],
+    );
+  }
+
+  // --- UI HELPER: EMPTY STATE ---
+  Widget _buildEmptyActivityCard() {
+    return Container(
+      width: double.infinity,
+      height: 100,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+      ),
+      child: const Center(
+        child: Text(
+          "NO RECENT ENROLLMENTS",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+        ),
+      ),
+    );
+  }
+
+  // --- UI HELPER: DYNAMIC ACTIVITY TILE ---
+  Widget _buildRecentItemTile(Map<String, dynamic> data) {
+    final String type = data['type'] ?? 'internship';
+    final String status = data['status'] ?? 'pending';
+    final Color themeColor = type == 'workshop' ? const Color(0xFF3CE5C4) : const Color(0xFFB5D8FF);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: themeColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 1.5),
+            ),
+            child: Icon(
+              type == 'workshop' ? Icons.bolt : Icons.work_outline,
+              size: 20,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  (data['itemTitle'] ?? 'UNTITLED').toString().toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  "${type.toUpperCase()} • ${status.toUpperCase()}",
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios, size: 14),
+        ],
+      ),
     );
   }
 }

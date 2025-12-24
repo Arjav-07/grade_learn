@@ -1,6 +1,7 @@
 {
   "internships": [
     {
+      "id": "internship_001",
       "role": "UI/UX DESIGN INTERNSHIP",
       "company": "GOOGLE",
       "location": "INDIA",
@@ -51,6 +52,7 @@
       "companylinkedin": "https://www.linkedin.com/company/google/"
     },
     {
+      "id": "internship002",
       "role": "BACKEND DEVELOPER",
       "company": "AMAZON",
       "location": "SEATTLE, WA",

@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -38,9 +35,7 @@ class _ApplicationFormState extends State<ApplicationForm> {
   String? _profession; 
   bool _isDifferentlyAbled = false;
   bool _termsAccepted = false;
-  File? _resumeFile;
   bool _isUploading = false;
-  String? _fileName;
 
   @override
   void initState() {
@@ -61,116 +56,54 @@ class _ApplicationFormState extends State<ApplicationForm> {
     }
   }
 
-  Future<void> _pickPDF() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result != null) {
-      final file = File(result.files.single.path!);
-      final fileSize = await file.length();
-      if (fileSize > 2 * 1024 * 1024) {
-        _showSnackBar("FILE TOO LARGE. MAX 2MB.", isError: true);
-        return;
-      }
-      setState(() {
-        _resumeFile = file;
-        _fileName = result.files.single.name;
-      });
-    }
-  }
-
+  // Robust submission logic using Firestore Transactions
   Future<void> _submitData() async {
-    final bool isWorkshop = widget.type == 'workshop';
-
-    // 1. Validations
-    if (!_termsAccepted) {
-      _showSnackBar("PLEASE ACCEPT TERMS AND CONDITIONS.", isError: true);
-      return;
-    }
-    if (_firstNameController.text.trim().isEmpty) {
-      _showSnackBar("FIRST NAME IS REQUIRED.", isError: true);
-      return;
-    }
-    // Resume is ONLY mandatory for internships
-    if (!isWorkshop && _resumeFile == null) {
-      _showSnackBar("RESUME IS REQUIRED FOR INTERNSHIPS.", isError: true);
-      return;
-    }
-
-    // Confirmation Dialog
-    bool confirm = await _showConfirmDialog();
-    if (!confirm) return;
-
-    setState(() => _isUploading = true);
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final workshopRef = FirebaseFirestore.instance.collection('workshops').doc(widget.itemId);
-    final applicationRef = FirebaseFirestore.instance.collection('applications').doc("${user.uid}_${widget.itemId}");
-
-    try {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        // 2. Duplicate Check
-        DocumentSnapshot appCheck = await transaction.get(applicationRef);
-        if (appCheck.exists) throw Exception("YOU ARE ALREADY REGISTERED!");
-
-        // 3. Seat Logic for Workshops
-        // Inside _submitData transaction block
-if (isWorkshop) {
-  // Inside the runTransaction block
-DocumentSnapshot workshopSnap = await transaction.get(workshopRef);
-if (!workshopSnap.exists) throw Exception("WORKSHOP NOT FOUND IN FIREBASE!");
-
-// Use 'seatsLeft' to match your JSON and Console
-int currentSeats = workshopSnap['seatsLeft'] ?? 0; 
-
-if (currentSeats <= 0) throw Exception("WORKSHOP IS FULL!");
-
-transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
-}
-
-        // 4. Conditional Resume Upload
-        String? pdfUrl;
-        if (!isWorkshop && _resumeFile != null) {
-          final storageRef = FirebaseStorage.instance.ref().child('resumes/${user.uid}_${widget.itemId}.pdf');
-          await storageRef.putFile(_resumeFile!);
-          pdfUrl = await storageRef.getDownloadURL();
-        }
-
-        // 5. Final Save
-        transaction.set(applicationRef, {
-          'userId': user.uid,
-          'itemId': widget.itemId,
-          'itemTitle': widget.title,
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'email': _emailController.text,
-          'status': isWorkshop ? 'approved' : 'pending', //
-          'resumeUrl': pdfUrl,
-          'appliedAt': FieldValue.serverTimestamp(),
-          if (!isWorkshop) ...{
-             'gender': _gender,
-             'profession': _profession,
-             'location': _locationController.text.trim(),
-             'instituteName': _instituteController.text.trim(),
-             'domain': _domainController.text.trim(),
-             'specialization': _specializationController.text.trim(),
-             'graduatingYear': _gradYearController.text.trim(),
-             'differentlyAbled': _isDifferentlyAbled,
-          }
-        });
-      });
-
-      if (mounted) _showSuccessDialog();
-    } catch (e) {
-      _showSnackBar(e.toString().replaceAll("Exception: ", ""), isError: true);
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
-    }
+  final user = FirebaseAuth.instance.currentUser;
+  
+  if (user == null) {
+    _showSnackBar("ERROR: NOT SIGNED IN", isError: true);
+    return;
+  }
+  
+  if (!_termsAccepted) {
+    _showSnackBar("PLEASE ACCEPT TERMS.", isError: true);
+    return;
   }
 
-  // --- UI COMPONENTS ---
+  setState(() => _isUploading = true);
+
+  // Generate a unique ID (UserId_ItemId) to prevent duplicate applications
+  final applicationRef = FirebaseFirestore.instance
+      .collection('applications')
+      .doc("${user.uid}_${widget.itemId}");
+
+  try {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot appCheck = await transaction.get(applicationRef);
+      if (appCheck.exists) throw Exception("ALREADY REGISTERED!");
+
+      transaction.set(applicationRef, {
+        'userId': user.uid,
+        'itemId': widget.itemId,
+        'itemTitle': widget.title,
+        'type': widget.type,
+        'status': widget.type == 'workshop' ? 'approved' : 'pending',
+        'appliedAt': FieldValue.serverTimestamp(),
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'profession': _profession,
+        'domain': _domainController.text.trim(),
+      });
+    });
+
+    if (mounted) _showSuccessDialog();
+  } catch (e) {
+    _showSnackBar(e.toString().replaceAll("Exception: ", ""), isError: true);
+  } finally {
+    if (mounted) setState(() => _isUploading = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -193,12 +126,7 @@ transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
             const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 20),
 
-            if (!isWorkshop) ...[
-              _buildLabel("UPLOAD CV / RESUME *"),
-              _buildResumePicker(),
-              const SizedBox(height: 24),
-            ],
-
+            // Name Fields
             Row(
               children: [
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -218,6 +146,7 @@ transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
             _buildTextField(_emailController, "", isReadOnly: true),
             const SizedBox(height: 16),
 
+            // Additional details shown for Internships
             if (!isWorkshop) ...[
               _buildLabel("GENDER *"),
               _buildDropdown(["MALE", "FEMALE", "OTHER"], _gender, (val) => setState(() => _gender = val)),
@@ -231,17 +160,45 @@ transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
               _buildLabel("PROFESSION *"),
               _buildDropdown(["STUDENT", "PROFESSIONAL", "FRESHER"], _profession, (val) => setState(() => _profession = val)),
               const SizedBox(height: 16),
+              _buildLabel("DOMAIN *"),
+              _buildDropdown(
+                ["DEVELOPMENT", "DESIGN", "DATA SCIENCE", "MARKETING", "MANAGEMENT"], 
+                _domainController.text.isEmpty ? null : _domainController.text, 
+                (val) => setState(() => _domainController.text = val!)
+              ),
+              const SizedBox(height: 16),
+              _buildLabel("SPECIALIZATION"),
+              _buildTextField(_specializationController, "e.g. Flutter, UI/UX, Python"),
+              const SizedBox(height: 16),
               _buildLabel("GRADUATING YEAR"),
               _buildTextField(_gradYearController, "YYYY", keyboardType: TextInputType.number, 
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)]),
               const SizedBox(height: 16),
+              _buildLabel("INCLUSION"),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.black, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SwitchListTile(
+                  title: const Text("DIFFERENTLY ABLED?", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                  value: _isDifferentlyAbled,
+                  activeColor: Colors.black,
+                  onChanged: (val) => setState(() => _isDifferentlyAbled = val),
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
 
             _buildBrutalTermsBox(isWorkshop),
             const SizedBox(height: 30),
 
             ElevatedButton(
-              onPressed: _isUploading ? null : _submitData,
+              onPressed: _isUploading ? null : () async {
+                bool confirm = await _showConfirmDialog();
+                if (confirm) _submitData();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 64),
@@ -258,7 +215,7 @@ transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
     );
   }
 
-  // --- HELPERS ---
+  // --- UI HELPERS ---
 
   Widget _buildBrutalTermsBox(bool isWorkshop) {
     return Container(
@@ -296,7 +253,7 @@ transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(width: 2)),
         title: const Text("SUCCESS! 🎉", style: TextStyle(fontWeight: FontWeight.w900)),
-        content: const Text("Done! Check your dashboard for the workshop link and timing."),
+        content: const Text("Application received! You can track your status in the dashboard."),
         actions: [
           TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, 
           child: const Text("OK", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900))),
@@ -333,23 +290,6 @@ transaction.update(workshopRef, {'seatsLeft': currentSeats - 1});
       decoration: InputDecoration(enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.black, width: 2), borderRadius: BorderRadius.circular(12))),
       items: items.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
       onChanged: onChanged,
-    );
-  }
-
-  Widget _buildResumePicker() {
-    return GestureDetector(
-      onTap: _pickPDF,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: Colors.white, border: Border.all(width: 2), borderRadius: BorderRadius.circular(15), boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))]),
-        child: Row(
-          children: [
-            const Icon(Icons.picture_as_pdf, color: Colors.red),
-            const SizedBox(width: 15),
-            Expanded(child: Text(_resumeFile == null ? "SELECT RESUME" : _fileName!, style: const TextStyle(fontWeight: FontWeight.w900))),
-          ],
-        ),
-      ),
     );
   }
 }

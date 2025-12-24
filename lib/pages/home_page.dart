@@ -20,7 +20,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final UserService _userService = UserService();
+  final UserService userService = UserService();
   String _username = 'User';
   bool _isLoadingUsername = true;
 
@@ -31,37 +31,38 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadUsername() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
+  final currentUser = FirebaseAuth.instance.currentUser;
 
-    if (currentUser != null) {
-      try {
-        final userData = await _userService.fetchUserByUid(currentUser.uid);
+  if (currentUser != null) {
+    try {
+      // Direct fetch to ensure we aren't hitting a service-layer bug
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
 
-        if (userData != null && userData['username'] != null) {
-          setState(() {
-            _username = userData['username'];
-            _isLoadingUsername = false;
-          });
-        } else {
-          setState(() {
-            _username = 'User';
-            _isLoadingUsername = false;
-          });
-        }
-      } catch (e) {
-        print('Error loading username: $e');
+      if (userDoc.exists && userDoc.data() != null) {
+        final data = userDoc.data() as Map<String, dynamic>;
         setState(() {
-          _username = 'User';
+          // Check for 'username' or fallback to 'name'
+          _username = data['username'] ?? data['name'] ?? 'User';
+          _isLoadingUsername = false;
+        });
+      } else {
+        setState(() {
+          _username = currentUser.displayName ?? 'User';
           _isLoadingUsername = false;
         });
       }
-    } else {
+    } catch (e) {
+      debugPrint('Error fetching user by UID: $e'); // This triggers the error you saw
       setState(() {
-        _username = 'Guest';
+        _username = 'User';
         _isLoadingUsername = false;
       });
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -331,8 +332,8 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.black, width: 2.5),
-          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 4))],
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -400,7 +401,7 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Colors.black, width: 2.5),
+        border: Border.all(color: Colors.black, width: 2),
         boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
       ),
       child: const Center(
@@ -425,7 +426,7 @@ class _HomePageState extends State<HomePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 2),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
       ),
       child: Row(
         children: [

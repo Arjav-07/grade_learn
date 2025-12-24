@@ -54,12 +54,12 @@ class CourseNotifier extends StateNotifier<CourseState> {
   CourseNotifier() : super(CourseState());
 
   Future<void> init(Course course) async {
-    final user = FirebaseAuth.instance.currentUser;
-    bool enrolled = false;
-    List<int> completedIndices = [];
+  final user = FirebaseAuth.instance.currentUser;
+  bool enrolled = false;
+  List<int> completedIndices = [];
 
-    if (user != null) {
-      // PERSISTENT FETCH: Check if user document exists
+  if (user != null) {
+    try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -69,11 +69,14 @@ class CourseNotifier extends StateNotifier<CourseState> {
 
       enrolled = doc.exists;
 
-      // LOAD STATIC PROGRESS: Fetch the array of finished lesson indices
       if (enrolled && doc.data() != null && doc.data()!.containsKey('completed_lessons')) {
         completedIndices = List<int>.from(doc.data()!['completed_lessons']);
       }
+    } catch (e) {
+      debugPrint("Firestore Init Error: $e");
+      // If permission is denied, we default to enrolled = false
     }
+  }
 
     state = CourseState(
       isEnrolled: enrolled,

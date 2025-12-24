@@ -77,8 +77,8 @@ class _AdminPanelState extends State<AdminPanel> {
       appBar: AppBar(
         title: const Text("INTERNSHIP CONSOLE",
             style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+            backgroundColor: Color(0xFFFFFFF9),
+        foregroundColor: Colors.black,
         elevation: 0,
         actions: [
           StreamBuilder<QuerySnapshot>(
@@ -207,7 +207,7 @@ class _AdminPanelState extends State<AdminPanel> {
         controller: _searchController,
         onChanged: (value) => setState(() => _searchQuery = value),
         decoration: InputDecoration(
-          hintText: "SEARCH INTERNS...",
+          hintText: "SEARCH APPLICATIONS...",
           prefixIcon: const Icon(Icons.search, color: Colors.black),
           suffixIcon: _searchQuery.isNotEmpty 
             ? IconButton(
@@ -288,29 +288,62 @@ class _AdminPanelState extends State<AdminPanel> {
   }
 
   void _showDetailsDialog(BuildContext context, Map<String, dynamic> data) {
-    String fullName = "${data['firstName'] ?? ''} ${data['lastName'] ?? 'N/A'}".toUpperCase();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(width: 2)),
-        title: Text(fullName, style: const TextStyle(fontWeight: FontWeight.w900)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("EMAIL: ${data['email']}", style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text("INTERNSHIP: ${data['itemTitle']}"),
-            Text("TYPE: ${data['type']?.toString().toUpperCase() ?? 'N/A'}"),
-            Text("DATE: ${data['appliedAt']?.toDate().toString().split(' ')[0] ?? 'N/A'}"),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CLOSE", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
+  String fullName = "${data['firstName'] ?? ''} ${data['lastName'] ?? 'N/A'}".toUpperCase();
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      // --- BACKGROUND COLOR SET TO WHITE ---
+      backgroundColor: Colors.white, 
+      surfaceTintColor: Colors.white, // Ensures Material 3 tinting doesn't change the color
+      
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20), 
+        side: const BorderSide(color: Colors.black, width: 2.5), // Strong brutalist border
+      ),
+      title: Text(
+        fullName, 
+        style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoRow("EMAIL", data['email'] ?? 'N/A'),
+          const SizedBox(height: 12),
+          _buildInfoRow("INTERNSHIP", data['itemTitle'] ?? 'N/A'),
+          _buildInfoRow("TYPE", data['type']?.toString().toUpperCase() ?? 'N/A'),
+          _buildInfoRow("DATE", data['appliedAt']?.toDate().toString().split(' ')[0] ?? 'N/A'),
         ],
       ),
-    );
-  }
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            "CLOSE",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Helper to keep the dialog code clean
+Widget _buildInfoRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2.0),
+    child: RichText(
+      text: TextSpan(
+        style: const TextStyle(color: Colors.black, fontSize: 14),
+        children: [
+          TextSpan(text: "$label: ", style: const TextStyle(fontWeight: FontWeight.w900)),
+          TextSpan(text: value, style: const TextStyle(fontWeight: FontWeight.w500)),
+        ],
+      ),
+    ),
+  );
+}
 
   Widget _statusActionBtn(String docId, String targetStatus, Color activeColor, bool isActive) {
     return ElevatedButton(

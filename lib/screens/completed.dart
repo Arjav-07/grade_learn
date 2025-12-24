@@ -1,60 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'dart:ui';
 
 // --- Brutalist Design Constants ---
 const Color kBrutalistBg = Color(0xFFFFFFF9);
 const Color kBrutalistYellow = Color(0xFFFDE798);
-const Color kBrutalistBlue = Color(0xFFB5D8FF);
-const Color kBrutalistPurple = Color(0xFF7A64D8);
-const Color kDarkTextColor = Color(0xFF282C35);
-
-class CompletedItem {
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String institution;
-
-  const CompletedItem({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.institution,
-  });
-}
 
 class CompletedPage extends StatelessWidget {
   const CompletedPage({super.key});
 
-  final List<CompletedItem> _completedItems = const [
-    CompletedItem(
-      icon: Icons.school,
-      color: Color(0xFF28C6E6),
-      title: 'FLUTTER FOR BEGINNERS',
-      institution: 'GOOGLE DEVELOPERS',
-    ),
-    CompletedItem(
-      icon: Icons.design_services,
-      color: Color(0xFFE5883C),
-      title: 'UI/UX FUNDAMENTALS',
-      institution: 'THE DESIGN SCHOOL',
-    ),
-    CompletedItem(
-      icon: Icons.cloud_done,
-      color: Colors.blueGrey,
-      title: 'INTRO TO CLOUD COMPUTING',
-      institution: 'AWS ACADEMY',
-    ),
-    CompletedItem(
-      icon: Icons.analytics,
-      color: Colors.redAccent,
-      title: 'ADVANCED DATA SCIENCE',
-      institution: 'STANFORD UNIVERSITY',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: kBrutalistBg,
       body: SafeArea(
@@ -62,24 +21,17 @@ class CompletedPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 10),
-            // --- BACK BUTTON (Brutalist Style) ---
+            // --- BACK BUTTON ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.arrow_back, size: 28, color: Colors.black),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "BACK",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
+                    Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    SizedBox(width: 8),
+                    Text("BACK", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
                   ],
                 ),
               ),
@@ -88,36 +40,51 @@ class CompletedPage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'COMPLETED 🏆',
-                style: TextStyle(
-                  fontSize: 38,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                  height: 1.1,
-                ),
+                'CERTIFICATES 🏆',
+                style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.black, height: 1.1),
               ),
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: AnimationLimiter(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  itemCount: _completedItems.length,
-                  itemBuilder: (context, index) {
-                    final item = _completedItems[index];
-                    return AnimationConfiguration.staggeredList(
-                      position: index,
-                      duration: const Duration(milliseconds: 400),
-                      child: SlideAnimation(
-                        verticalOffset: 50.0,
-                        child: FadeInAnimation(
-                          child: _CompletedItemTile(item: item),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+              child: StreamBuilder<QuerySnapshot>(
+                // Filter: Only show approved items for the logged-in user
+                stream: FirebaseFirestore.instance
+                    .collection('applications')
+                    .where('userId', isEqualTo: user?.uid)
+                    .where('status', isEqualTo: 'approved')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(color: Colors.black));
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  final docs = snapshot.data!.docs;
+
+                  return AnimationLimiter(
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data() as Map<String, dynamic>;
+                        return AnimationConfiguration.staggeredList(
+                          position: index,
+                          duration: const Duration(milliseconds: 400),
+                          child: SlideAnimation(
+                            verticalOffset: 50.0,
+                            child: FadeInAnimation(
+                              child: _CertificateTile(data: data),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -125,14 +92,30 @@ class CompletedPage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.card_membership, size: 80, color: Colors.black26),
+          SizedBox(height: 16),
+          Text("NO CERTIFICATES EARNED YET.", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black54)),
+        ],
+      ),
+    );
+  }
 }
 
-class _CompletedItemTile extends StatelessWidget {
-  const _CompletedItemTile({required this.item});
-  final CompletedItem item;
+class _CertificateTile extends StatelessWidget {
+  const _CertificateTile({required this.data});
+  final Map<String, dynamic> data;
 
   @override
   Widget build(BuildContext context) {
+    final bool isWorkshop = data['type'] == 'workshop';
+    final String title = (data['itemTitle'] ?? 'PROGRAM').toString().toUpperCase();
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20.0),
       decoration: BoxDecoration(
@@ -145,47 +128,40 @@ class _CompletedItemTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(22),
-          onTap: () {
-            // Your existing dialog logic
-          },
+          onTap: () => _showCertificateDialog(context, title),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
+                // Brutalist Icon Container
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: item.color.withOpacity(0.2),
+                    color: isWorkshop ? Colors.teal.withOpacity(0.2) : Colors.purple.withOpacity(0.2),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.black, width: 1.5),
                   ),
-                  child: Icon(item.icon, color: item.color, size: 28),
+                  child: Icon(
+                    isWorkshop ? Icons.bolt : Icons.school, 
+                    color: isWorkshop ? Colors.teal : Colors.purple, 
+                    size: 28
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                        ),
-                      ),
+                      Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 4),
                       Text(
-                        item.institution,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
-                        ),
+                        isWorkshop ? "WORKSHOP COMPLETED" : "INTERNSHIP COMPLETED",
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54),
                       ),
                     ],
                   ),
                 ),
+                // Badge of authenticity
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -193,12 +169,38 @@ class _CompletedItemTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.black, width: 2),
                   ),
-                  child: const Icon(Icons.workspace_premium, color: Colors.black, size: 20),
+                  child: const Icon(Icons.verified, color: Colors.black, size: 20),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showCertificateDialog(BuildContext context, String title) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: kBrutalistBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.black, width: 3),
+        ),
+        title: const Text("VIEW CERTIFICATE", style: TextStyle(fontWeight: FontWeight.w900)),
+        content: Text("DO YOU WANT TO DOWNLOAD THE CERTIFICATE FOR $title?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CLOSE", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () { /* Add PDF Generation or Download Link here */ },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+            child: const Text("DOWNLOAD", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          ),
+        ],
       ),
     );
   }

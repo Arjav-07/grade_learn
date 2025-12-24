@@ -1,73 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 // --- Brutalist Design Constants ---
 const Color kBrutalistBg = Color(0xFFFFFFF9);
 const Color kBrutalistYellow = Color(0xFFFDE798);
-const Color kBrutalistBlue = Color(0xFFB5D8FF);
-const Color kBrutalistPurple = Color(0xFF7A64D8);
-const Color kDarkTextColor = Color(0xFF282C35);
 
-// --- 1. Data Model ---
-class AppliedItem {
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-
-  const AppliedItem({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-  });
-}
-
-// --- Main Page Widget ---
 class AppliedPage extends StatelessWidget {
-  AppliedPage({super.key});
-
-  final List<AppliedItem> _appliedCourses = [
-    const AppliedItem(
-      icon: Icons.code,
-      color: Color(0xFFE5883C),
-      title: 'FLUTTER FOR BEGINNERS',
-      subtitle: 'by Jane Smith',
-    ),
-    const AppliedItem(
-      icon: Icons.data_usage,
-      color: Colors.redAccent,
-      title: 'ADVANCED DATA SCIENCE',
-      subtitle: 'by Stanford University',
-    ),
-  ];
-
-  final List<AppliedItem> _appliedInternships = [
-    const AppliedItem(
-      icon: Icons.business_center,
-      color: Colors.indigo,
-      title: 'FLUTTER DEVELOPER INTERN',
-      subtitle: 'at Google',
-    ),
-    const AppliedItem(
-      icon: Icons.computer,
-      color: Colors.orange,
-      title: 'SOFTWARE ENGINEER INTERN',
-      subtitle: 'at Amazon',
-    ),
-  ];
+  const AppliedPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Duration animationDuration = Duration(milliseconds: 350);
-
-    final List<dynamic> allAppliedItems = [
-      'COURSES',
-      ..._appliedCourses,
-      'INTERNSHIPS',
-      ..._appliedInternships,
-    ];
-
     return Scaffold(
       backgroundColor: kBrutalistBg,
       body: SafeArea(
@@ -81,18 +25,14 @@ class AppliedPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.arrow_back, size: 28, color: Colors.black),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    SizedBox(width: 8),
+                    Text(
                       "BACK",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.1,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
                     ),
                   ],
                 ),
@@ -104,145 +44,158 @@ class AppliedPage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'APPLIED 📝',
-                style: TextStyle(
-                  fontSize: 38,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                  height: 1.1,
-                ),
+                'RECENT ACTIVITY ⚡',
+                style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.black, height: 1.1),
               ),
             ),
 
             const SizedBox(height: 24),
 
             Expanded(
-              child: AnimationLimiter(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  itemCount: allAppliedItems.length,
-                  itemBuilder: (context, index) {
-                    final item = allAppliedItems[index];
-
-                    if (item is String) {
-                      return _SectionHeader(title: item);
-                    }
-                    
-                    return AnimationConfiguration.staggeredList(
-                      position: index,
-                      duration: animationDuration,
-                      child: SlideAnimation(
-                        verticalOffset: 50.0,
-                        child: FadeInAnimation(
-                          child: _AppliedItemTile(item: item as AppliedItem),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+              child: _buildRecentPerformanceSection(),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-// --- Section Header Widget ---
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-  final String title;
+  // --- RECENT DATA LOGIC ---
+  Widget _buildRecentPerformanceSection() {
+    final user = FirebaseAuth.instance.currentUser;
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0, bottom: 20.0),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w900,
-          color: Colors.black,
-          letterSpacing: 1.2,
-        ),
+    return StreamBuilder<QuerySnapshot>(
+      // Fetches the most recent enrollments for the current user
+      stream: FirebaseFirestore.instance
+          .collection('applications')
+          .where('userId', isEqualTo: user?.uid)
+          .orderBy('appliedAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Colors.black));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return _buildEmptyActivityCard();
+        }
+
+        return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            final data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+            final String status = (data['status'] ?? 'pending').toString().toUpperCase();
+            final bool isWorkshop = data['type'] == 'workshop';
+            
+            // UI mapping based on application type and status
+            return _AppliedItemTile(
+              title: (data['itemTitle'] ?? 'APPLICATION').toString().toUpperCase(),
+              subtitle: "Status: $status • ${data['type'] ?? 'General'}",
+              icon: isWorkshop ? Icons.bolt : Icons.work_outline,
+              color: status == 'APPROVED' ? Colors.green : Colors.orange,
+              statusLabel: status,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyActivityCard() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.history_toggle_off, size: 80, color: Colors.black26),
+          const SizedBox(height: 16),
+          const Text(
+            "NO RECENT ACTIVITY FOUND.",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.black54),
+          ),
+        ],
       ),
     );
   }
 }
 
-// --- Brutalist Applied Item Tile ---
+// --- Brutalist Item Tile ---
 class _AppliedItemTile extends StatelessWidget {
-  const _AppliedItemTile({required this.item});
-  final AppliedItem item;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final String statusLabel;
+
+  const _AppliedItemTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.statusLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20.0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.black, width: 2.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            offset: Offset(4, 4),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+    return AnimationConfiguration.synchronized(
+      duration: const Duration(milliseconds: 400),
+      child: SlideAnimation(
+        verticalOffset: 30,
+        child: FadeInAnimation(
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 20.0),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: item.color.withOpacity(0.2),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black, width: 1.5),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
             ),
-            child: Icon(item.icon, color: item.color, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black, width: 1.5),
+                  ),
+                  child: Icon(icon, color: color, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 4),
+                      Text(subtitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.black, width: 1),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  item.subtitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black54,
-                  ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: kBrutalistYellow, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2)),
+                  child: const Icon(Icons.arrow_forward, color: Colors.black, size: 20),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: kBrutalistYellow,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black, width: 2),
-            ),
-            child: const Icon(
-              Icons.arrow_forward,
-              color: Colors.black,
-              size: 20,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

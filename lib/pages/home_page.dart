@@ -20,7 +20,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final UserService userService = UserService();
+  final UserService _userService = UserService();
   String _username = 'User';
   bool _isLoadingUsername = true;
 
@@ -31,38 +31,37 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadUsername() async {
-  final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
 
-  if (currentUser != null) {
-    try {
-      // Direct fetch to ensure we aren't hitting a service-layer bug
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
+    if (currentUser != null) {
+      try {
+        final userData = await _userService.fetchUserByUid(currentUser.uid);
 
-      if (userDoc.exists && userDoc.data() != null) {
-        final data = userDoc.data() as Map<String, dynamic>;
+        if (userData != null && userData['username'] != null) {
+          setState(() {
+            _username = userData['username'];
+            _isLoadingUsername = false;
+          });
+        } else {
+          setState(() {
+            _username = 'User';
+            _isLoadingUsername = false;
+          });
+        }
+      } catch (e) {
+        print('Error loading username: $e');
         setState(() {
-          // Check for 'username' or fallback to 'name'
-          _username = data['username'] ?? data['name'] ?? 'User';
-          _isLoadingUsername = false;
-        });
-      } else {
-        setState(() {
-          _username = currentUser.displayName ?? 'User';
+          _username = 'User';
           _isLoadingUsername = false;
         });
       }
-    } catch (e) {
-      debugPrint('Error fetching user by UID: $e'); // This triggers the error you saw
+    } else {
       setState(() {
-        _username = 'User';
+        _username = 'Guest';
         _isLoadingUsername = false;
       });
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {

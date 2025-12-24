@@ -1,5 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:grade_learn/auth/onboarding_page.dart';
+// Ensure this path matches where you saved your AdminPanel file
+import 'package:grade_learn/screens/admin_panel.dart'; 
 import 'package:grade_learn/settings/change_password.dart';
 import 'package:grade_learn/settings/edit_profile.dart';
 import 'package:grade_learn/settings/help_center.dart';
@@ -21,8 +25,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _pushNotifications = true;
-  bool _emailNotifications = false;
+
+  // Logic to stream the current user's document to check for Admin role
+  Stream<DocumentSnapshot> _adminCheckStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    return FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,23 +105,31 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
 
-                  // --- NOTIFICATIONS SECTION ---
-                  _SettingsGroupCard(
-                    title: 'NOTIFICATIONS',
-                    children: [
-                      _SettingsSwitchTile(
-                        icon: Icons.notifications_active_outlined,
-                        title: 'PUSH NOTIFICATIONS',
-                        value: _pushNotifications,
-                        onChanged: (value) => setState(() => _pushNotifications = value),
-                      ),
-                      _SettingsSwitchTile(
-                        icon: Icons.email_outlined,
-                        title: 'EMAIL NOTIFICATIONS',
-                        value: _emailNotifications,
-                        onChanged: (value) => setState(() => _emailNotifications = value),
-                      ),
-                    ],
+                  // --- ADMIN SECTION (Dynamically shown based on Firestore role) ---
+                  StreamBuilder<DocumentSnapshot>(
+                    stream: _adminCheckStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        var userData = snapshot.data!.data() as Map<String, dynamic>;
+                        // Only show if the field 'role' is exactly 'admin'
+                        if (userData['role'] == 'admin') {
+                          return _SettingsGroupCard(
+                            title: 'ADMINISTRATION',
+                            children: [
+                              _SettingsTile(
+                                icon: Icons.admin_panel_settings, 
+                                title: 'OPEN ADMIN PANEL', 
+                                onTap: () => Navigator.push(
+                                  context, 
+                                  MaterialPageRoute(builder: (_) => const AdminPanel())
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      }
+                      return const SizedBox.shrink(); // Hide completely for non-admins
+                    },
                   ),
 
                   // --- SUPPORT SECTION ---
@@ -143,12 +159,15 @@ class _SettingsPageState extends State<SettingsPage> {
                   // --- LOGOUT BUTTON ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _LogoutButton(onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context, 
-                        MaterialPageRoute(builder: (_) => const OnboardingPage()),
-                        (route) => false
-                      );
+                    child: _LogoutButton(onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context, 
+                          MaterialPageRoute(builder: (_) => const OnboardingPage()),
+                          (route) => false
+                        );
+                      }
                     }),
                   ),
                 ],
@@ -161,7 +180,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-// --- BRUTALIST HELPERS ---
+// --- BRUTALIST UI HELPERS ---
 
 class _SettingsGroupCard extends StatelessWidget {
   const _SettingsGroupCard({required this.title, required this.children});
@@ -174,7 +193,7 @@ class _SettingsGroupCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(28, 16, 24, 12),
+          padding: const EdgeInsets.fromLTRB(28, 16, 24, 16),
           child: Text(
             title,
             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black54),
@@ -216,36 +235,6 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black),
-    );
-  }
-}
-
-class _SettingsSwitchTile extends StatelessWidget {
-  const _SettingsSwitchTile({required this.icon, required this.title, required this.value, required this.onChanged});
-  final IconData icon;
-  final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: kBrutalistYellow,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.black, width: 1.5),
-        ),
-        child: Icon(icon, color: Colors.black, size: 20),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeColor: Colors.black,
-        activeTrackColor: kBrutalistPurple.withOpacity(0.5),
-      ),
     );
   }
 }

@@ -19,7 +19,7 @@ class Course {
   final Color backgroundColor;
   final IconData? iconData;
   final List<dynamic> whatyoulearn;
-  final List<dynamic> lessons, skills ;
+  final List<dynamic> lessons, skills;
 
   Course({
     required this.id,
@@ -104,7 +104,7 @@ class Course {
       skills:
           (json['skills'] as List?)?.map((item) => item.toString()).toList() ??
           ["CORE CONCEPTS", "PROBLEM SOLVING", "PRACTICE"],
-          
+
       whatyoulearn:
           (json['whatyoulearn'] as List?)
               ?.map((item) => item.toString())
@@ -116,8 +116,6 @@ class Course {
           '${json['instructorBio']?.toString() ?? 'NO BIO AVAILABLE.'}',
       instructorimg:
           '${json['instructorimg']?.toString() ?? 'assets/images/instructor.png'}',
-
-      
     );
   }
 }

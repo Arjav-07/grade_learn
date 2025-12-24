@@ -1,12 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:grade_learn/services/user_service.dart';
-
-// Color constants for consistency
-const Color kPurpleCardColor = Color(0xFF7A64D8);
-const Color kLightOrangeColor = Color(0xFFFFB67A);
-const Color kDarkTextColor = Color(0xFF282C35);
+import 'package:flutter/material.dart';
+import 'package:grade_learn/screens/admin_panel.dart'; // Ensure this path is correct
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -16,10 +11,14 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final UserService _userService = UserService();
-
   late PageController _pageController;
   int _currentPageIndex = 0;
+
+  // Neo-Brutalism Colors
+  final Color _bgYellow = const Color(0xFFFFFFF9);
+  final Color _accentOrange = const Color(0xFFFFB67A);
+  final Color _accentPurple = const Color(0xFF7A64D8);
+  final Color _accentGreen = const Color(0xFF3CE5C4);
 
   final List<Map<String, dynamic>> _pastWeeksData = [
     {
@@ -34,18 +33,11 @@ class _DashboardPageState extends State<DashboardPage> {
       'hours': 10,
       'chartData': {'Mon': 25.0, 'Tue': 30.0, 'Wed': 45.0, 'Thr': 15.0, 'Fri': 35.0}
     },
-    {
-      'title': '2 Weeks Ago',
-      'lessons': 55,
-      'hours': 14,
-      'chartData': {'Mon': 40.0, 'Tue': 20.0, 'Wed': 55.0, 'Thr': 30.0, 'Fri': 18.0}
-    },
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadUsername();
     _pageController = PageController();
   }
 
@@ -55,168 +47,197 @@ class _DashboardPageState extends State<DashboardPage> {
     super.dispose();
   }
 
-  // This function can now be removed if the username is no longer displayed,
-  // but I'll leave it in case you need it for other purposes.
-  Future<void> _loadUsername() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    
-    if (currentUser != null) {
-      try {
-        final userData = await _userService.fetchUserByUid(currentUser.uid);
-        
-        if (userData != null && userData['username'] != null) {
-          if (mounted) {
-            setState(() {
-            });
-          }
-        } else {
-           if (mounted) {
-            setState(() {
-            });
-          }
-        }
-      } catch (e) {
-        print('Error loading username: $e');
-        if (mounted) {
-          setState(() {
-          });
-        }
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ));
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgYellow,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24.0),
           children: [
-            _buildHeader(),
-            const SizedBox(height: 10), // Reduced spacing after header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildHeaderBackBtn(),
+                _buildAdminEntryBtn(), // Admin button only visible to admins
+              ],
+            ),
+            const SizedBox(height: 10),
             _buildProgressTitle(),
+            const SizedBox(height: 24),
+            _buildProgressCard(), // Includes the swipeable bar charts
+            const SizedBox(height: 32),
+            _buildRecentCoursesHeader(),
             const SizedBox(height: 20),
-            _buildProgressCard(),
-            const SizedBox(height: 30),
-            _buildRecentCourses(),
+            _buildRecentCoursesList(), // Now powered by live Firebase data
           ],
         ),
       ),
     );
   }
 
-  // --- WIDGET BUILDER METHODS ---
-
-  // --- MODIFIED: Header now only contains the back arrow ---
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start, // Align to the start
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: kDarkTextColor),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProgressTitle() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Progress',
-          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 10,
-              )
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.grid_view_rounded, color: Colors.grey.shade600, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'All subjects',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+  // --- ADMIN ROLE CHECK ---
+  Widget _buildAdminEntryBtn() {
+    final user = FirebaseAuth.instance.currentUser;
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          if (data['role'] == 'admin') {
+            return GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPanel())),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 2.5),
+                  boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
+                ),
+                child: const Icon(Icons.admin_panel_settings, color: Colors.white),
               ),
-              const Icon(Icons.arrow_drop_down, color: Colors.grey),
-            ],
-          ),
-        ),
-      ],
+            );
+          }
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
+  // --- RECENT ACTIVITY LIST (FIREBASE) ---
+  Widget _buildRecentCoursesList() {
+    final user = FirebaseAuth.instance.currentUser;
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('applications')
+          .where('userId', isEqualTo: user?.uid)
+          .orderBy('appliedAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Colors.black));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text("NO APPLICATIONS YET", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey)),
+          );
+        }
+
+        final docs = snapshot.data!.docs;
+        return Column(
+          children: docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final bool isInternship = data['type'] == 'internship';
+            final String status = data['status'] ?? 'pending';
+
+            // Calculate progress and color based on status
+            double progressValue = 0.5;
+            Color tileTheme = _accentOrange;
+            if (status == 'approved') {
+              progressValue = 1.0;
+              tileTheme = _accentGreen;
+            } else if (status == 'rejected') {
+              progressValue = 0.0;
+              tileTheme = Colors.redAccent;
+            }
+
+            return _buildBruteTile({
+              'title': data['itemTitle'] ?? 'Untitled',
+              'author': isInternship ? "INTERNSHIP" : "WORKSHOP",
+              'status': status,
+              'progress': progressValue,
+              'color': isInternship ? _accentPurple : tileTheme,
+              'icon': isInternship ? Icons.work : Icons.event,
+            });
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  // --- UI COMPONENT: APPLICATION TILE ---
+  Widget _buildBruteTile(Map<String, dynamic> item) {
+    Color statusBg;
+    switch (item['status'].toString().toLowerCase()) {
+      case 'approved': statusBg = const Color(0xFFE2FFDD); break;
+      case 'rejected': statusBg = const Color(0xFFFFD4D4); break;
+      default: statusBg = const Color(0xFFF9E79F);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: item['color'], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
+            child: Icon(item['icon'] as IconData, color: Colors.black),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(item['title'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16), overflow: TextOverflow.ellipsis)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 1.5)),
+                      child: Text(item['status'].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10)),
+                    ),
+                  ],
+                ),
+                Text(item['author'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 12),
+                _buildBruteProgressBar(item['progress'], item['color']),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- PROGRESS CARD (SWIPEABLE CHARTS) ---
   Widget _buildProgressCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF6EE),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF232323),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.bar_chart_rounded, color: Colors.white),
-              ),
-              Text(
-                _pastWeeksData[_currentPageIndex]['title'],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.grey.shade700,
-                ),
-              ),
+              Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.insights, color: Colors.white)),
+              Text(_pastWeeksData[_currentPageIndex]['title'].toString().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 250,
+            height: 230,
             child: PageView.builder(
               controller: _pageController,
               itemCount: _pastWeeksData.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPageIndex = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return _buildWeekPage(index);
-              },
+              onPageChanged: (index) => setState(() => _currentPageIndex = index),
+              itemBuilder: (context, index) => _buildWeekPage(index),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           _buildPageIndicator(),
         ],
       ),
@@ -225,248 +246,58 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildWeekPage(int index) {
     final weekData = _pastWeeksData[index];
-    final lessonsCount = weekData['lessons'].toString();
-    final hoursCount = weekData['hours'].toString();
     final chartData = weekData['chartData'] as Map<String, double>;
-
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildStatColumn(lessonsCount, 'lessons'),
-            _buildStatColumn(hoursCount, 'hours'),
-          ],
-        ),
-        const SizedBox(height: 15),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [_buildBruteStat(weekData['lessons'].toString(), 'LESSONS'), _buildBruteStat(weekData['hours'].toString(), 'HOURS')]),
+        const SizedBox(height: 20),
         _buildBarChart(chartData),
       ],
     );
   }
 
-  Widget _buildStatColumn(String value, String label) {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: const TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
-        children: [
-          TextSpan(text: '$value '),
-          TextSpan(
-            text: label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.normal,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBarChart(Map<String, double> data) {
-    final maxValue = data.values.isNotEmpty ? data.values.reduce((a, b) => a > b ? a : b) : 1.0;
-
+    final maxValue = data.values.reduce((a, b) => a > b ? a : b);
     return SizedBox(
-      height: 160,
+      height: 120,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: data.entries.map((entry) {
-          final bool isActive = entry.value == maxValue;
-          return _buildBar(entry.key, entry.value, maxValue, isActive: isActive);
+          bool isActive = entry.value == maxValue;
+          double barHeight = (entry.value / maxValue) * 100;
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                width: 32, height: barHeight,
+                decoration: BoxDecoration(color: isActive ? _accentOrange : Colors.white, border: Border.all(color: Colors.black, width: 2), borderRadius: BorderRadius.circular(8)),
+                alignment: Alignment.center,
+                child: Text("${entry.value.toInt()}", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: isActive ? Colors.white : Colors.black)),
+              ),
+              const SizedBox(height: 4),
+              Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10)),
+            ],
+          );
         }).toList(),
       ),
     );
   }
 
-  Widget _buildBar(String day, double value, double maxValue, {bool isActive = false}) {
-    final barHeight = (value / maxValue) * 120;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
+  // --- SMALL HELPERS ---
+  Widget _buildHeaderBackBtn() => GestureDetector(onTap: () => Navigator.pop(context), child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2.5), boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))]), child: const Icon(Icons.arrow_back, color: Colors.black)));
+  Widget _buildProgressTitle() => const Text("YOUR PROGRESS 📈", style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900, height: 1.1));
+  Widget _buildRecentCoursesHeader() => const Text("RECENT ACTIVITY", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900));
+  Widget _buildBruteStat(String value, String label) => Column(children: [Text(value, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900)), Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey))]);
+  
+  Widget _buildBruteProgressBar(double progress, Color color) {
+    return Stack(
       children: [
-        Container(
-          width: 45,
-          height: barHeight > 0 ? barHeight : 0,
-          decoration: BoxDecoration(
-            color: isActive ? const Color(0xFFE5883C) : const Color(0xFFFFDCC1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (isActive)
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment(-0.5, -0.8),
-                      colors: [Colors.transparent, Colors.white24, Colors.transparent],
-                      stops: [0.0, 0.5, 1.0],
-                      tileMode: TileMode.repeated,
-                    ),
-                  ),
-                ),
-              Text(
-                '${value.toInt()}',
-                style: TextStyle(
-                  color: isActive ? Colors.white : const Color(0xFFE5883C),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(day, style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+        Container(height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.black, width: 1.5))),
+        FractionallySizedBox(widthFactor: progress, child: Container(height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.black, width: 1.5)))),
       ],
     );
   }
 
-  Widget _buildPageIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_pastWeeksData.length, (index) {
-        return _buildDot(isActive: _currentPageIndex == index);
-      }),
-    );
-  }
-
-  Widget _buildDot({required bool isActive}) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 12 : 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.black : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
-
-  Widget _buildRecentCourses() {
-    // Dummy data for recent courses
-    final List<Map<String, dynamic>> recentCourses = [
-      {
-        'icon': Icons.design_services,
-        'color': const Color(0xFF6F6AE8),
-        'title': 'UI/UX Fundamentals',
-        'author': 'by John Doe',
-        'progress': 0.75, // 75%
-      },
-      {
-        'icon': Icons.code,
-        'color': const Color(0xFFE5883C),
-        'title': 'Flutter for Beginners',
-        'author': 'by Jane Smith',
-        'progress': 0.40, // 40%
-      },
-      {
-        'icon': Icons.storage,
-        'color': const Color(0xFF3CE5C4),
-        'title': 'Firebase Firestore',
-        'author': 'by Mike Ross',
-        'progress': 0.90, // 90%
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Recent Courses',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        const SizedBox(height: 20),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: recentCourses.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final course = recentCourses[index];
-            return _buildCourseProgressTile(
-              icon: course['icon'],
-              color: course['color'],
-              title: course['title'],
-              author: course['author'],
-              progress: course['progress'],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCourseProgressTile({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String author,
-    required double progress,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  author,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 8,
-                          backgroundColor: color.withOpacity(0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${(progress * 100).toInt()}%',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: color),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
+  Widget _buildPageIndicator() => Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(2, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: _currentPageIndex == index ? 24 : 12, height: 12, decoration: BoxDecoration(color: _currentPageIndex == index ? Colors.black : Colors.white, border: Border.all(color: Colors.black, width: 2), borderRadius: BorderRadius.circular(6)))));
 }

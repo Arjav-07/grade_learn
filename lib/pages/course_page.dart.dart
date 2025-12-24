@@ -171,7 +171,7 @@ class _SkillPageState extends State<SkillPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.black, width: 2.5),
+                border: Border.all(color: Colors.black, width: 2),
                 boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
               ),
               child: Row(
@@ -272,7 +272,7 @@ class CourseCard extends StatelessWidget {
                 width: 54, height: 54,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black, width: 1.5),
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
                 child: ClipOval(
                   child: Image.asset(
@@ -318,7 +318,7 @@ class CourseCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: _getDifficultyColor(course.difficulty),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black, width: 1.5),
+                      border: Border.all(color: Colors.black, width: 2),
                     ),
                     child: Text(
                       course.difficulty.toUpperCase(), 

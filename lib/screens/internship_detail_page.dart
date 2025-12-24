@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grade_learn/models/Intenship.dart';
+// Ensure this path matches your actual file structure
+import 'package:grade_learn/screens/application_from.dart'; 
 
 class InternshipDetailsPage extends StatelessWidget {
-  final Internship internship; // Direct link to the model
+  final Internship internship;
   const InternshipDetailsPage({super.key, required this.internship});
 
   @override
@@ -99,11 +103,11 @@ class InternshipDetailsPage extends StatelessWidget {
             // ---------- DESCRIPTION ----------
             _CustomCard(
               color: Colors.white,
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SectionHeader(title: "ROLE DESCRIPTION"),
+                  const _SectionHeader(title: "ROLE DESCRIPTION"),
                   Text(
                     internship.roledescription,
                     style: const TextStyle(fontSize: 16, height: 1.5),
@@ -114,253 +118,191 @@ class InternshipDetailsPage extends StatelessWidget {
             const SizedBox(height: 20),
 
             // ---------- SKILLS REQUIRED ----------
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: const _SectionHeader(title: 'SKILL YOU WILL REQUIRED'),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: _SectionHeader(title: 'SKILLS REQUIRED'),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+              padding: const EdgeInsets.only(left: 10),
               child: Wrap(
                 spacing: 12,
                 runSpacing: 12,
-                children: [
-                  ...internship.skills,
-                ].map((skill) => _skillBadge(skill)).toList(),
+                children: internship.skills.map((skill) => _skillBadge(skill)).toList(),
               ),
             ),
             const SizedBox(height: 20),
 
             // ---------- KEY RESPONSIBILITIES ----------
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: const _SectionHeader(title: "KEY RESPONSIBILITIES"),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: _SectionHeader(title: "KEY RESPONSIBILITIES"),
             ),
             const SizedBox(height: 8),
             _CustomCard(
               color: const Color(0xFFB5C0FF),
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
-                children: [
-                  _includeRow(
-                    FontAwesomeIcons.briefcase,
-                    internship.keyresponsibilities[0],
-                  ),
-                  _includeRow(
-                    FontAwesomeIcons.briefcase,
-                    internship.keyresponsibilities[1],
-                  ),
-                  _includeRow(
-                    FontAwesomeIcons.briefcase,
-                    internship.keyresponsibilities[2],
-                  ),
-                  _includeRow(
-                    FontAwesomeIcons.briefcase,
-                    internship.keyresponsibilities[3],
-                  ),
-                  _includeRow(
-                    FontAwesomeIcons.briefcase,
-                    internship.keyresponsibilities[4],
-                  ),
-                  _includeRow(
-                    FontAwesomeIcons.briefcase,
-                    internship.keyresponsibilities[5],
-                  ),
-                ],
+                children: internship.keyresponsibilities
+                    .map((resp) => _includeRow(FontAwesomeIcons.briefcase, resp))
+                    .toList(),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // ---------- QUALIFICATIONS ----------
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: const _SectionHeader(title: "QUALIFICATIONS"),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: _SectionHeader(title: "QUALIFICATIONS"),
             ),
             const SizedBox(height: 8),
             _CustomCard(
               color: const Color(0xFFFDE798),
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
-                children: [
-                  _includeRow(
-                    Icons.mark_email_read,
-                    internship.qualifications[0],
-                  ),
-                  _includeRow(
-                    Icons.mark_email_read,
-                    internship.qualifications[1],
-                  ),
-                  _includeRow(
-                    Icons.mark_email_read,
-                    internship.qualifications[2],
-                  ),
-                  _includeRow(
-                    Icons.mark_email_read,
-                    internship.qualifications[3],
-                  ),
-                  _includeRow(
-                    Icons.mark_email_read,
-                    internship.qualifications[4],
-                  ),
-                  _includeRow(
-                    Icons.mark_email_read,
-                    internship.qualifications[5],
-                  ),
-                ],
+                children: internship.qualifications
+                    .map((qual) => _includeRow(Icons.check_circle_outline, qual))
+                    .toList(),
               ),
             ),
-            SizedBox(height: 20),
-
-            // ---------- BENIFITS OR PERKS ----------
-            if (internship.benifitsperks.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: const _SectionHeader(title: "BENEFITS & PERKS"),
-              ),
-              const SizedBox(height: 12),
-              ...internship.benifitsperks.map(
-                (benefit) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12, left: 20),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.badge_outlined,
-                        size: 24,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        // Added Expanded to prevent text overflow
-                        child: Text(
-                          benefit.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+            const SizedBox(height: 20),
 
             // --- ABOUT COMPANY ---
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: const _SectionHeader(title: "ABOUT YOUR COMPANY"),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: _SectionHeader(title: "ABOUT COMPANY"),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             _CustomCard(
               color: Colors.white,
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       const CircleAvatar(
                         radius: 25,
                         backgroundColor: Colors.black,
-                        child: Icon(Icons.person, color: Colors.white),
+                        child: Icon(Icons.business, color: Colors.white),
                       ),
                       const SizedBox(width: 15),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            internship.companytitle,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              internship.companytitle,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
                             ),
-                          ),
-                          Text(
-                            internship.companysubtitle,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
-                              color: Colors.black.withOpacity(0.6),
+                            Text(
+                              internship.companysubtitle,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12,
+                                color: Colors.black.withOpacity(0.6),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 10),
-                  Text(internship.companyinfo,
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  const SizedBox(height: 15),
+                  Text(internship.companyinfo, style: const TextStyle(fontSize: 14)),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
+            
             // ---------- REQUIREMENTS ----------
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: const _SectionHeader(
-                title: 'APPLICATION PROCESS & REQUIREMENTS',
-              ),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: _SectionHeader(title: 'APPLICATION PROCESS'),
             ),
             const SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _numItem(1, 'APPLICATION REVIEW', internship.applicationreview),
-                _numItem(2, 'ONLINE ASSESSMENT', internship.onlineassessment),
-                _numItem(3, 'TECHNICAL INTERVIEW', internship.technicalinterview),
-                _numItem(4, 'FINAL INTERVIEW', internship.finalinterview),
-                _numItem(5, 'OFFER EXTENSION', internship.offerextension),
-              ],
-            ),
+            _numItem(1, 'APPLICATION REVIEW', internship.applicationreview),
+            _numItem(2, 'ONLINE ASSESSMENT', internship.onlineassessment),
+            _numItem(3, 'TECHNICAL INTERVIEW', internship.technicalinterview),
+            _numItem(4, 'FINAL INTERVIEW', internship.finalinterview),
+            _numItem(5, 'OFFER EXTENSION', internship.offerextension),
+            
             const SizedBox(height: 20),
+
             // ---------- CONNECT ----------
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: const _SectionHeader(title: "QUESTIONS? CONNECT WITH US"),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: _SectionHeader(title: "CONNECT WITH US"),
             ),
             const SizedBox(height: 8),
             _CustomCard(
               color: const Color(0xFFB5C0FF),
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 children: [
                   _includeRow(Icons.mail_outline, internship.mail),
-                  _includeRow(Icons.web, internship.website),
+                  _includeRow(Icons.language, internship.website),
                   _includeRow(FontAwesomeIcons.linkedin, internship.linkedin),
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            // ---------- APPLY BUTTON (END OF CARD) ----------
-            GestureDetector(
-              onTap: () {
-                // apply / enroll logic
-              },
-              child: Container(
-                width: double.infinity,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  "APPLY FOR INTERNSHIP",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
+            
+            const SizedBox(height: 30),
+
+            // ---------- APPLY BUTTON ----------
+            // ---------- DYNAMIC APPLY BUTTON ----------
+StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('applications')
+      .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+      .where('itemId', isEqualTo: internship.id)
+      .snapshots(),
+  builder: (context, snapshot) {
+    // Check if a document already exists for this user and this item
+    bool alreadyApplied = snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+
+    return GestureDetector(
+      onTap: alreadyApplied
+          ? null // Disable tap if already applied
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ApplicationForm(
+                    title: internship.role,
+                    type: 'internship',
+                    itemId: internship.id,
                   ),
                 ),
-              ),
-            ),
-
+              );
+            },
+      child: Container(
+        width: double.infinity,
+        height: 64,
+        decoration: BoxDecoration(
+          // Change color to Grey if already applied to give visual feedback
+          color: alreadyApplied ? Colors.grey[400] : Colors.black,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: alreadyApplied 
+              ? null // Remove shadow if disabled for a "pressed" look
+              : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          alreadyApplied ? "ALREADY APPLIED" : "APPLY FOR INTERNSHIP",
+          style: TextStyle(
+            color: alreadyApplied ? Colors.black54 : Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ),
+    );
+  },
+),
             const SizedBox(height: 40),
           ],
         ),
@@ -377,12 +319,9 @@ class InternshipDetailsPage extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.black, width: 2),
-          boxShadow: const [
-            BoxShadow(color: Colors.black, offset: Offset(1, 1)),
-          ],
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 22, color: Colors.black),
             const SizedBox(height: 6),
@@ -390,14 +329,9 @@ class InternshipDetailsPage extends StatelessWidget {
               value.split(' ').first.toUpperCase(),
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
             ),
-            const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-              ),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -406,137 +340,80 @@ class InternshipDetailsPage extends StatelessWidget {
   }
 }
 
-// ---------- REUSABLE COMPONENTS ----------
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader({required this.title});
-
   @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 1.2,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1));
 }
 
 class _CustomCard extends StatelessWidget {
   final Widget child;
   final Color color;
   final EdgeInsets padding;
-
-  const _CustomCard({
-    required this.child,
-    required this.color,
-    required this.padding,
-  });
-
+  const _CustomCard({required this.child, required this.color, required this.padding});
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+        ),
+        child: child,
+      );
+}
+
+Widget _skillBadge(String label) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(25),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black, width: 2),
         boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
       ),
-      child: child,
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
     );
-  }
-}
 
-// ---------- SKILL BADGE COMPONENT ----------
-Widget _skillBadge(String label) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(15),
-      border: Border.all(color: Colors.black, width: 2),
-      boxShadow: const [
-        BoxShadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0),
-      ],
-    ),
-    child: Text(
-      label,
-      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-    ),
-  );
-}
-
-//---------- KEY RESPONSIBILITIES ROW COMPONENT ----------
-Widget _includeRow(IconData icon, String text) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 22),
-        const SizedBox(width: 12),
-
-        // 🔥 OVERFLOW FIX
-        Expanded(
-          child: Text(
-            text,
-            softWrap: true,
-            maxLines: 2, // increase if needed
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              height: 1.4,
+Widget _includeRow(IconData icon, String text) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, height: 1.3),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
 
 Widget _numItem(int n, String title, String desc) => Padding(
-  padding: const EdgeInsets.only(bottom: 12),
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(left: 10),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: Colors.black.withOpacity(0.1),
-          child: Text(
-            '$n.',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.black,
+      padding: const EdgeInsets.only(bottom: 15, left: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 14,
+            backgroundColor: Colors.black,
+            child: Text('$n', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+                Text(desc, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+              ],
             ),
           ),
-        ),
+        ],
       ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              desc,
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-          ],
-        ),
-      ),
-    ],
-  ),
-);
+    );

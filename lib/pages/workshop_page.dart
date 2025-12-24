@@ -38,32 +38,28 @@ void initState() {
 
 Future<void> _loadWorkshopData() async {
   try {
-    // 1. Load the string from assets
     final String response = await rootBundle.loadString('assets/data/workshops.json');
-    
-    // 2. Decode the JSON
     final Map<String, dynamic> data = json.decode(response);
     
-    // 3. Convert to List and UPDATE STATE
-    setState(() {
-      _allWorkshops.clear();
-      _allWorkshops.addAll(
-        (data['workshops'] as List)
-            .map((item) => WorkshopData.fromJson(item))
-            .toList(),
-      );
-      // CRITICAL: You must populate the filtered list here, or the UI stays empty!
-      _filteredWorkshops = _allWorkshops; 
-    });
-    debugPrint("DEBUG: Loaded ${_allWorkshops.length} workshops");
-  } catch (e) {
-    // This will print the exact error (like File Not Found) to your console
-    debugPrint("CRITICAL ERROR: $e");
+    // Inside workshop_page.dart
+setState(() {
+  _allWorkshops.clear();
+  final List<dynamic> workshopJsonList = data['workshops'] as List;
+
+  // Inside workshop_page.dart -> _loadWorkshopData
+_allWorkshops.addAll(
+  workshopJsonList.map((item) {
+    // 1. Extract the actual string value from 'course_id'
+    final String docId = item['course_id'] ?? ''; 
     
-    // Fallback: Stop the spinner even if it fails
-    setState(() {
-      _filteredWorkshops = []; 
-    });
+    // 2. Pass that string to the model factory
+    return WorkshopData.fromJson(item, docId);
+  }).toList(),
+);
+  _filteredWorkshops = _allWorkshops; 
+});
+  } catch (e) {
+    debugPrint("CRITICAL ERROR: $e");
   }
 }
 
@@ -240,16 +236,19 @@ Future<void> _loadWorkshopData() async {
     );
   }
 
-  // ---------------- WORKSHOP CARD ----------------
+// ---------------- WORKSHOP CARD (CLEAN FIX) ----------------
   Widget _buildWorkshopCard(BuildContext context, WorkshopData data) {
-    // Determine if we should show "0" seats based on your rules
-    bool showNoSeats = data.type == "LIVE" || data.type == "FULL" || data.seatsLeft == 0;
+    // 1. Data-Driven Logic: Status is only FULL if seats are actually 0
+    final bool isActuallyFull = data.seatsLeft <= 0;
+
+    // 2. Dynamic Status: Use "FULL" badge only when out of seats, otherwise use original type
+    final String displayType = isActuallyFull ? "FULL" : data.type;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, // Always white (or your brand color)
+        color: Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: Colors.black, width: 2.5),
         boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
@@ -257,7 +256,7 @@ Future<void> _loadWorkshopData() async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // TOP ROW
+          // --- TOP ROW: Icon, Title, Duration ---
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -278,34 +277,22 @@ Future<void> _loadWorkshopData() async {
                   children: [
                     Text(
                       data.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        height: 1.1,
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, height: 1.1),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       data.instructor,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
               Column(
                 children: [
-                  const Icon(Icons.timer_outlined),
+                  const Icon(Icons.timer_outlined, size: 20),
                   Text(
                     data.duration,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                 ],
               ),
@@ -314,54 +301,48 @@ Future<void> _loadWorkshopData() async {
 
           const SizedBox(height: 16),
 
-          // STATUS BAR
+          // --- BLACK STATUS BAR ---
           Padding(
             padding: const EdgeInsets.only(right: 80.0),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.black, // Keep it black for high contrast
+                color: Colors.black,
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
               ),
               alignment: Alignment.center,
               child: Text(
-                // Use the custom logic for seat text
-                showNoSeats ? "WORKSHOP FULL" : "ONLY ${data.seatsLeft} SEATS LEFT!",
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900, 
-                  fontSize: 14, 
-                  color: Colors.white,
-                ),
+                // Use isActuallyFull to toggle message
+                isActuallyFull ? "WORKSHOP FULL" : "ONLY ${data.seatsLeft} SEATS LEFT!",
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.white),
               ),
             ),
           ),
 
           const SizedBox(height: 12),
 
-          // BADGES + ARROW
+          // --- BADGES + NAVIGATION ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  _badge(data.type, color: _typeColor(data.type)),
+                  // Badge color and text update dynamically based on seats
+                  _badge(displayType, color: _typeColor(displayType)),
                   const SizedBox(width: 6),
                   _badge(data.date),
                   const SizedBox(width: 6),
-                  // Logic to show 0 seats if LIVE or FULL
-                  _badge("${showNoSeats ? 0 : data.seatsLeft} SEATS"),
+                  // Always show the real count from data
+                  _badge("${data.seatsLeft} SEATS"),
                 ],
               ),
               GestureDetector(
-                onTap: () { 
-                  // Always accessible now
+                onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => WorkshopDetailsPage(data: data),
-                    ),
+                    MaterialPageRoute(builder: (_) => WorkshopDetailsPage(data: data)),
                   );
                 },
                 child: Container(

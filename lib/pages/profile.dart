@@ -5,7 +5,6 @@ import 'package:grade_learn/settings/setting.dart';
 import 'package:grade_learn/screens/applied.dart';
 import 'package:grade_learn/screens/completed.dart';
 import 'package:grade_learn/screens/dashboard.dart';
-import 'package:grade_learn/screens/recent.dart';
 import 'package:grade_learn/services/user_service.dart';
 
 // --- Brutalist Design Constants ---
@@ -127,13 +126,6 @@ class _ProfileAppState extends State<ProfileApp> {
                       const SizedBox(height: 16),
 
                       // 3. MENU TILES (Matching Chatbot Feature Tiles)
-                      _buildMenuTile(
-                        icon: Icons.access_time,
-                        title: "RECENT ACTIVITY",
-                        desc: "VIEW YOUR PAST ENROLLMENTS AND WATCHLIST HISTORY.",
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const WatchlistPage())),
-                      ),
                       _buildMenuTile(
                         icon: Icons.leaderboard_outlined,
                         title: "STATISTICS DASHBOARD",

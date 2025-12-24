@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class Internship {
   final String role,
+  id,
+
       company,
       location,
       stipend,
@@ -54,7 +56,7 @@ class Internship {
     required this.offerextension,
     required this.mail,
     required this.website,
-    required this.linkedin,
+    required this.linkedin, required this.id,
   });
 
   factory Internship.fromJson(Map<String, dynamic> json) {
@@ -104,7 +106,8 @@ class Internship {
 
       mail: '${json['companymail']?.toString() ?? 'NOT FOUND'}',
       website: '${json['companywebsite']?.toString() ?? 'NOT FOUND'}',
-      linkedin: '${json['companylinkedin']?.toString() ?? 'NOT FOUND'}',
+      linkedin: '${json['companylinkedin']?.toString() ?? 'NOT FOUND'}', id: json['id'] ?? '', // Ensure your workshops.json includes an "id" field
+
     );
   }
 

@@ -72,7 +72,7 @@ class _ApplicationFormState extends State<ApplicationForm> {
 
   setState(() => _isUploading = true);
 
-  // Generate a unique ID (UserId_ItemId) to prevent duplicate applications
+  // Generate a unique ID (UserId_ItemId)
   final applicationRef = FirebaseFirestore.instance
       .collection('applications')
       .doc("${user.uid}_${widget.itemId}");
@@ -82,17 +82,21 @@ class _ApplicationFormState extends State<ApplicationForm> {
       DocumentSnapshot appCheck = await transaction.get(applicationRef);
       if (appCheck.exists) throw Exception("ALREADY REGISTERED!");
 
+      // ✅ GENERATE UNIQUE ISSUE NUMBER FOR WORKSHOP
+      String workshopCertNo = "WS-${user.uid.substring(0, 5)}-${widget.itemId.toUpperCase()}";
+
       transaction.set(applicationRef, {
         'userId': user.uid,
         'itemId': widget.itemId,
         'itemTitle': widget.title,
         'type': widget.type,
+        'certificateNo': workshopCertNo, // ✅ ADDED THIS LINE
         'status': widget.type == 'workshop' ? 'approved' : 'pending',
         'appliedAt': FieldValue.serverTimestamp(),
         'firstName': _firstNameController.text.trim(),
         'lastName': _lastNameController.text.trim(),
         'email': _emailController.text.trim(),
-        'profession': _profession,
+        'profession': _profession ?? "STUDENT", 
         'domain': _domainController.text.trim(),
       });
     });

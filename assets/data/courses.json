@@ -21,19 +21,25 @@
     ],
     "skills": ["GEOMETRY", "VISUALIZATION", "SPATIAL REASONING"],
     "lessons": [
-      {
-        "title": "01. INTRODUCTION TO SHAPES",
-        "type": "video",
-        "duration": "05:30",
-        "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
-      },
-      {
-        "title": "02. SETTING UP TOOLS",
-        "type": "video",
-        "duration": "12:15",
-        "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
-      }
-    ]
+  {
+    "title": "01. INTRODUCTION TO SHAPES",
+    "type": "video",
+    "duration": "05:30",
+    "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
+  },
+  {
+    "title": "02. SETTING UP TOOLS",
+    "type": "video",
+    "duration": "12:15",
+    "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
+  },
+  {
+    "title": "03. GEOMETRY STUDY GUIDE",
+    "type": "pdf",
+    "duration": "Document",
+    "url": "assets/data/sample.pdf"
+  }
+]
   },
   {
     "course_id": "stanford_spanish_002",

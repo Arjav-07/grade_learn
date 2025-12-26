@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:grade_learn/auth/onboarding_page.dart';
 import 'package:grade_learn/settings/setting.dart';
@@ -24,30 +25,37 @@ class ProfileApp extends StatefulWidget {
 class _ProfileAppState extends State<ProfileApp> {
   final UserService _userService = UserService();
   String _username = 'User';
-  bool _isLoadingUsername = true;
+  String _joinedYear = '2025'; // Dynamic year fallback
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUsername();
+    _loadProfileData();
   }
 
-  Future<void> _loadUsername() async {
+  Future<void> _loadProfileData() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
         final userData = await _userService.fetchUserByUid(currentUser.uid);
-        setState(() {
-          _username = (userData != null && userData['username'] != null)
-              ? userData['username']
-              : 'User';
-          _isLoadingUsername = false;
-        });
+        if (userData != null) {
+          setState(() {
+            _username = userData['username'] ?? 'User';
+            
+            // --- NEW: Dynamic Year Fetching ---
+            if (userData['createdAt'] != null) {
+              // Convert Firestore Timestamp to DateTime object
+              DateTime date = (userData['createdAt'] as Timestamp).toDate();
+              _joinedYear = "${date.year}"; 
+            }
+            
+            _isLoading = false;
+          });
+        }
       } catch (e) {
-        setState(() {
-          _username = 'User';
-          _isLoadingUsername = false;
-        });
+        debugPrint("Error loading profile: $e");
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -78,82 +86,60 @@ class _ProfileAppState extends State<ProfileApp> {
                 children: [
                   const Text(
                     "MY PROFILE",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.1,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                        context, MaterialPageRoute(builder: (_) => const SettingsPage())),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 2),
-                      ),
-                      child: const Icon(Icons.settings, color: Colors.black, size: 24),
-                    ),
+                  _buildCircularIconBtn(
+                    icon: Icons.settings, 
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()))
                   ),
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              // --- SCROLLABLE CONTENT ---
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. HERO PROFILE CARD (Matching Chatbot Hero Card)
+                      // 1. HERO PROFILE CARD
                       _buildProfileHeroCard(),
 
                       const SizedBox(height: 30),
 
-                      // 2. SECTION TITLE
                       const Text(
                         "ACCOUNT & ACTIVITY",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.2,
-                        ),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1.2),
                       ),
                       const SizedBox(height: 16),
 
-                      // 3. MENU TILES (Matching Chatbot Feature Tiles)
+                      // 2. MENU TILES
                       _buildMenuTile(
                         icon: Icons.leaderboard_outlined,
                         title: "STATISTICS DASHBOARD",
-                        desc: "DETAILED INSIGHTS INTO YOUR LEARNING PROGRESS AND HOURS.",
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const DashboardPage())),
+                        desc: "DETAILED INSIGHTS INTO YOUR LEARNING PROGRESS.",
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardPage())),
                       ),
                       _buildMenuTile(
                         icon: Icons.route_outlined,
                         title: "APPLIED PROGRAMS",
-                        desc: "TRACK THE STATUS OF YOUR 7 ACTIVE APPLICATIONS.",
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => AppliedPage())),
+                        desc: "TRACK THE STATUS OF YOUR ACTIVE APPLICATIONS.",
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppliedPage())),
                       ),
                       _buildMenuTile(
                         icon: Icons.emoji_events_outlined,
                         title: "COMPLETED COURSES",
-                        desc: "ACCESS ALL YOUR FINISHED LESSONS AND ACHIEVEMENTS.",
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const CompletedPage())),
+                        desc: "ACCESS ALL YOUR FINISHED LESSONS.",
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompletedPage())),
                       ),
 
                       const SizedBox(height: 30),
 
-                      // 4. LOGOUT BUTTON
+                      // 3. LOGOUT BUTTON
                       _buildLogoutButton(context),
 
-                      const SizedBox(height: 80), // Bottom Padding
+                      const SizedBox(height: 80), 
                     ],
                   ),
                 ),
@@ -165,7 +151,8 @@ class _ProfileAppState extends State<ProfileApp> {
     );
   }
 
-  // ---------------- PROFILE HERO CARD (Chatbot Style) ----------------
+  // ---------------- UI HELPERS ----------------
+
   Widget _buildProfileHeroCard() {
     return Container(
       width: double.infinity,
@@ -174,11 +161,10 @@ class _ProfileAppState extends State<ProfileApp> {
         color: kBrutalistBlue,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: Colors.black, width: 2.5),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
       ),
       child: Column(
         children: [
-          // Profile Image with Bold Border
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -193,86 +179,78 @@ class _ProfileAppState extends State<ProfileApp> {
             ),
           ),
           const SizedBox(height: 20),
-          _isLoadingUsername
+          _isLoading
               ? const SizedBox(width: 120, child: LinearProgressIndicator(color: kBrutalistPurple))
               : Text(
                   _username.toUpperCase(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
                 ),
-          const Text(
-            "LEARNER SINCE 2024",
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-              letterSpacing: 1.1,
-            ),
+          Text(
+            "LEARNER SINCE $_joinedYear", // Dynamic Date
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
           ),
           const SizedBox(height: 20),
-
-          // Badge Tag (Chatbot Style)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: kBrutalistYellow,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.black, width: 2),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.verified_user, size: 16, color: Colors.black),
-                SizedBox(width: 8),
-                Text(
-                  "VERIFIED LEARNER",
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-                ),
-              ],
-            ),
-          )
+          _buildBadgeTag(),
         ],
       ),
     );
   }
 
-  // ---------------- MENU TILE (Chatbot Style) ----------------
-  Widget _buildMenuTile(
-      {required IconData icon, required String title, required String desc, VoidCallback? onTap}) {
+  Widget _buildBadgeTag() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: kBrutalistYellow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.verified_user, size: 16, color: Colors.black),
+          SizedBox(width: 8),
+          Text("VERIFIED LEARNER", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuTile({required IconData icon, required String title, required String desc, VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(25),
         border: Border.all(color: Colors.black, width: 2.5),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
       ),
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.all(20),
         leading: Icon(icon, size: 32, color: Colors.black),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Text(
-            desc,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.black54,
-              fontWeight: FontWeight.bold,
-              height: 1.3,
-            ),
-          ),
-        ),
+        title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+        subtitle: Text(desc, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold)),
         trailing: const Icon(Icons.arrow_forward, color: Colors.black),
       ),
     );
   }
 
-  // ---------------- LOGOUT BUTTON ----------------
+  Widget _buildCircularIconBtn({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black, width: 2),
+        ),
+        child: Icon(icon, color: Colors.black, size: 24),
+      ),
+    );
+  }
+
   Widget _buildLogoutButton(BuildContext context) {
     return GestureDetector(
       onTap: () => _signOutAndNavigate(context),
@@ -282,26 +260,12 @@ class _ProfileAppState extends State<ProfileApp> {
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.black, width: 2),
-          boxShadow: const [
-            BoxShadow(
-              color: kBrutalistPurple,
-              offset: Offset(4, 4),
-            )
-          ],
+          boxShadow: const [BoxShadow(color: kBrutalistPurple, offset: Offset(4, 4))],
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              "LOGOUT ACCOUNT",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
-            ),
+            Text("LOGOUT ACCOUNT", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
             SizedBox(width: 12),
             Icon(Icons.logout, color: Colors.white, size: 24),
           ],

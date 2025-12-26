@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grade_learn/pages/chatwelcome_page.dart';
 import 'package:grade_learn/pages/workshop_page.dart';
+import 'package:grade_learn/pipe/course_enrolled.dart';
+import 'package:grade_learn/screens/applied.dart';
+import 'package:grade_learn/screens/completed.dart';
 import 'package:grade_learn/services/user_service.dart';
 
 const Color kBackgroundColor = Color(0xFFFFFFF9);
@@ -210,7 +213,7 @@ class _HomePageState extends State<HomePage> {
                         child: _folderButton(
                           iconColor: Colors.green,
                           text: 'COURSES ENROLLED',
-                          onTap: () {},
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CoursesEnrolledPage())),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -218,7 +221,7 @@ class _HomePageState extends State<HomePage> {
                         child: _folderButton(
                           iconColor: Colors.deepPurple,
                           text: 'INTERNSHIP ENROLLED',
-                          onTap: () {},
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppliedPage())),
                         ),
                       ),
                     ],
@@ -230,7 +233,7 @@ class _HomePageState extends State<HomePage> {
                         child: _folderButton(
                           iconColor: Colors.blue,
                           text: 'CERTIFICATES',
-                          onTap: () {},
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompletedPage())),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -238,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                         child: _folderButton(
                           iconColor: Colors.amber,
                           text: 'WORKSHOP ENROLLED',
-                          onTap: () {},
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppliedPage())),
                         ),
                       ),
                     ],
@@ -468,4 +471,5 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  
 }

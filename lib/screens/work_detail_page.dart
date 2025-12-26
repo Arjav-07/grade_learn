@@ -23,7 +23,7 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // Update UI every minute to keep the "H & M" countdown accurate
+    // Update UI every minute for accurate countdown
     _countdownTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (mounted) setState(() {});
     });
@@ -33,6 +33,165 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
   void dispose() {
     _countdownTimer.cancel();
     super.dispose();
+  }
+
+  // ---------- PDF GENERATOR ----------
+  Future<void> _generateCertificate(
+    WorkshopData workshop,
+    String issueNo,
+  ) async {
+    final pdf = pw.Document();
+    final user = FirebaseAuth.instance.currentUser;
+
+    final appDoc = await FirebaseFirestore.instance
+        .collection('applications')
+        .doc("${user?.uid}_${workshop.id}")
+        .get();
+
+    final String name = appDoc.exists
+        ? "${appDoc['firstName']} ${appDoc['lastName']}"
+        : (user?.displayName ?? "STUDENT");
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4.landscape,
+        build: (pw.Context context) {
+          return pw.FullPage(
+            ignoreMargins: true,
+            child: pw.Container(
+              color: PdfColor.fromInt(0xFFFFFFF9),
+              child: pw.Container(
+                margin: const pw.EdgeInsets.all(40),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.black, width: 6),
+                  boxShadow: [
+                    const pw.BoxShadow(
+                      color: PdfColors.black,
+                      offset: PdfPoint(8, -8),
+                    ),
+                  ],
+                ),
+                child: pw.Stack(
+                  children: [
+                    pw.Positioned(
+                      top: 0,
+                      right: 0,
+                      child: pw.Container(
+                        width: 150,
+                        height: 150,
+                        color: PdfColor.fromInt(0xFFFDE798),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(40),
+                      child: pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        children: [
+                          pw.Text(
+                            "CERTIFICATE OF COMPLETION",
+                            style: pw.TextStyle(
+                              fontSize: 34,
+                              fontWeight: pw.FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          pw.SizedBox(height: 10, width: double.infinity),
+                          pw.Container(
+                            height: 4,
+                            color: PdfColors.black,
+                            width: 100,
+                          ),
+                          pw.SizedBox(height: 30),
+                          pw.Text(
+                            "THIS IS TO CERTIFY THAT",
+                            style: const pw.TextStyle(
+                              fontSize: 16,
+                              color: PdfColors.grey700,
+                            ),
+                          ),
+                          pw.SizedBox(height: 15),
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(
+                              horizontal: 30,
+                              vertical: 10,
+                            ),
+                            decoration: pw.BoxDecoration(
+                              color: PdfColor.fromInt(0xFFB5C0FF),
+                              border: pw.Border.all(
+                                color: PdfColors.black,
+                                width: 3,
+                              ),
+                            ),
+                            child: pw.Text(
+                              name.toUpperCase(),
+                              style: pw.TextStyle(
+                                fontSize: 28,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pw.SizedBox(height: 20),
+                          pw.Text(
+                            "HAS SUCCESSFULLY COMPLETED THE WORKSHOP",
+                            style: const pw.TextStyle(fontSize: 14),
+                          ),
+                          pw.SizedBox(height: 10),
+                          pw.Text(
+                            workshop.title.toUpperCase(),
+                            style: pw.TextStyle(
+                              fontSize: 22,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                          pw.Spacer(),
+                          pw.Row(
+                            mainAxisAlignment:
+                                pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text(
+                                    "GRADE LEARN ACADEMY",
+                                    style: pw.TextStyle(
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
+                                  ),
+                                  pw.Text(
+                                    "ISSUE NO: $issueNo",
+                                  ), // Displays stored Cert No
+                                ],
+                              ),
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                children: [
+                                  pw.Text(
+                                    "DATE: ${workshop.date}",
+                                    style: pw.TextStyle(
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
+                                  ),
+                                  pw.Text("OFFICIAL WORKSHOP SERIES"),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   @override
@@ -51,7 +210,11 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
         ),
         title: const Text(
           "WORKSHOP DETAILS",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 1.1),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.1,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -59,141 +222,24 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ---------- HEADER CARD ----------
-            _CustomCard(
-              color: const Color(0xFFE3F2FD),
-              padding: const EdgeInsets.all(30),
-              child: Column(
-                children: [
-                  const CircleAvatar(
-                    radius: 42,
-                    backgroundColor: Colors.black,
-                    child: CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.code, size: 40, color: Colors.black),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.data.title.toUpperCase(),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "INSTRUCTOR: ${widget.data.instructor.toUpperCase()}",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-
+            _buildHeaderCard(),
             const SizedBox(height: 30),
-
-            // ---------- ENROLLMENT CONTENT LOCK ----------
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('applications')
-                  .doc("${userId}_${widget.data.id}")
-                  .snapshots(),
-              builder: (context, snapshot) {
-                bool isEnrolled = snapshot.hasData &&
-                    snapshot.data!.exists &&
-                    snapshot.data!['status'] == 'approved';
-
-                if (!isEnrolled) {
-                  return _buildLockedView(); 
-                }
-
-                return _buildUnlockedContent(widget.data); 
-              },
-            ),
-
+            _buildEnrollmentStatus(userId),
             const SizedBox(height: 30),
-
             const _SectionHeader(title: 'LOGISTICS'),
             const SizedBox(height: 12),
             _infoTile("DATE", widget.data.date),
             _infoTile("DURATION", widget.data.duration),
-            _infoTile("AVAILABILITY", "${widget.data.seatsLeft} / ${widget.data.totalSeats} SEATS LEFT"),
-
-            const SizedBox(height: 24),
-
-            _CustomCard(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _SectionHeader(title: "ABOUT WORKSHOP"),
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.data.description,
-                    style: const TextStyle(fontSize: 15, height: 1.6, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
+            _infoTile(
+              "AVAILABILITY",
+              "${widget.data.seatsLeft} / ${widget.data.totalSeats} SEATS LEFT",
             ),
-
             const SizedBox(height: 24),
-
-            const _SectionHeader(title: "CURRICULUM"),
-            const SizedBox(height: 8),
-            _CustomCard(
-              color: const Color(0xFFFDE798),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Column(
-                children: widget.data.topics
-                    .map((item) => _includeRow(Icons.check_circle_outline, item))
-                    .toList(),
-              ),
-            ),
-
+            _buildAboutWorkshop(),
+            const SizedBox(height: 24),
+            _buildCurriculum(),
             const SizedBox(height: 30),
-
-            // ---------- REGISTRATION ACTION ----------
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('applications')
-                  .doc("${userId}_${widget.data.id}")
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  return _buildEnrolledBadge();
-                }
-
-                return ElevatedButton(
-                  onPressed: isActuallyFull
-                      ? null
-                      : () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ApplicationForm(
-                                title: widget.data.title,
-                                type: 'workshop',
-                                itemId: widget.data.id,
-                              ),
-                            ),
-                          ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isActuallyFull ? Colors.white : Colors.black,
-                    foregroundColor: isActuallyFull ? Colors.black : Colors.white,
-                    disabledBackgroundColor: Colors.grey[200],
-                    minimumSize: const Size(double.infinity, 64),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: Colors.black, width: 2),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    isActuallyFull ? "WORKSHOP FULL" : "RESERVE MY SPOT",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                  ),
-                );
-              },
-            ),
+            _buildActionButton(userId, isActuallyFull),
             const SizedBox(height: 40),
           ],
         ),
@@ -201,20 +247,64 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
     );
   }
 
-  // ---------- ENROLLED / UNLOCKED COMPONENTS ----------
+  // ---------- HELPER BUILDERS ----------
+
+  Widget _buildHeaderCard() {
+    return _CustomCard(
+      color: const Color(0xFFE3F2FD),
+      padding: const EdgeInsets.all(30),
+      child: Column(
+        children: [
+          const CircleAvatar(
+            radius: 42,
+            backgroundColor: Colors.black,
+            child: CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.white,
+              child: Icon(Icons.code, size: 40, color: Colors.black),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.data.title.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "INSTRUCTOR: ${widget.data.instructor.toUpperCase()}",
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnrollmentStatus(String userId) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('applications')
+          .doc("${userId}_${widget.data.id}")
+          .snapshots(),
+      builder: (context, snapshot) {
+        bool isEnrolled =
+            snapshot.hasData &&
+            snapshot.data!.exists &&
+            snapshot.data!['status'] == 'approved';
+        if (!isEnrolled) return _buildLockedView();
+        return _buildUnlockedContent(widget.data);
+      },
+    );
+  }
 
   Widget _buildUnlockedContent(WorkshopData data) {
-    // 1. Calculate Countdown
     DateTime now = DateTime.now();
-    DateTime workshopDate = DateTime.parse(data.date); 
+    DateTime workshopDate = DateTime.parse(data.date);
     Duration diff = workshopDate.difference(now);
-    
     bool isCompleted = diff.isNegative;
-    int hours = diff.inHours;
-    int minutes = diff.inMinutes.remainder(60);
 
     return _CustomCard(
-      color: isCompleted ? const Color(0xFFB5C0FF) : const Color(0xFF3CE5C4), 
+      color: isCompleted ? const Color(0xFFB5C0FF) : const Color(0xFF3CE5C4),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,33 +314,75 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
             children: [
               Row(
                 children: [
-                  Icon(isCompleted ? Icons.workspace_premium : Icons.lock_open_rounded, color: Colors.black),
+                  Icon(
+                    isCompleted
+                        ? Icons.workspace_premium
+                        : Icons.lock_open_rounded,
+                    color: Colors.black,
+                  ),
                   const SizedBox(width: 10),
-                  Text(isCompleted ? "COMPLETED" : "ENROLLED", 
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                  Text(
+                    isCompleted ? "COMPLETED" : "ENROLLED",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
-              // REAL-TIME COUNTDOWN
-              if (!isCompleted) 
+              if (!isCompleted)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)),
-                  child: Text("${hours}H ${minutes}M LEFT", 
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "${diff.inHours}H ${diff.inMinutes.remainder(60)}M LEFT",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
             ],
           ),
           const Divider(color: Colors.black, thickness: 2, height: 25),
-          _infoText("SUBJECT", data.title), 
+          _infoText("SUBJECT", data.title),
           _infoText("SCHEDULE", "${data.date} @ ${data.duration}"),
           const SizedBox(height: 15),
-
-          if (isCompleted) 
+          if (isCompleted)
             ElevatedButton.icon(
-              onPressed: () => _generateCertificate(data),
+              onPressed: () async {
+                final user = FirebaseAuth.instance.currentUser;
+                final doc = await FirebaseFirestore.instance
+                    .collection('applications')
+                    .doc("${user?.uid}_${data.id}")
+                    .get();
+                // Safely fetch Cert No
+                final Map<String, dynamic>? docData = doc.data();
+                final String issueNo =
+                    (docData != null && docData.containsKey('certificateNo'))
+                    ? docData['certificateNo']
+                    : "WS-PENDING";
+                _generateCertificate(data, issueNo);
+              },
               icon: const Icon(Icons.download, color: Colors.white),
-              label: const Text("DOWNLOAD CERTIFICATE", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, minimumSize: const Size(double.infinity, 54)),
+              label: const Text(
+                "DOWNLOAD CERTIFICATE",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                minimumSize: const Size(double.infinity, 54),
+              ),
             )
           else
             ElevatedButton(
@@ -258,165 +390,231 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 54),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: const Text("JOIN LIVE WORKSHOP", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+              child: const Text(
+                "JOIN LIVE WORKSHOP",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
         ],
       ),
     );
   }
 
-  // ---------- PDF GENERATOR ----------
-  Future<void> _generateCertificate(WorkshopData workshop) async {
-    final pdf = pw.Document();
-    final user = FirebaseAuth.instance.currentUser;
-    final appDoc = await FirebaseFirestore.instance.collection('applications').doc("${user?.uid}_${workshop.id}").get();
-
-    final String name = appDoc.exists ? "${appDoc['firstName']} ${appDoc['lastName']}" : (user?.displayName ?? "Student");
-
-    pdf.addPage(pw.Page(
-      pageFormat: PdfPageFormat.a4.landscape,
-      build: (pw.Context context) {
-        return pw.Center(
-          child: pw.Container(
-            padding: const pw.EdgeInsets.all(30),
-            decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.black, width: 4)),
-            child: pw.Column(
-              mainAxisAlignment: pw.MainAxisAlignment.center,
-              children: [
-                pw.Text("CERTIFICATE OF COMPLETION", style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 20),
-                pw.Text("Awarded to: $name", style: const pw.TextStyle(fontSize: 24)),
-                pw.SizedBox(height: 10),
-                pw.Text("For finishing the workshop: ${workshop.title}", style: const pw.TextStyle(fontSize: 18)),
-                pw.SizedBox(height: 40),
-                pw.Text("Date: ${workshop.date}"),
-              ],
+  Widget _buildActionButton(String userId, bool isActuallyFull) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('applications')
+          .doc("${userId}_${widget.data.id}")
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.exists)
+          return _buildEnrolledBadge();
+        return ElevatedButton(
+          onPressed: isActuallyFull
+              ? null
+              : () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ApplicationForm(
+                      title: widget.data.title,
+                      type: 'workshop',
+                      itemId: widget.data.id,
+                    ),
+                  ),
+                ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isActuallyFull ? Colors.white : Colors.black,
+            foregroundColor: isActuallyFull ? Colors.black : Colors.white,
+            disabledBackgroundColor: Colors.grey[200],
+            minimumSize: const Size(double.infinity, 64),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Colors.black, width: 2),
             ),
+          ),
+          child: Text(
+            isActuallyFull ? "WORKSHOP FULL" : "RESERVE MY SPOT",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
         );
       },
-    ));
-
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+    );
   }
 
-  Widget _buildLockedView() {
-    return _CustomCard(
-      color: const Color(0xFFF5F5F5),
-      padding: const EdgeInsets.all(20),
-      child: const Column(
-        children: [
-          Icon(Icons.lock_person_rounded, size: 40, color: Colors.black54),
-          SizedBox(height: 12),
-          Text(
-            "REGISTER TO UNLOCK THE MEETING LINK,\nTOPIC DETAILS, AND SCHEDULE.",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.black54),
+  // ---------- UI COMPONENT HELPERS ----------
+  Widget _buildAboutWorkshop() => _CustomCard(
+    color: Colors.white,
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeader(title: "ABOUT WORKSHOP"),
+        const SizedBox(height: 12),
+        Text(
+          widget.data.description,
+          style: const TextStyle(
+            fontSize: 15,
+            height: 1.6,
+            fontWeight: FontWeight.w500,
           ),
-        ],
+        ),
+      ],
+    ),
+  );
+  Widget _buildCurriculum() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const _SectionHeader(title: "CURRICULUM"),
+      const SizedBox(height: 8),
+      _CustomCard(
+        color: const Color(0xFFFDE798),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Column(
+          children: widget.data.topics
+              .map((item) => _includeRow(Icons.check_circle_outline, item))
+              .toList(),
+        ),
       ),
-    );
-  }
-
-  Widget _buildEnrolledBadge() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black, width: 2.5),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.check_circle, color: Colors.green),
-          SizedBox(width: 12),
-          Text("YOU ARE ENROLLED", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-        ],
-      ),
-    );
-  }
-
-  // ---------- UI HELPERS ----------
-  Widget _infoText(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text("$label: ${value.toUpperCase()}", style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
-    );
-  }
-
-  Widget _infoTile(String label, String value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black, width: 2),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-        ],
-      ),
-    );
-  }
-
-  Widget _includeRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.4))),
-        ],
-      ),
-    );
-  }
+    ],
+  );
+  Widget _buildLockedView() => _CustomCard(
+    color: const Color(0xFFF5F5F5),
+    padding: const EdgeInsets.all(20),
+    child: const Column(
+      children: [
+        Icon(Icons.lock_person_rounded, size: 40, color: Colors.black54),
+        SizedBox(height: 12),
+        Text(
+          "REGISTER TO UNLOCK THE MEETING LINK,\nTOPIC DETAILS, AND SCHEDULE.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+        ),
+      ],
+    ),
+  );
+  Widget _buildEnrolledBadge() => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.black, width: 2.5),
+    ),
+    child: const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.check_circle, color: Colors.green),
+        SizedBox(width: 12),
+        Text(
+          "YOU ARE ENROLLED",
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+        ),
+      ],
+    ),
+  );
+  Widget _infoText(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Text(
+      "$label: ${value.toUpperCase()}",
+      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+    ),
+  );
+  Widget _infoTile(String label, String value) => Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.black, width: 2),
+      boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+        ),
+      ],
+    ),
+  );
+  Widget _includeRow(IconData icon, String text) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _CustomCard extends StatelessWidget {
   final Widget child;
   final Color color;
   final EdgeInsets padding;
-  const _CustomCard({required this.child, required this.color, required this.padding});
-
+  const _CustomCard({
+    required this.child,
+    required this.color,
+    required this.padding,
+  });
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Colors.black, width: 2),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
-      ),
-      child: child,
-    );
-  }
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: padding,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(25),
+      border: Border.all(color: Colors.black, width: 2),
+      boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+    ),
+    child: child,
+  );
 }
 
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader({required this.title});
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 10, bottom: 12),
-      child: Row(
-        children: [
-          Text(title, 
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1.2))],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(left: 10, bottom: 12),
+    child: Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+    ),
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:grade_learn/models/chatbot.dart';
+import 'package:grade_learn/chat/chat_screen.dart';
+import 'package:grade_learn/widgets/main_navigation_screen.dart';
 
 // --- Brutalist Design Constants ---
 const Color kBrutalistYellow = Color(0xFFFDE798);
@@ -24,7 +25,7 @@ class ChatWelcome extends StatelessWidget {
 
               // --- BACK BUTTON ---
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainNavigationScreen())),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -250,7 +251,7 @@ class ChatWelcome extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ChatBotPage()),
+          MaterialPageRoute(builder: (context) => const ChatScreen()),
         );
       },
       child: Container(

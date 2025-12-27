@@ -175,7 +175,7 @@ class _ProfileAppState extends State<ProfileApp> {
             child: const CircleAvatar(
               radius: 50,
               backgroundColor: Colors.white,
-              backgroundImage: AssetImage('assets/images/profile.png'),
+              backgroundImage: AssetImage('assets/images/grad_cap.jpg'),
             ),
           ),
           const SizedBox(height: 20),

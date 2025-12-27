@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // <<<--- 1. NEW IMPORT
 
-import 'package:grade_learn/models/chatbot.dart';
-import 'package:grade_learn/chat/chatbot_provider.dart';
 import 'firebase_options.dart';
 import 'package:grade_learn/auth/forgotpassword_page.dart';
 import 'package:grade_learn/auth/onboarding_page.dart';
@@ -24,17 +21,15 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await dotenv.load(fileName: ".env");
 
-  // The application is now wrapped in ProviderScope to allow
-  // Riverpod widgets (like the CourseDetailScreen) to function.
   runApp(
     ProviderScope(
-      // <<<--- 2. RIVERPOD SCOPE ADDED HERE
-      child: ChangeNotifierProvider<ChatbotProvider>(
-        create: (context) => ChatbotProvider(),
+      // // <<<--- 2. RIVERPOD SCOPE ADDED HERE
+      // child: ChangeNotifierProvider<ChatbotProvider>(
+      //   create: (context) => ChatbotProvider(),
         child: const MyApp(),
       ),
-    ),
   );
+  // );
 }
 
 class MyApp extends StatelessWidget {
@@ -44,7 +39,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Grade Learn',
+      title: 'SKILL WAVES',
       theme: ThemeData(
         fontFamily: 'MyHandDrawn',
         textTheme: const TextTheme(bodyMedium: TextStyle(letterSpacing: 0.6)),
@@ -66,7 +61,6 @@ class MyApp extends StatelessWidget {
             const MainNavigationScreen(),
         app_routes.MyRoutes.SkillPageRoute: (context) => const SkillPage(),
         app_routes.MyRoutes.ChatWelcomeRoute: (context) => const ChatWelcome(),
-        app_routes.MyRoutes.ChatBotRoute: (context) => const ChatBotPage(),
         app_routes.MyRoutes.ProfileAppRoutes: (context) =>
             const PlaceholderPage(title: 'Profile'),
       },

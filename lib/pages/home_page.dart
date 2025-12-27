@@ -125,10 +125,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             CircleAvatar(
               radius: 34,
-              backgroundColor: Colors.grey.shade200,
               child: const CircleAvatar(
                 radius: 38,
-                backgroundImage: AssetImage('assets/images/profile.png'),
+                backgroundImage: const AssetImage('assets/images/grad_cap.jpg'),
+                backgroundColor: Color(0xFFFFFFF9),
               ),
             ),
             const SizedBox(width: 15),
@@ -314,7 +314,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 15),
             Expanded(
               child: _buildThemedStatCard(
-                title: 'CHATBOT',
+                title: '  CHATBOT',
                 icon: FontAwesomeIcons.robot,
                 backgroundColor: const Color(0xFFB6B8FF),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatWelcome())),
@@ -333,7 +333,7 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.black, width: 2),
           boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
         ),
@@ -342,7 +342,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(icon, size: 24, color: kDarkTextColor),
             const SizedBox(width: 10),
-            Text(title, style: const TextStyle(color: kDarkTextColor, fontSize: 16, fontWeight: FontWeight.w900)),
+            Text(title, style: const TextStyle(color: kDarkTextColor, fontSize: 18, fontWeight: FontWeight.w900)),
           ],
         ),
       ),
@@ -426,7 +426,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.black, width: 2),
         boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
       ),

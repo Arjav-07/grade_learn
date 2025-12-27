@@ -48,7 +48,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'TERMS & CONDITIONS ⚖️',
+                'TERMS & CONDITIONS',
                 style: TextStyle(
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
@@ -64,7 +64,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
                 children: [
                   const Text(
-                    'EFFECTIVE DATE: OCTOBER 18, 2025',
+                    'EFFECTIVE DATE: DECEMBER 27, 2025',
                     style: TextStyle(
                       color: Colors.black54,
                       fontSize: 13,
@@ -139,7 +139,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                   _buildBrutalistContainer(
                     color: Colors.black,
                     child: const Text(
-                      'SUPPORT@GRADELEARNAPP.COM',
+                      'ARJAVBHISARA07@GMAIL.COM',
                       style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.2),
                     ),
                   ),

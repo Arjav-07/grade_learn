@@ -60,7 +60,7 @@ class Course {
     return Course(
       // Ensure these strings match your JSON keys exactly (case-sensitive)
       id: json['course_id']?.toString() ?? json['id']?.toString() ?? '',
-      logoPath: json['logoPath']?.toString() ?? 'assets/images/google.png',
+      logoPath: json['logoPath']?.toString() ?? 'NOT FOUND',
       providerName: json['providerName']?.toString() ?? 'GOOGLE',
 
       // Parses hex string (e.g., "0xFFB5C0FF") into a Color object

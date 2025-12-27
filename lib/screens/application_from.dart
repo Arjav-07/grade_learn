@@ -239,6 +239,7 @@ class _ApplicationFormState extends State<ApplicationForm> {
     return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(width: 2)),
         title: const Text("CONFIRM SUBMISSION", style: TextStyle(fontWeight: FontWeight.w900)),
         content: const Text("Check your details. You cannot change them after submitting."),

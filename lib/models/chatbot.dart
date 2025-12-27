@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:grade_learn/chat/chatbot_models.dart';
-import 'package:grade_learn/chat/chatbot_provider.dart';
+import 'package:grade_learn/chat/old%20chatbot/chatbot_models.dart';
+import 'package:grade_learn/chat/old%20chatbot/chatbot_provider.dart';
 import 'package:provider/provider.dart';
 
 // --- Brutalist Design Constants ---

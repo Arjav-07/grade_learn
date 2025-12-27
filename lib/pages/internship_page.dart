@@ -26,6 +26,7 @@ class _InternshipPageState extends State<InternshipPage> {
     'DATA': 'DATA',
     'REMOTE': 'REMOTE',
     'ON-SITE': 'ON-SITE',
+    'HYBRID': 'HYBRID',
   };
 
   @override

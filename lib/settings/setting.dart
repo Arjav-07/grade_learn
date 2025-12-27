@@ -70,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'SETTINGS ⚙️',
+                'SETTINGS ',
                 style: TextStyle(
                   fontSize: 38,
                   fontWeight: FontWeight.w900,
@@ -139,6 +139,7 @@ StreamBuilder<DocumentSnapshot>(
 ),
 
                   // --- SUPPORT SECTION ---
+                  
                   _SettingsGroupCard(
                     title: 'SUPPORT & ABOUT',
                     children: [

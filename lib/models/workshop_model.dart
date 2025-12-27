@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WorkshopData {
-  final String id,title, instructor, instructorBio, duration, date, type, description,meetingLink;
+  final String id,title, instructor, instructorBio, duration, date, type, description,meetingLink,time;
   final int seatsLeft, totalSeats;
   final Color brandColor;
   final List<String> topics;
@@ -10,7 +10,7 @@ class WorkshopData {
     required this.title, required this.instructor, required this.instructorBio,
     required this.duration, required this.seatsLeft, required this.totalSeats,
     required this.date, required this.brandColor, required this.type,
-    required this.description, required this.topics, required this.id, required this.meetingLink,
+    required this.description, required this.topics, required this.id, required this.meetingLink, required this.time,
   });
 
   factory WorkshopData.fromJson(Map<String, dynamic> json, String documentId) {
@@ -27,7 +27,7 @@ class WorkshopData {
     brandColor: Color(int.parse((json['brandColor'] ?? "#000000").replaceFirst('#', '0xFF'))),
     description: json['description'] ?? "",
     topics: List<String>.from(json['topics'] ?? []),
-    meetingLink: json['meetingLink'] ?? "",
+    meetingLink: json['meetingLink'] ?? "", time: json['time'] ?? "",
   );
 }
 }

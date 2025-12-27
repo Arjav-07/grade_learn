@@ -412,11 +412,21 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                     backgroundColor: Colors.white,
                   ),
                 ),
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: const Color(0xFFB5C0FF),
-                  child: Icon(course.iconData ?? Icons.code, size: 40, color: Colors.black),
+                Container(
+                width: 70, height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
+                child: ClipOval(
+                  child: Image.asset(
+                    course.logoPath, 
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, s) => const Icon(Icons.business, size: 30),
+                  ),
+                ),
+              ),
               ],
             ),
             const SizedBox(height: 15),

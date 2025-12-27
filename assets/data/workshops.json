@@ -1,28 +1,27 @@
 {
   "workshops": [
     {
-      "course_id": "Workshop001",
-      "title": "HELLO",
+      "course_id": "WS001",
+      "title": "MERN STACK INTENSIVE",
       "instructor": "SARAH MITCHELL",
       "instructorBio": "EXPERT JAVA DEVELOPER WITH 10 YEARS OF EXPERIENCE.",
       "duration": "3HR",
       "seatsLeft": 12,
       "totalSeats": 60,
       "date": "2025-12-24",
+      "time": "10:00 AM - 1:00 PM",
       "brandColor": "#F44336",
-      "type": "UPCOMING",
+      "type": "COMPLETED",
       "description": "JOIN US FOR AN INTENSIVE HANDS-ON WORKSHOP WHERE YOU'LL BUILD A COMPLETE FULL-STACK APPLICATION USING MONGODB, EXPRESS, REACT, AND NODE.JS.",
       "topics": [
         "SETTING UP MERN ENVIRONMENT",
         "BUILDING RESTFUL APIS WITH EXPRESS",
         "REACT FRONTEND DEVELOPMENT",
-        "MONGODB DATABASE INTEGRATION",
-        "AUTHENTICATION WITH JWT",
-        "DEPLOYMENT STRATEGIES"
+        "MONGODB DATABASE INTEGRATION"
       ]
     },
     {
-      "course_id": "workshop002",
+      "course_id": "WS002",
       "title": "PYTHON DATA SCIENCE BOOTCAMP",
       "instructor": "DR. JAMES CHEN",
       "instructorBio": "DATA SCIENTIST WITH A PH.D. IN MACHINE LEARNING.",
@@ -30,6 +29,7 @@
       "seatsLeft": 12,
       "totalSeats": 60,
       "date": "2026-01-12",
+      "time": "9:00 AM - 1:30 PM",
       "brandColor": "#2196F3",
       "type": "LIVE",
       "description": "MASTER THE ESSENTIALS OF DATA SCIENCE USING PYTHON, PANDAS, AND SCIKIT-LEARN.",
@@ -38,6 +38,366 @@
         "DATA CLEANING WITH PANDAS",
         "VISUALIZATION WITH MATPLOTLIB",
         "INTRODUCTION TO MACHINE LEARNING"
+      ]
+    },
+    {
+      "course_id": "WS003",
+      "title": "UX DESIGN FUNDAMENTALS",
+      "instructor": "ELENA RODRIGUEZ",
+      "instructorBio": "SENIOR PRODUCT DESIGNER AT A FORTUNE 500 COMPANY.",
+      "duration": "2HR",
+      "seatsLeft": 5,
+      "totalSeats": 30,
+      "date": "2026-01-15",
+      "time": "2:00 PM - 4:00 PM",
+      "brandColor": "#9C27B0",
+      "type": "UPCOMING",
+      "description": "LEARN THE USER-CENTERED DESIGN PROCESS FROM RESEARCH TO PROTOTYPING.",
+      "topics": [
+        "USER RESEARCH METHODS",
+        "WIREFRAMING IN FIGMA",
+        "USABILITY TESTING",
+        "INTERACTION DESIGN"
+      ]
+    },
+    {
+      "course_id": "WS004",
+      "title": "AWS CLOUD ARCHITECTURE",
+      "instructor": "MARCUS VANCE",
+      "instructorBio": "CERTIFIED SOLUTIONS ARCHITECT PROFESSIONAL.",
+      "duration": "5HR",
+      "seatsLeft": 25,
+      "totalSeats": 100,
+      "date": "2026-01-20",
+      "time": "10:00 AM - 3:00 PM",
+      "brandColor": "#FF9800",
+      "type": "UPCOMING",
+      "description": "DESIGN SCALABLE AND HIGHLY AVAILABLE SYSTEMS ON AMAZON WEB SERVICES.",
+      "topics": [
+        "EC2 AND S3 FUNDAMENTALS",
+        "VPC NETWORKING",
+        "LAMBDA SERVERLESS FUNCTIONS",
+        "IAM SECURITY POLICIES"
+      ]
+    },
+    {
+      "course_id": "WS005",
+      "title": "CYBERSECURITY ESSENTIALS",
+      "instructor": "KEVIN HACKETT",
+      "instructorBio": "ETHICAL HACKER AND SECURITY CONSULTANT.",
+      "duration": "3.5HR",
+      "seatsLeft": 0,
+      "totalSeats": 50,
+      "date": "2026-01-22",
+      "time": "1:00 PM - 4:30 PM",
+      "brandColor": "#607D8B",
+      "type": "LIVE",
+      "description": "PROTECT YOUR APPLICATIONS FROM COMMON VULNERABILITIES AND ATTACKS.",
+      "topics": [
+        "OWASP TOP 10",
+        "PENETRATION TESTING BASICS",
+        "ENCRYPTION STANDARDS",
+        "NETWORK SCANNING"
+      ]
+    },
+    {
+      "course_id": "WS006",
+      "title": "DOCKER & KUBERNETES",
+      "instructor": "LI WEI",
+      "instructorBio": "DEVOPS ENGINEER SPECIALIZING IN CONTAINERIZATION.",
+      "duration": "4HR",
+      "seatsLeft": 8,
+      "totalSeats": 40,
+      "date": "2026-01-28",
+      "time": "9:00 AM - 1:00 PM",
+      "brandColor": "#03A9F4",
+      "type": "UPCOMING",
+      "description": "LEARN TO CONTAINERIZE APPLICATIONS AND ORCHESTRATE THEM AT SCALE.",
+      "topics": [
+        "DOCKERFILE OPTIMIZATION",
+        "K8S PODS AND SERVICES",
+        "HELM CHARTS",
+        "CI/CD PIPELINES"
+      ]
+    },
+    {
+      "course_id": "WS007",
+      "title": "MASTERING TYPESCRIPT",
+      "instructor": "AMANDA CHASE",
+      "instructorBio": "PRINCIPAL FRONTEND ARCHITECT.",
+      "duration": "2.5HR",
+      "seatsLeft": 15,
+      "totalSeats": 75,
+      "date": "2026-02-01",
+      "time": "2:00 PM - 4:30 PM",
+      "brandColor": "#3F51B5",
+      "type": "UPCOMING",
+      "description": "TAKE YOUR JAVASCRIPT TO THE NEXT LEVEL WITH STRONG TYPING.",
+      "topics": [
+        "INTERFACES AND TYPES",
+        "GENERICS",
+        "DECORATORS",
+        "TS CONFIGURATION"
+      ]
+    },
+    {
+      "course_id": "WS008",
+      "title": "AI PROMPT ENGINEERING",
+      "instructor": "SAM RIVERA",
+      "instructorBio": "AI RESEARCHER AND LLM SPECIALIST.",
+      "duration": "2HR",
+      "seatsLeft": 45,
+      "totalSeats": 200,
+      "date": "2026-02-05",
+      "time": "11:00 AM - 1:00 PM",
+      "brandColor": "#009688",
+      "type": "UPCOMING",
+      "description": "LEARN TO COMMUNICATE EFFECTIVELY WITH LARGE LANGUAGE MODELS.",
+      "topics": [
+        "CHAIN OF THOUGHT PROMPTING",
+        "ZERO-SHOT VS FEW-SHOT",
+        "AI WORKFLOW AUTOMATION",
+        "ETHICAL AI USE"
+      ]
+    },
+    {
+      "course_id": "WS009",
+      "title": "MOBILE DEV WITH FLUTTER",
+      "instructor": "DAVID GOMEZ",
+      "instructorBio": "CROSS-PLATFORM MOBILE DEVELOPER.",
+      "duration": "6HR",
+      "seatsLeft": 10,
+      "totalSeats": 30,
+      "date": "2026-02-10",
+      "time": "10:00 AM - 4:00 PM",
+      "brandColor": "#4CAF50",
+      "type": "UPCOMING",
+      "description": "BUILD BEAUTIFUL NATIVE APPS FOR IOS AND ANDROID FROM ONE CODEBASE.",
+      "topics": [
+        "WIDGET TREE ARCHITECTURE",
+        "STATE MANAGEMENT WITH PROVIDER",
+        "ANIMATIONS IN FLUTTER",
+        "API INTEGRATION"
+      ]
+    },
+    {
+      "course_id": "WS010",
+      "title": "BLOCKCHAIN DEVELOPER",
+      "instructor": "SARAH JANSEN",
+      "instructorBio": "WEB3 ARCHITECT AND SMART CONTRACT AUDITOR.",
+      "duration": "4HR",
+      "seatsLeft": 2,
+      "totalSeats": 40,
+      "date": "2026-02-12",
+      "time": "1:00 PM - 5:00 PM",
+      "brandColor": "#795548",
+      "type": "LIVE",
+      "description": "DEEP DIVE INTO ETHEREUM, SOLIDITY, AND DECENTRALIZED APPS.",
+      "topics": [
+        "SOLIDITY FUNDAMENTALS",
+        "TRUFFLE SUITE",
+        "WEB3.JS INTEGRATION",
+        "NFT SMART CONTRACTS"
+      ]
+    },
+    {
+      "course_id": "WS011",
+      "title": "GO FOR BACKEND SYSTEMS",
+      "instructor": "ROBERT OKORO",
+      "instructorBio": "SYSTEMS ENGINEER AT A MAJOR CLOUD PROVIDER.",
+      "duration": "3HR",
+      "seatsLeft": 20,
+      "totalSeats": 50,
+      "date": "2026-02-18",
+      "time": "10:00 AM - 1:00 PM",
+      "brandColor": "#00BCD4",
+      "type": "UPCOMING",
+      "description": "BUILD HIGH-PERFORMANCE, CONCURRENT BACKEND SERVICES WITH GOLANG.",
+      "topics": [
+        "GOROUTINES AND CHANNELS",
+        "STANDARD LIBRARY DEEP DIVE",
+        "MICROSERVICES WITH GIN",
+        "UNIT TESTING IN GO"
+      ]
+    },
+    {
+      "course_id": "WS012",
+      "title": "GRAPHQL API DESIGN",
+      "instructor": "NICOLE TAN",
+      "instructorBio": "FULL-STACK ENGINEER AND OPEN SOURCE CONTRIBUTOR.",
+      "duration": "2.5HR",
+      "seatsLeft": 30,
+      "totalSeats": 60,
+      "date": "2026-02-22",
+      "time": "3:00 PM - 5:30 PM",
+      "brandColor": "#E91E63",
+      "type": "UPCOMING",
+      "description": "REPLACE REST WITH EFFICIENT, TYPE-SAFE GRAPHQL QUERIES.",
+      "topics": [
+        "SCHEMAS AND RESOLVERS",
+        "APOLLO SERVER SETUP",
+        "MUTATIONS AND SUBSCRIPTIONS",
+        "QUERY OPTIMIZATION"
+      ]
+    },
+    {
+      "course_id": "WS013",
+      "title": "AGILE PROJECT MGMT",
+      "instructor": "CHRIS PATTEL",
+      "instructorBio": "CERTIFIED SCRUM MASTER WITH 15 YEARS EXP.",
+      "duration": "4HR",
+      "seatsLeft": 12,
+      "totalSeats": 40,
+      "date": "2026-03-01",
+      "time": "9:00 AM - 1:00 PM",
+      "brandColor": "#CDDC39",
+      "type": "UPCOMING",
+      "description": "TRANSFORM YOUR TEAM'S PRODUCTIVITY WITH SCRUM AND KANBAN.",
+      "topics": [
+        "SPRINT PLANNING",
+        "BACKLOG GROOMING",
+        "BURNDOWN CHARTS",
+        "RETROSPECTIVE TECHNIQUES"
+      ]
+    },
+    {
+      "course_id": "WS014",
+      "title": "RUST FOR SYSTEMS PROGRAMMING",
+      "instructor": "ALEX STEVENS",
+      "instructorBio": "LOW-LEVEL PROGRAMMER AND RUST EVANGELIST.",
+      "duration": "5HR",
+      "seatsLeft": 15,
+      "totalSeats": 30,
+      "date": "2026-03-05",
+      "time": "10:00 AM - 3:00 PM",
+      "brandColor": "#FF5722",
+      "type": "UPCOMING",
+      "description": "LEARN MEMORY SAFETY WITHOUT A GARBAGE COLLECTOR.",
+      "topics": [
+        "OWNERSHIP AND BORROWING",
+        "PATTERN MATCHING",
+        "ERROR HANDLING",
+        "FFI AND UNSAFE RUST"
+      ]
+    },
+    {
+      "course_id": "WS015",
+      "title": "UI ANIMATION MASTERCLASS",
+      "instructor": "LISA WONG",
+      "instructorBio": "MOTION DESIGNER AND UI DEVELOPER.",
+      "duration": "3HR",
+      "seatsLeft": 5,
+      "totalSeats": 25,
+      "date": "2026-03-10",
+      "time": "2:00 PM - 5:00 PM",
+      "brandColor": "#673AB7",
+      "type": "UPCOMING",
+      "description": "CREATE FLUID, ENGAGING ANIMATIONS USING CSS AND FRAMER MOTION.",
+      "topics": [
+        "SVG ANIMATIONS",
+        "GESTURE-BASED MOTION",
+        "PERFORMANCE TUNING",
+        "MICRO-INTERACTIONS"
+      ]
+    },
+    {
+      "course_id": "WS016",
+      "title": "POSTGRESQL FOR SCALE",
+      "instructor": "GARY MOORE",
+      "instructorBio": "DATABASE ADMINISTRATOR AND ARCHITECT.",
+      "duration": "3.5HR",
+      "seatsLeft": 18,
+      "totalSeats": 50,
+      "date": "2026-03-15",
+      "time": "10:00 AM - 1:30 PM",
+      "brandColor": "#336791",
+      "type": "UPCOMING",
+      "description": "ADVANCED SQL, INDEXING STRATEGIES, AND QUERY TUNING.",
+      "topics": [
+        "COMPLEX JOINS AND CTES",
+        "PARTITIONING DATA",
+        "B-TREE AND GIN INDEXES",
+        "REPLICATION BASICS"
+      ]
+    },
+    {
+      "course_id": "WS017",
+      "title": "NEXT.JS 14 APP ROUTER",
+      "instructor": "JESSICA LEE",
+      "instructorBio": "FRONTEND LEAD AND NEXT.JS CONTRIBUTOR.",
+      "duration": "4HR",
+      "seatsLeft": 40,
+      "totalSeats": 100,
+      "date": "2026-03-20",
+      "time": "1:00 PM - 5:00 PM",
+      "brandColor": "#000000",
+      "type": "UPCOMING",
+      "description": "BUILD SEO-FRIENDLY REACT APPS WITH SERVER COMPONENTS.",
+      "topics": [
+        "SERVER COMPONENTS",
+        "DATA FETCHING PATTERNS",
+        "DYNAMIC ROUTING",
+        "MIDDLEWARE"
+      ]
+    },
+    {
+      "course_id": "WS018",
+      "title": "DEVOPS WITH TERRAFORM",
+      "instructor": "BRIAN HALL",
+      "instructorBio": "INFRASTRUCTURE AS CODE SPECIALIST.",
+      "duration": "3HR",
+      "seatsLeft": 22,
+      "totalSeats": 60,
+      "date": "2026-03-25",
+      "time": "10:00 AM - 1:00 PM",
+      "brandColor": "#5C4EE5",
+      "type": "UPCOMING",
+      "description": "AUTOMATE YOUR CLOUD INFRASTRUCTURE PROVISIONING.",
+      "topics": [
+        "HCL SYNTAX",
+        "STATE MANAGEMENT",
+        "MODULES AND PROVIDERS",
+        "TERRAFORM CLOUD"
+      ]
+    },
+    {
+      "course_id": "WS019",
+      "title": "NATURAL LANGUAGE PROCESSING",
+      "instructor": "DR. ANITA SHARMA",
+      "instructorBio": "AI PROFESSOR AND RESEARCH SCIENTIST.",
+      "duration": "5HR",
+      "seatsLeft": 10,
+      "totalSeats": 40,
+      "date": "2026-03-28",
+      "time": "9:00 AM - 2:00 PM",
+      "brandColor": "#8BC34A",
+      "type": "UPCOMING",
+      "description": "BUILD CHATBOTS AND SENTIMENT ANALYSIS TOOLS.",
+      "topics": [
+        "TOKENIZATION AND STEMMING",
+        "TRANSFORMER ARCHITECTURE",
+        "HUGGING FACE LIBRARY",
+        "FINE-TUNING MODELS"
+      ]
+    },
+    {
+      "course_id": "WS020",
+      "title": "KOTLIN FOR ANDROID",
+      "instructor": "MARK ZUBER",
+      "instructorBio": "SENIOR ANDROID DEVELOPER.",
+      "duration": "4HR",
+      "seatsLeft": 15,
+      "totalSeats": 50,
+      "date": "2026-04-02",
+      "time": "1:00 PM - 5:00 PM",
+      "brandColor": "#7F52FF",
+      "type": "UPCOMING",
+      "description": "MODERN ANDROID DEVELOPMENT WITH JETPACK COMPOSE.",
+      "topics": [
+        "KOTLIN COROUTINES",
+        "DECLARATIVE UI WITH COMPOSE",
+        "MVVM ARCHITECTURE",
+        "DEPENDENCY INJECTION"
       ]
     }
   ]

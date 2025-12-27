@@ -48,7 +48,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'PRIVACY POLICY 🛡️',
+                'PRIVACY POLICY',
                 style: TextStyle(
                   fontSize: 38,
                   fontWeight: FontWeight.w900,
@@ -131,7 +131,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                     color: Colors.black,
                     textColor: Colors.white,
                     child: const Text(
-                      'SUPPORT@GRADELEARNAPP.COM\n\nGRADE LEARN INC.\n123 LEARNING LANE\nINDIA',
+                      'ARJAVBHISARA07@GMAIL.COM\nSKILL WAVES.\nINDIA',
                       style: TextStyle(fontWeight: FontWeight.w900, height: 1.5, color: Colors.white),
                     ),
                   ),

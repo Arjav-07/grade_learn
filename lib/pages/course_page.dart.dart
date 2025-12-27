@@ -21,9 +21,9 @@ class _SkillPageState extends State<SkillPage> {
   // --- MAPS FOR CATEGORY UI ---
   final Map<String, String> _categoryMap = {
     'All': 'ALL',
-    'GEOMETRY IN ACTION': 'MATH',
-    'LANGUAGE CONVERSATION': 'LANGUAGE',
-    'ANCIENT CIVILIZATIONS': 'HISTORY',
+    'DATA': 'DATA SCIENCE',
+    'OS': 'OPERATING SYSTEMS',
+    'SECURITY': 'CYBERSECURITY',
   };
 
   final Map<String, IconData> _iconMap = {

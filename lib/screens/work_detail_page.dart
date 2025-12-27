@@ -23,7 +23,6 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // Update UI every minute for accurate countdown
     _countdownTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (mounted) setState(() {});
     });
@@ -196,54 +195,79 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isActuallyFull = widget.data.seatsLeft <= 0;
     final String userId = FirebaseAuth.instance.currentUser?.uid ?? "";
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFFFF9),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "WORKSHOP DETAILS",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.1,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(),
-            const SizedBox(height: 30),
-            _buildEnrollmentStatus(userId),
-            const SizedBox(height: 30),
-            const _SectionHeader(title: 'LOGISTICS'),
-            const SizedBox(height: 12),
-            _infoTile("DATE", widget.data.date),
-            _infoTile("DURATION", widget.data.duration),
-            _infoTile(
-              "AVAILABILITY",
-              "${widget.data.seatsLeft} / ${widget.data.totalSeats} SEATS LEFT",
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('workshops')
+          .doc(widget.data.id)
+          .snapshots(),
+      builder: (context, workshopSnapshot) {
+        // Fetch Live Data
+        final int liveSeats = (workshopSnapshot.hasData && workshopSnapshot.data!.exists)
+            ? (workshopSnapshot.data!.get('seatsLeft') ?? widget.data.seatsLeft)
+            : widget.data.seatsLeft;
+        
+        final String liveLink = (workshopSnapshot.hasData && workshopSnapshot.data!.exists)
+            ? (workshopSnapshot.data!.get('meetingLink') ?? widget.data.meetingLink)
+            : widget.data.meetingLink;
+
+        // Logic for completion based on date
+        final DateTime now = DateTime.now();
+        final DateTime today = DateTime(now.year, now.month, now.day);
+        final DateTime workshopDate = DateTime.tryParse(widget.data.date) ?? today;
+        final DateTime workshopDay = DateTime(workshopDate.year, workshopDate.month, workshopDate.day);
+        final bool isActuallyFull = liveSeats <= 0;
+        final bool isCompleted = workshopDay.isBefore(today);
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFFFFFF9),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
+              onPressed: () => Navigator.pop(context),
             ),
-            const SizedBox(height: 24),
-            _buildAboutWorkshop(),
-            const SizedBox(height: 24),
-            _buildCurriculum(),
-            const SizedBox(height: 30),
-            _buildActionButton(userId, isActuallyFull),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+            title: const Text(
+              "WORKSHOP DETAILS",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderCard(),
+                const SizedBox(height: 30),
+                _buildEnrollmentStatus(userId, liveLink, isCompleted),
+                const SizedBox(height: 30),
+                const _SectionHeader(title: 'LOGISTICS'),
+                const SizedBox(height: 12),
+                _infoTile("DATE", widget.data.date),
+                _infoTile("TIME", widget.data.time),
+                _infoTile("DURATION", widget.data.duration),
+                _infoTile(
+                  "AVAILABILITY",
+                  isCompleted ? "REGISTRATION CLOSED" : "$liveSeats / ${widget.data.totalSeats} SEATS LEFT",
+                ),
+                const SizedBox(height: 24),
+                _buildAboutWorkshop(),
+                const SizedBox(height: 24),
+                _buildCurriculum(),
+                const SizedBox(height: 30),
+                _buildActionButton(userId, isActuallyFull, isCompleted),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
 
@@ -280,7 +304,7 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
     );
   }
 
-  Widget _buildEnrollmentStatus(String userId) {
+  Widget _buildEnrollmentStatus(String userId, String liveLink, bool isCompleted) {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('applications')
@@ -292,16 +316,15 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
             snapshot.data!.exists &&
             snapshot.data!['status'] == 'approved';
         if (!isEnrolled) return _buildLockedView();
-        return _buildUnlockedContent(widget.data);
+        return _buildUnlockedContent(widget.data, liveLink, isCompleted, snapshot.data!);
       },
     );
   }
 
-  Widget _buildUnlockedContent(WorkshopData data) {
+  Widget _buildUnlockedContent(WorkshopData data, String liveLink, bool isCompleted, DocumentSnapshot appSnap) {
     DateTime now = DateTime.now();
     DateTime workshopDate = DateTime.parse(data.date);
     Duration diff = workshopDate.difference(now);
-    bool isCompleted = diff.isNegative;
 
     return _CustomCard(
       color: isCompleted ? const Color(0xFFB5C0FF) : const Color(0xFF3CE5C4),
@@ -358,18 +381,7 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
           if (isCompleted)
             ElevatedButton.icon(
               onPressed: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                final doc = await FirebaseFirestore.instance
-                    .collection('applications')
-                    .doc("${user?.uid}_${data.id}")
-                    .get();
-                // Safely fetch Cert No
-                final Map<String, dynamic>? docData = doc.data();
-                final String issueNo =
-                    (docData != null && docData.containsKey('certificateNo'))
-                    ? docData['certificateNo']
-                    : "WS-PENDING";
-                _generateCertificate(data, issueNo);
+                _generateCertificate(data, appSnap['certificateNo'] ?? "WS-PENDING");
               },
               icon: const Icon(Icons.download, color: Colors.white),
               label: const Text(
@@ -386,7 +398,7 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
             )
           else
             ElevatedButton(
-              onPressed: () => launchUrl(Uri.parse(data.meetingLink)),
+              onPressed: () => launchUrl(Uri.parse(liveLink)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 54),
@@ -407,7 +419,7 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
     );
   }
 
-  Widget _buildActionButton(String userId, bool isActuallyFull) {
+  Widget _buildActionButton(String userId, bool isActuallyFull, bool isCompleted) {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('applications')
@@ -416,8 +428,13 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data!.exists)
           return _buildEnrolledBadge();
+
+        String btnText = "RESERVE MY SPOT";
+        if (isCompleted) btnText = "WORKSHOP COMPLETED";
+        else if (isActuallyFull) btnText = "WORKSHOP FULL";
+
         return ElevatedButton(
-          onPressed: isActuallyFull
+          onPressed: (isActuallyFull || isCompleted)
               ? null
               : () => Navigator.push(
                   context,
@@ -430,8 +447,8 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
                   ),
                 ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: isActuallyFull ? Colors.white : Colors.black,
-            foregroundColor: isActuallyFull ? Colors.black : Colors.white,
+            backgroundColor: (isActuallyFull || isCompleted) ? Colors.white : Colors.black,
+            foregroundColor: (isActuallyFull || isCompleted) ? Colors.black : Colors.white,
             disabledBackgroundColor: Colors.grey[200],
             minimumSize: const Size(double.infinity, 64),
             shape: RoundedRectangleBorder(
@@ -440,7 +457,7 @@ class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
             ),
           ),
           child: Text(
-            isActuallyFull ? "WORKSHOP FULL" : "RESERVE MY SPOT",
+            btnText,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
         );

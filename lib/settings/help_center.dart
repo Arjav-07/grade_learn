@@ -79,7 +79,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'HELP CENTER 🆘',
+                'HELP CENTER ',
                 style: TextStyle(
                   fontSize: 38,
                   fontWeight: FontWeight.w900,

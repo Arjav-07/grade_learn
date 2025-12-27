@@ -1,7 +1,7 @@
 // lib/chat/chatbot_provider.dart
 
 import 'package:flutter/material.dart';
-import 'package:grade_learn/chat/chatbot_models.dart'; // Import the models
+import 'package:grade_learn/chat/old%20chatbot/chatbot_models.dart'; // Import the models
 
 class ChatbotProvider extends ChangeNotifier {
   // --- State Variables ---

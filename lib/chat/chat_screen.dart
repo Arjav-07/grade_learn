@@ -8,9 +8,9 @@ class MentorService {
   late ChatSession _chatSession;
 
   MentorService({required this.apiKey}) {
-    // FIX: Using the currently active 'gemini-2.5-flash' model
+    // FIX: Using the currently active 'gemini-3-flash-preview' model
     _model = GenerativeModel(
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       apiKey: apiKey,
       systemInstruction: Content.system(
         "You are 'GradeLearn Guru,' a senior student mentor. Talk like a real human peer—informal and supportive. "
@@ -46,7 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   
   // Replace with your actual Gemini API Key
-  final MentorService _mentor = MentorService(apiKey: 'AIzaSyBdXohHY9g2FoLvnSOJb8e-VABCFg-YikU');
+  final MentorService _mentor = MentorService(apiKey: 'AIzaSyCqAxatY_6dwCvKOcmsl81OaqiBGamsv7Y');
 
   void _scrollToBottom() {
     // Auto-scroll logic

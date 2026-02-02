@@ -41,11 +41,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SKILL WAVES',
       theme: ThemeData(
-        fontFamily: 'MyHandDrawn',
+        fontFamily: 'Roboto',
         textTheme: const TextTheme(bodyMedium: TextStyle(letterSpacing: 0.6)),
       ),
 
-      home: const MainNavigationScreen(),
+      home: const OnboardingPage(),
       routes: {
         '/home': (context) => const HomePage(),
         app_routes.MyRoutes.OnboardingPageRoute: (context) =>

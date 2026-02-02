@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'SKILL WAVES',
+      title: 'GRADE LEARN',
       theme: ThemeData(
         fontFamily: 'Roboto',
         textTheme: const TextTheme(bodyMedium: TextStyle(letterSpacing: 0.6)),

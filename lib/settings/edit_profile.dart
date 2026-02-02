@@ -19,14 +19,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
-  // Controller for 'username' only
+  // --- Icon Mapping Strategy ---
+  // This solves the Tree Shaking error by using constant references
+  static const Map<String, IconData> _avatarMap = {
+    'person': Icons.person,
+    'face': Icons.face,
+    'account_circle': Icons.account_circle,
+    'emoji_emotions': Icons.emoji_emotions,
+    'pets': Icons.pets,
+    'anchor': Icons.anchor,
+    'rocket_launch': Icons.rocket_launch,
+    'star': Icons.star,
+    'favorite': Icons.favorite,
+    'lightbulb': Icons.lightbulb,
+    'school': Icons.school,
+    'sports_esports': Icons.sports_esports,
+    'person_outline': Icons.person_outline,
+  };
+
   late final TextEditingController _usernameController;
   late final TextEditingController _headlineController;
   late final TextEditingController _skillsController;
   late final TextEditingController _goalsController;
 
   bool _isLoading = false;
-  IconData _selectedAvatar = Icons.person_outline;
+  String _selectedAvatarKey = 'person_outline'; // Store the KEY, not IconData
 
   @override
   void initState() {
@@ -35,11 +52,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _headlineController = TextEditingController();
     _skillsController = TextEditingController();
     _goalsController = TextEditingController();
-
     _loadUserData();
   }
 
-  // --- FETCH DATA FROM FIRESTORE ---
   Future<void> _loadUserData() async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -47,25 +62,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (doc.exists && mounted) {
         final data = doc.data()!;
         setState(() {
-          // Strictly fetching 'username'
           _usernameController.text = data['username'] ?? '';
           _headlineController.text = data['headline'] ?? '';
           _skillsController.text = data['skills'] ?? '';
           _goalsController.text = data['goals'] ?? '';
           
-          // Reconstruct icon from stored code point
-          if (data['avatarCodePoint'] != null) {
-            _selectedAvatar = IconData(
-              data['avatarCodePoint'], 
-              fontFamily: 'MaterialIcons'
-            );
+          // Fetch the key string from Firestore
+          if (data['avatarKey'] != null && _avatarMap.containsKey(data['avatarKey'])) {
+            _selectedAvatarKey = data['avatarKey'];
           }
         });
       }
     }
   }
 
-  // --- SAVE DATA TO FIRESTORE ---
   Future<void> _updateProfile() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -74,24 +84,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       final String newUsername = _usernameController.text.trim();
-
-      // 1. Update Firebase Auth DisplayName
       await user.updateDisplayName(newUsername);
 
-      // 2. Update Firestore Document (Strictly 'username')
       await _firestore.collection('users').doc(user.uid).set({
         'username': newUsername, 
         'headline': _headlineController.text.trim(),
         'skills': _skillsController.text.trim(),
         'goals': _goalsController.text.trim(),
-        'avatarCodePoint': _selectedAvatar.codePoint, 
+        'avatarKey': _selectedAvatarKey, // Save the String key
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('USERNAME UPDATED!', style: TextStyle(fontWeight: FontWeight.w900)),
+            content: Text('PROFILE UPDATED!', style: TextStyle(fontWeight: FontWeight.w900)),
             backgroundColor: Colors.black,
           ),
         );
@@ -121,15 +128,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 20),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text('EDIT PROFILE ✏️', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, height: 1.1)),
+              child: Text('EDIT PROFILE ✏️', 
+                style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, height: 1.1)),
             ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(24.0),
                 children: [
-                  _ProfileAvatar(selectedAvatar: _selectedAvatar, onTap: _showAvatarSelectionDialog),
+                  _ProfileAvatar(
+                    // Look up the IconData from the map for the UI
+                    selectedAvatar: _avatarMap[_selectedAvatarKey] ?? Icons.person_outline, 
+                    onTap: _showAvatarSelectionDialog
+                  ),
                   const SizedBox(height: 40),
-                  // Updated to use _usernameController
                   _buildBrutalistField(_usernameController, 'USERNAME', Icons.alternate_email),
                   const SizedBox(height: 20),
                   _buildBrutalistField(_headlineController, 'HEADLINE', Icons.lightbulb_outline),
@@ -148,7 +159,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Helper Widgets
   Widget _buildHeaderBtn(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: GestureDetector(
@@ -211,34 +221,46 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _showAvatarSelectionDialog() {
-    final List<IconData> avatars = [
-      Icons.person, Icons.face, Icons.account_circle, Icons.emoji_emotions,
-      Icons.pets, Icons.anchor, Icons.rocket_launch, Icons.star,
-      Icons.favorite, Icons.lightbulb, Icons.school, Icons.sports_esports,
-    ];
+    // We iterate over the keys of our map
+    final List<String> avatarKeys = _avatarMap.keys.toList()..remove('person_outline');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.black, width: 2.5)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), 
+          side: const BorderSide(color: Colors.black, width: 2.5)
+        ),
         backgroundColor: kBrutalistBg,
         title: const Text('CHOOSE AVATAR', style: TextStyle(fontWeight: FontWeight.w900)),
         content: SizedBox(
           width: double.maxFinite,
           child: GridView.builder(
             shrinkWrap: true,
-            itemCount: avatars.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 10, mainAxisSpacing: 10),
-            itemBuilder: (context, index) => GestureDetector(
-              onTap: () {
-                setState(() => _selectedAvatar = avatars[index]);
-                Navigator.of(context).pop();
-              },
-              child: Container(
-                decoration: BoxDecoration(color: _selectedAvatar == avatars[index] ? kBrutalistYellow : Colors.white, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2)),
-                child: Icon(avatars[index], color: Colors.black),
-              ),
+            itemCount: avatarKeys.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4, 
+              crossAxisSpacing: 10, 
+              mainAxisSpacing: 10
             ),
+            itemBuilder: (context, index) {
+              final key = avatarKeys[index];
+              final iconData = _avatarMap[key]!;
+              return GestureDetector(
+                onTap: () {
+                  setState(() => _selectedAvatarKey = key);
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _selectedAvatarKey == key ? kBrutalistYellow : Colors.white, 
+                    shape: BoxShape.circle, 
+                    border: Border.all(color: Colors.black, width: 2)
+                  ),
+                  child: Icon(iconData, color: Colors.black),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -259,10 +281,30 @@ class _ProfileAvatar extends StatelessWidget {
         child: Stack(
           children: [
             Container(
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 3), boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))]),
-              child: CircleAvatar(radius: 60, backgroundColor: kBrutalistBlue, child: Icon(selectedAvatar, size: 60, color: Colors.black)),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle, 
+                border: Border.all(color: Colors.black, width: 3), 
+                boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))]
+              ),
+              child: CircleAvatar(
+                radius: 60, 
+                backgroundColor: kBrutalistBlue, 
+                child: Icon(selectedAvatar, size: 60, color: Colors.black)
+              ),
             ),
-            Positioned(bottom: 5, right: 5, child: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: kBrutalistYellow, shape: BoxShape.circle, border: Border.all(color: Colors.black, width: 2)), child: const Icon(Icons.edit, color: Colors.black, size: 20))),
+            Positioned(
+              bottom: 5, 
+              right: 5, 
+              child: Container(
+                padding: const EdgeInsets.all(8), 
+                decoration: BoxDecoration(
+                  color: kBrutalistYellow, 
+                  shape: BoxShape.circle, 
+                  border: Border.all(color: Colors.black, width: 2)
+                ), 
+                child: const Icon(Icons.edit, color: Colors.black, size: 20)
+              )
+            ),
           ],
         ),
       ),

@@ -62,7 +62,13 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^32.1.20
   confetti: ^0.8.0
   rxdart: ^0.28.0
+  flutter_launcher_icons: ^0.14.4
   
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/trophy.png"
 
 dev_dependencies:
   flutter_test:
